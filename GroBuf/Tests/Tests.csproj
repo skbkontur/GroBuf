@@ -1,0 +1,95 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{60E8EA76-2CBB-4A14-B9AA-F639E1D131BC}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>SKBKontur.GroBuf.Tests</RootNamespace>
+    <AssemblyName>GroBuf.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework">
+      <HintPath>..\..\Assemblies\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="TestTools\ExtenderImpl.cs" />
+    <Compile Include="IntegrationTest.cs" />
+    <Compile Include="TestTools\ObjectComparer.cs" />
+    <Compile Include="TestTools\ObjectSerializer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestData\AdditionalInformation.cs" />
+    <Compile Include="TestData\AllowanceChargeInformation.cs" />
+    <Compile Include="TestData\AllowanceOrCharge.cs" />
+    <Compile Include="TestData\DateTimePeriod.cs" />
+    <Compile Include="TestData\DateTimePeriodGroup.cs" />
+    <Compile Include="TestData\DutyTaxFeeAccountDetail.cs" />
+    <Compile Include="TestData\DutyTaxFeeDetail.cs" />
+    <Compile Include="TestData\DutyTaxFeeDetails.cs" />
+    <Compile Include="TestData\DutyTaxFeeType.cs" />
+    <Compile Include="TestData\MonetaryAmount.cs" />
+    <Compile Include="TestData\MonetaryAmountGroup.cs" />
+    <Compile Include="TestData\PercentageDetails.cs" />
+    <Compile Include="TestData\PercentageDetailsGroup.cs" />
+    <Compile Include="TestData\Quantity.cs" />
+    <Compile Include="TestData\QuantityDetails.cs" />
+    <Compile Include="TestData\Range.cs" />
+    <Compile Include="TestData\RangeDetails.cs" />
+    <Compile Include="TestData\RateDetails.cs" />
+    <Compile Include="TestData\RateDetailsGroup.cs" />
+    <Compile Include="TestData\SG43.cs" />
+    <Compile Include="TestData\SG44.cs" />
+    <Compile Include="TestData\SG45.cs" />
+    <Compile Include="TestData\SG46.cs" />
+    <Compile Include="TestData\SG47.cs" />
+    <Compile Include="TestData\SG48.cs" />
+    <Compile Include="TestData\SpecialServicesIdentification.cs" />
+    <Compile Include="TestHelpers.cs" />
+    <Compile Include="TestTools\ConcurrentCache.cs" />
+    <Compile Include="TestTools\XmlHelpers.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GroBuf\GroBuf.csproj">
+      <Project>{80D1D3A4-A424-43C3-B46B-3A87941A68B4}</Project>
+      <Name>GroBuf</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
