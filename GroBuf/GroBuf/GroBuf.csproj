@@ -48,6 +48,7 @@
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeReaderBuilder.cs" />
+    <Compile Include="Readers\EnumReaderBuilder.cs" />
     <Compile Include="Readers\GuidReaderBuilder.cs" />
     <Compile Include="Readers\IReaderBuilder.cs" />
     <Compile Include="Readers\IReaderCollection.cs" />
@@ -65,6 +66,7 @@
     <Compile Include="Writers\ClassWriterBuilder.cs" />
     <Compile Include="Writers\DateTimeWriterBuilder.cs" />
     <Compile Include="DataCorruptedException.cs" />
+    <Compile Include="Writers\EnumWriterBuilder.cs" />
     <Compile Include="Writers\GuidWriterBuilder.cs" />
     <Compile Include="Writers\IWriterBuilder.cs" />
     <Compile Include="Writers\IWriterCollection.cs" />

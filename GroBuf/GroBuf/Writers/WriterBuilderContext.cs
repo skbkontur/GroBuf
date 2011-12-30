@@ -206,12 +206,21 @@ namespace SKBKontur.GroBuf.Writers
             Il.Emit(OpCodes.Brfalse, retLabel); // if(!writeEmpty) goto ret;
             Il.Emit(OpCodes.Ldc_I4_1); // stack: [1]
             EnsureSize();
-            GoToCurrentLocation(); // stack: [&result[index]]
-            Il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Empty); // stack: [&result[index], TypeCode.Empty]
-            Il.Emit(OpCodes.Stind_I1); // result[index] = TypeCode.Empty; stack: []
-            IncreaseIndexBy1(); // index = index + 1
+            WriteTypeCode(GroBufTypeCode.Empty);
             Il.MarkLabel(retLabel);
             Il.Emit(OpCodes.Ret);
+        }
+
+        /// <summary>
+        /// Puts the specified type code at <c>result</c>[<c>index</c>]
+        /// </summary>
+        /// <param name="typeCode">Type code to put</param>
+        public void WriteTypeCode(GroBufTypeCode typeCode)
+        {
+            GoToCurrentLocation(); // stack: [&result[index]]
+            Il.Emit(OpCodes.Ldc_I4, (int)typeCode); // stack: [&result[index], typeCode]
+            Il.Emit(OpCodes.Stind_I1); // result[index] = typeCode
+            IncreaseIndexBy1(); // index = index + 1
         }
 
         public ILGenerator Il { get; private set; }

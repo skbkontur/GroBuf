@@ -34,6 +34,8 @@ namespace SKBKontur.GroBuf.Writers
                 writerBuilder = (IWriterBuilder<T>)new DateTimeWriterBuilder(this);
             else if(type == typeof(Guid))
                 writerBuilder = (IWriterBuilder<T>)new GuidWriterBuilder(this);
+            else if(type.IsEnum)
+                writerBuilder = new EnumWriterBuilder<T>(this);
             else if(type.IsPrimitive)
                 writerBuilder = new PrimitivesWriterBuilder<T>(this);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))

@@ -2,7 +2,7 @@ using System;
 
 namespace SKBKontur.GroBuf
 {
-    public class DataLengthAttribute : Attribute
+    internal class DataLengthAttribute : Attribute
     {
         public DataLengthAttribute(int length)
         {

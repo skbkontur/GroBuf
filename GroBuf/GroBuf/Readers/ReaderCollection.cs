@@ -34,6 +34,8 @@ namespace SKBKontur.GroBuf.Readers
                 readerBuilder = (IReaderBuilder<T>)new DateTimeReaderBuilder(this);
             else if(type == typeof(Guid))
                 readerBuilder = (IReaderBuilder<T>)new GuidReaderBuilder(this);
+            else if(type.IsEnum)
+                readerBuilder = new EnumReaderBuilder<T>(this);
             else if(type.IsPrimitive)
                 readerBuilder = new PrimitivesReaderBuilder<T>(this);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))

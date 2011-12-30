@@ -52,6 +52,7 @@ namespace SKBKontur.GroBuf
             }
         }
 
+        // TODO: write own random
         public static ulong CalcHash(string str)
         {
             var bytes = GetBytes(str);

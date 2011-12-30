@@ -8,7 +8,7 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf
 {
-    public class GroBufReaderOld
+    internal class GroBufReaderOld
     {
         // TODO: enum, derived types, decimal
         public T Read<T>(byte[] data)

@@ -34,10 +34,7 @@ namespace SKBKontur.GroBuf.Writers
             il.Emit(OpCodes.Stloc, length); // length = obj.Length
             il.Emit(OpCodes.Ldc_I4, 9); // stack: [9]
             context.EnsureSize();
-            context.GoToCurrentLocation(); // stack: [&result[index]]
-            il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Array); // stack: [&result[index], TypeCode.Array]
-            il.Emit(OpCodes.Stind_I1); // result[index] = TypeCode.Array
-            context.IncreaseIndexBy1(); // index = index + 1
+            context.WriteTypeCode(GroBufTypeCode.Array);
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Emit(OpCodes.Stloc, start); // start = index

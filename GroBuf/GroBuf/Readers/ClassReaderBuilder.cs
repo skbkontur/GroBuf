@@ -17,7 +17,7 @@ namespace SKBKontur.GroBuf.Readers
         {
             PropertyInfo[] properties;
             ulong[] hashCodes;
-            BuildPropertiesTable(Type, out hashCodes, out properties);
+            BuildPropertiesTable(out hashCodes, out properties);
 
             var il = context.Il;
             var end = context.Length;
@@ -65,8 +65,7 @@ namespace SKBKontur.GroBuf.Readers
             context.IncreaseIndexBy8(); // index = index + 8; stack: [*(int64*)&data[index] = hashCode]
 
             il.Emit(OpCodes.Dup); // stack: [hashCode, hashCode]
-            il.Emit(OpCodes.Ldc_I4, properties.Length); // stack: [hashCode, hashCode, hashCodes.Length]
-            il.Emit(OpCodes.Conv_U); // stack: [hashCode, hashCode, (U)hashCodes.Length]
+            il.Emit(OpCodes.Ldc_I8, (long)properties.Length); // stack: [hashCode, hashCode, (int64)hashCodes.Length]
             il.Emit(OpCodes.Rem_Un); // stack: [hashCode, hashCode % hashCodes.Length]
             il.Emit(OpCodes.Conv_I4); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
             var idx = il.DeclareLocal(typeof(int));
@@ -76,20 +75,9 @@ namespace SKBKontur.GroBuf.Readers
             il.Emit(OpCodes.Ldloc, idx); // stack: [hashCode, hashCodes, idx]
             il.Emit(OpCodes.Ldelem_I8); // stack: [hashCode, hashCodes[idx]]
 
-            var readPropertyLabel = il.DefineLabel();
-            il.Emit(OpCodes.Beq, readPropertyLabel); // if(hashCode == hashCodes[idx]) goto skipData; stack: []
+            var skipDataLabel = il.DefineLabel();
+            il.Emit(OpCodes.Bne_Un, skipDataLabel); // if(hashCode != hashCodes[idx]) goto skipData; stack: []
 
-            // Skip data
-            context.GoToCurrentLocation(); // stack: [&data[index]]
-            il.Emit(OpCodes.Ldind_U1); // stack: [data[index]]
-            il.Emit(OpCodes.Stloc, typeCode); // typeCode = data[index]; stack: []
-            context.IncreaseIndexBy1(); // index = index + 1
-            context.CheckTypeCode();
-            context.SkipValue();
-            var checkIndexLabel = il.DefineLabel();
-            il.Emit(OpCodes.Br, checkIndexLabel); // goto checkIndex
-
-            il.MarkLabel(readPropertyLabel);
             // Read data
             context.LoadAdditionalParam(0); // stack: [setters]
             il.Emit(OpCodes.Ldloc, idx); // stack: [setters, idx]
@@ -100,6 +88,17 @@ namespace SKBKontur.GroBuf.Readers
             context.LoadDataLength(); // stack: [setters[idx], {result}, pinnedData, ref index, dataLength]
             var invoke = type.IsClass ? typeof(ClassPropertySetterDelegate).GetMethod("Invoke") : typeof(StructPropertySetterDelegate).GetMethod("Invoke");
             il.Emit(OpCodes.Call, invoke); // setters[idx]({result}, pinnedData, ref index, dataLength); stack: []
+            var checkIndexLabel = il.DefineLabel();
+            il.Emit(OpCodes.Br, checkIndexLabel); // goto checkIndex
+
+            il.MarkLabel(skipDataLabel);
+            // Skip data
+            context.GoToCurrentLocation(); // stack: [&data[index]]
+            il.Emit(OpCodes.Ldind_U1); // stack: [data[index]]
+            il.Emit(OpCodes.Stloc, typeCode); // typeCode = data[index]; stack: []
+            context.IncreaseIndexBy1(); // index = index + 1
+            context.CheckTypeCode();
+            context.SkipValue();
 
             il.MarkLabel(checkIndexLabel);
 
@@ -119,9 +118,9 @@ namespace SKBKontur.GroBuf.Readers
 
         private unsafe delegate void InternalStructPropertySetterDelegate(Delegate readerDelegate, ref T obj, byte* pinnedData, ref int index, int dataLength);
 
-        private static void BuildPropertiesTable(Type type, out ulong[] hashCodes, out PropertyInfo[] properties)
+        private void BuildPropertiesTable(out ulong[] hashCodes, out PropertyInfo[] properties)
         {
-            var props = type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(property => new Tuple<ulong, PropertyInfo>(GroBufHelpers.CalcHash(property.Name), property)).ToArray();
+            var props = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(property => new Tuple<ulong, PropertyInfo>(GroBufHelpers.CalcHash(property.Name), property)).ToArray();
             var hashSet = new HashSet<uint>();
             for(var x = (uint)props.Length;; ++x)
             {

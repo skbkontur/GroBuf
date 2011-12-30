@@ -15,10 +15,7 @@ namespace SKBKontur.GroBuf.Writers
             var il = context.Il;
             il.Emit(OpCodes.Ldc_I4, 17); // stack: [17]
             context.EnsureSize();
-            context.GoToCurrentLocation(); // stack: [&result[index]]
-            il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Guid); // stack: [&result[index], typeCode.Guid]
-            il.Emit(OpCodes.Stind_I1); // result[index] = typeCode.Guid
-            context.IncreaseIndexBy1(); // index = index + 1
+            context.WriteTypeCode(GroBufTypeCode.Guid);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]
             il.Emit(OpCodes.Ldind_I8); // stack: [&result[index], (int64)*obj]

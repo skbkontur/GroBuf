@@ -1,6 +1,6 @@
 ﻿namespace SKBKontur.GroBuf
 {
-    public enum GroBufTypeCode
+    internal enum GroBufTypeCode
     {
         [DataLength(1)]
         Empty = 0,

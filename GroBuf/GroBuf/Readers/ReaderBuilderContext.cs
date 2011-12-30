@@ -135,7 +135,7 @@ namespace SKBKontur.GroBuf.Readers
         }
 
         /// <summary>
-        /// Returns default value
+        /// Returns default(<typeparamref name="T"/>)
         /// </summary>
         public void ReturnDefaultValue()
         {

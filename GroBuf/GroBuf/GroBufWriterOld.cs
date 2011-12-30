@@ -9,7 +9,7 @@ using SKBKontur.GroBuf.Writers;
 
 namespace SKBKontur.GroBuf
 {
-    public class GroBufWriterOld
+    internal class GroBufWriterOld
     {
         // TODO: enum, derived types, decimal
         public byte[] Write<T>(T obj)
