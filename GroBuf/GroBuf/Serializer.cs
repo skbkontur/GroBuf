@@ -1,6 +1,6 @@
 ﻿namespace SKBKontur.GroBuf
 {
-    public class Serializer: ISerializer
+    public class Serializer : ISerializer
     {
         public byte[] Serialize<T>(T obj)
         {

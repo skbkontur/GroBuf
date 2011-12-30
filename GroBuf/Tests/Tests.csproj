@@ -29,6 +29,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework">
@@ -43,6 +44,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataSchemeChangedTest.cs" />
+    <Compile Include="GroBufReaderTest.cs" />
+    <Compile Include="GroBufWriterTest.cs" />
+    <Compile Include="TestPrimitives.cs" />
     <Compile Include="TestTools\ExtenderImpl.cs" />
     <Compile Include="IntegrationTest.cs" />
     <Compile Include="TestTools\ObjectComparer.cs" />

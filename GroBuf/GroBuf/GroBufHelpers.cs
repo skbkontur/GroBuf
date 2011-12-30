@@ -1,11 +1,57 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf
 {
     internal static class GroBufHelpers
     {
+        public static GroBufTypeCode GetTypeCode(Type type)
+        {
+            switch(Type.GetTypeCode(type))
+            {
+            case TypeCode.Boolean:
+                return GroBufTypeCode.UInt8;
+            case TypeCode.Char:
+                return GroBufTypeCode.UInt16;
+            case TypeCode.SByte:
+                return GroBufTypeCode.Int8;
+            case TypeCode.Byte:
+                return GroBufTypeCode.UInt8;
+            case TypeCode.Int16:
+                return GroBufTypeCode.Int16;
+            case TypeCode.UInt16:
+                return GroBufTypeCode.UInt16;
+            case TypeCode.Int32:
+                return GroBufTypeCode.Int32;
+            case TypeCode.UInt32:
+                return GroBufTypeCode.UInt32;
+            case TypeCode.Int64:
+                return GroBufTypeCode.Int64;
+            case TypeCode.UInt64:
+                return GroBufTypeCode.UInt64;
+            case TypeCode.Single:
+                return GroBufTypeCode.Single;
+            case TypeCode.Double:
+                return GroBufTypeCode.Double;
+            case TypeCode.Decimal:
+                return GroBufTypeCode.Decimal;
+            case TypeCode.DateTime:
+                return GroBufTypeCode.Int64;
+            case TypeCode.String:
+                return GroBufTypeCode.String;
+            default:
+                if(type == typeof(Guid))
+                    return GroBufTypeCode.Guid;
+                if(type.IsEnum)
+                    return GroBufTypeCode.Enum;
+                if(type.IsArray)
+                    return GroBufTypeCode.Array;
+                return GroBufTypeCode.Object;
+            }
+        }
+
         public static ulong CalcHash(string str)
         {
             var bytes = GetBytes(str);
@@ -17,7 +63,27 @@ namespace SKBKontur.GroBuf
             return result;
         }
 
+        public static readonly int[] Lengths = BuildLengths();
+
         private delegate void CopyMemDelegate(IntPtr src, IntPtr dst, uint len);
+
+        private static int[] BuildLengths()
+        {
+            var lengths = new int[256];
+            var type = typeof(GroBufTypeCode);
+            var fields = type.GetFields();
+            foreach(var field in fields)
+            {
+                if(field.FieldType != type) continue;
+                var attribute = (DataLengthAttribute)field.GetCustomAttributes(typeof(DataLengthAttribute), false).SingleOrDefault();
+                if(attribute == null) throw new InvalidOperationException(string.Format("Data length of '{0}.{1}' must be specified", type, field));
+                var length = attribute.Length;
+                if(length < 0 && length != -1)
+                    throw new InvalidOperationException("Data length must be either -1 or greater 0");
+                lengths[(int)field.GetValue(dummy)] = length;
+            }
+            return lengths;
+        }
 
         private static CopyMemDelegate EmitCopyMem()
         {
@@ -59,6 +125,8 @@ namespace SKBKontur.GroBuf
             }
             return result;
         }
+
+        private static readonly object dummy = new object();
 
         private static readonly CopyMemDelegate copyMem = EmitCopyMem();
 

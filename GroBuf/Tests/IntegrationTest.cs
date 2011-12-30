@@ -35,7 +35,7 @@ namespace SKBKontur.GroBuf.Tests
 
             var deserializedMessages = new SG43[numberOfMessages];
             for(int i = 0; i < messages.Length; ++i)
-                deserializedMessages[i] = serializer.Deserialize<SG43>(messages[i]);
+                deserializedMessages[i] = serializer.Deserialize<SG43>(messages[i]) ?? new SG43();
 
             for (int i = 0; i < numberOfMessages; ++i)
             {
@@ -81,7 +81,7 @@ namespace SKBKontur.GroBuf.Tests
             stop = true;
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestPerformance()
         {
             const int numberOfMessages = 100000;
@@ -96,7 +96,7 @@ namespace SKBKontur.GroBuf.Tests
             for (int i = 0; i < datas.Length; ++i)
             {
                 byte[] cur = null;
-                for (int j = 0; j < 10; ++j)
+                for (int j = 0; j < 1000; ++j)
                     cur = serializer.Serialize(datas[(i + j) % datas.Length]);
                 messages[i] = cur;
             }
@@ -108,7 +108,7 @@ namespace SKBKontur.GroBuf.Tests
             for (int i = 0; i < messages.Length; ++i)
             {
                 SG43 cur = null;
-                for (int j = 0; j < 10; ++j)
+                for (int j = 0; j < 1000; ++j)
                     cur = serializer.Deserialize<SG43>(messages[(i + j) % messages.Length]);
                 deserializedMessages[i] = cur;
             }
