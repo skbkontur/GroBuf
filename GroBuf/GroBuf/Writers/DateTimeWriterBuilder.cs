@@ -3,26 +3,18 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class DateTimeWriterBuilder : WriterBuilderWithOneParam<DateTime, Delegate>
+    internal class DateTimeWriterBuilder : WriterBuilderBase<DateTime>
     {
-        public DateTimeWriterBuilder(IWriterCollection writerCollection)
-            : base(writerCollection)
-        {
-        }
-
-        protected override Delegate WriteNotEmpty(WriterBuilderContext context)
+        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
-            context.LoadAdditionalParam(0); // stack: [writer]
-            context.LoadObjByRef(); // stack: [writer, &obj]
-            il.Emit(OpCodes.Call, Type.GetProperty("Ticks").GetGetMethod()); // stack: [writer, obj.Ticks]
-            context.LoadWriteEmpty(); // stack: [writer, obj.Value, writeEmpty]
-            context.LoadResultByRef(); // stack: [writer, obj.Value, writeEmpty, ref result]
-            context.LoadIndexByRef(); // stack: [writer, obj.Value, writeEmpty, ref result, ref index]
-            context.LoadPinnedResultByRef(); // stack: [writer, obj.Value, writeEmpty, ref result, ref index, ref pinnedResult]
-            var writer = GetWriter(typeof(long));
-            il.Emit(OpCodes.Call, writer.GetType().GetMethod("Invoke")); // writer(obj.Ticks, writeEmpty, ref result, ref index, ref pinnedResult)
-            return writer;
+            context.LoadObjByRef(); // stack: [&obj]
+            il.Emit(OpCodes.Call, Type.GetProperty("Ticks").GetGetMethod()); // stack: [obj.Ticks]
+            context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
+            context.LoadResultByRef(); // stack: [obj.Value, writeEmpty, ref result]
+            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index]
+            context.LoadPinnedResultByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index, ref pinnedResult]
+            il.Emit(OpCodes.Call, context.Context.GetWriter(typeof(long))); // writer(obj.Ticks, writeEmpty, ref result, ref index, ref pinnedResult)
         }
     }
 }

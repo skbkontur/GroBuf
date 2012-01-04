@@ -5,49 +5,49 @@ namespace SKBKontur.GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
-        public unsafe ReaderDelegate<T> GetReader<T>()
+        public IReaderBuilder<T> GetReader<T>()
         {
             var type = typeof(T);
-            var reader = (ReaderDelegate<T>)readers[type];
-            if(reader == null)
+            var readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
+            if(readerBuilder == null)
             {
-                lock(readersLock)
+                lock(readerBuildersLock)
                 {
-                    reader = (ReaderDelegate<T>)readers[type];
-                    if(reader == null)
+                    readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
+                    if(readerBuilder == null)
                     {
-                        reader = BuildReader<T>();
-                        readers[type] = reader;
+                        readerBuilder = BuildReader<T>();
+                        readerBuilders[type] = readerBuilder;
                     }
                 }
             }
-            return reader;
+            return readerBuilder;
         }
 
-        private unsafe ReaderDelegate<T> BuildReader<T>()
+        private static IReaderBuilder<T> BuildReader<T>()
         {
             var type = typeof(T);
             IReaderBuilder<T> readerBuilder;
             if(type == typeof(string))
-                readerBuilder = (IReaderBuilder<T>)new StringReaderBuilder(this);
+                readerBuilder = (IReaderBuilder<T>)new StringReaderBuilder();
             else if(type == typeof(DateTime))
-                readerBuilder = (IReaderBuilder<T>)new DateTimeReaderBuilder(this);
+                readerBuilder = (IReaderBuilder<T>)new DateTimeReaderBuilder();
             else if(type == typeof(Guid))
-                readerBuilder = (IReaderBuilder<T>)new GuidReaderBuilder(this);
+                readerBuilder = (IReaderBuilder<T>)new GuidReaderBuilder();
             else if(type.IsEnum)
-                readerBuilder = new EnumReaderBuilder<T>(this);
+                readerBuilder = new EnumReaderBuilder<T>();
             else if(type.IsPrimitive)
-                readerBuilder = new PrimitivesReaderBuilder<T>(this);
+                readerBuilder = new PrimitivesReaderBuilder<T>();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                readerBuilder = new NullableReaderBuilder<T>(this);
+                readerBuilder = new NullableReaderBuilder<T>();
             else if(type.IsArray)
-                readerBuilder = new ArrayReaderBuilder<T>(this);
+                readerBuilder = new ArrayReaderBuilder<T>();
             else
-                readerBuilder = new ClassReaderBuilder<T>(this);
-            return readerBuilder.BuildReader();
+                readerBuilder = new ClassReaderBuilder<T>();
+            return readerBuilder;
         }
 
-        private readonly Hashtable readers = new Hashtable();
-        private readonly object readersLock = new object();
+        private readonly Hashtable readerBuilders = new Hashtable();
+        private readonly object readerBuildersLock = new object();
     }
 }

@@ -94,6 +94,8 @@ namespace SKBKontur.GroBuf.Tests.TestTools
 
             private static string FindSimpleValue(Type type, object value)
             {
+                if (type == typeof(char) && (char)value == (char)0)
+                    return "0x0000";
                 if(type.IsEnum || type.IsPrimitive || value is string || value is Guid || value is IPEndPoint || value is decimal)
                     return value.ToString();
                 if(value is DateTime)

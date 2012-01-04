@@ -3,16 +3,15 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class ArrayWriterBuilder<T> : WriterBuilderWithOneParam<T, Delegate>
+    internal class ArrayWriterBuilder<T> : WriterBuilderBase<T>
     {
-        public ArrayWriterBuilder(IWriterCollection writerCollection)
-            : base(writerCollection)
+        public ArrayWriterBuilder()
         {
             if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
             if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
         }
 
-        protected override bool CheckEmpty(WriterBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
         {
             var emptyLabel = context.Il.DefineLabel();
             context.LoadObj(); // stack: [obj]
@@ -24,7 +23,7 @@ namespace SKBKontur.GroBuf.Writers
             return true;
         }
 
-        protected override Delegate WriteNotEmpty(WriterBuilderContext context)
+        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
             var allDoneLabel = il.DefineLabel();
@@ -49,17 +48,15 @@ namespace SKBKontur.GroBuf.Writers
             il.Emit(OpCodes.Stloc, i); // i = 0; stack: []
             var cycleStart = il.DefineLabel();
             il.MarkLabel(cycleStart);
-            context.LoadAdditionalParam(0); // stack: [writer]
-            context.LoadObj(); // stack: [writer, obj]
-            il.Emit(OpCodes.Ldloc, i); // stack: [writer, obj, i]
+            context.LoadObj(); // stack: [obj]
+            il.Emit(OpCodes.Ldloc, i); // stack: [obj, i]
             var elementType = Type.GetElementType();
-            LoadArrayElement(elementType, il); // stack: [writer, obj[i]]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [writer, obj[i], true]
-            context.LoadResultByRef(); // stack: [writer, obj[i], true, ref result]
-            context.LoadIndexByRef(); // stack: [writer, obj[i], true, ref result, ref index]
-            context.LoadPinnedResultByRef(); // stack: [writer, obj[i], true, ref result, ref index, ref pinnedResult]
-            var writer = GetWriter(elementType);
-            il.Emit(OpCodes.Call, writer.GetType().GetMethod("Invoke")); // writer(obj[i], true, ref result, ref index, ref pinnedResult); stack: []
+            LoadArrayElement(elementType, il); // stack: [obj[i]]
+            il.Emit(OpCodes.Ldc_I4_1); // stack: [obj[i], true]
+            context.LoadResultByRef(); // stack: [obj[i], true, ref result]
+            context.LoadIndexByRef(); // stack: [obj[i], true, ref result, ref index]
+            context.LoadPinnedResultByRef(); // stack: [obj[i], true, ref result, ref index, ref pinnedResult]
+            il.Emit(OpCodes.Call, context.Context.GetWriter(elementType)); // writer(obj[i], true, ref result, ref index, ref pinnedResult); stack: []
             il.Emit(OpCodes.Ldloc, length); // stack: [length]
             il.Emit(OpCodes.Ldloc, i); // stack: [length, i]
             il.Emit(OpCodes.Ldc_I4_1); // stack: [length, i, 1]
@@ -79,7 +76,6 @@ namespace SKBKontur.GroBuf.Writers
             il.Emit(OpCodes.Stind_I4); // *(int*)(pinnedResult + start) = index - start - 4
 
             il.MarkLabel(allDoneLabel);
-            return writer;
         }
 
         private static void LoadArrayElement(Type elementType, ILGenerator il)
@@ -114,6 +110,7 @@ namespace SKBKontur.GroBuf.Writers
                 case TypeCode.UInt64:
                     il.Emit(OpCodes.Ldelem_I8);
                     break;
+                case TypeCode.Char:
                 case TypeCode.UInt16:
                     il.Emit(OpCodes.Ldelem_U2);
                     break;

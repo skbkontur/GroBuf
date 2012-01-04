@@ -4,6 +4,6 @@ namespace SKBKontur.GroBuf.Tests.TestData
     {
         public RateDetailsGroup RateDetailsGroup { get; set; }
 
-        public string StatusDescriptionCode { get; set; }
+        public double StatusDescriptionCode { get; set; }
     }
 }

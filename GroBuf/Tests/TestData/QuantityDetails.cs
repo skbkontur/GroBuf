@@ -2,10 +2,10 @@ namespace SKBKontur.GroBuf.Tests.TestData
 {
     public class QuantityDetails
     {
-        public string QuantityTypeCodeQualifier { get; set; }
+        public double? QuantityTypeCodeQualifier { get; set; }
 
-        public string Quantity { get; set; }
+        public float[] Quantity { get; set; }
 
-        public string MeasurementUnitCode { get; set; }
+        public float? MeasurementUnitCode { get; set; }
     }
 }

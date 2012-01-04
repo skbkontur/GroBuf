@@ -47,6 +47,7 @@
     <Compile Include="DataSchemeChangedTest.cs" />
     <Compile Include="GroBufReaderTest.cs" />
     <Compile Include="GroBufWriterTest.cs" />
+    <Compile Include="TestCycle.cs" />
     <Compile Include="TestPrimitives.cs" />
     <Compile Include="TestTools\ExtenderImpl.cs" />
     <Compile Include="IntegrationTest.cs" />
@@ -79,9 +80,10 @@
     <Compile Include="TestData\SG47.cs" />
     <Compile Include="TestData\SG48.cs" />
     <Compile Include="TestData\SpecialServicesIdentification.cs" />
-    <Compile Include="TestHelpers.cs" />
+    <Compile Include="TestTools\TestHelpers.cs" />
     <Compile Include="TestTools\ConcurrentCache.cs" />
     <Compile Include="TestTools\XmlHelpers.cs" />
+    <Compile Include="TestWithDerivedTypes.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GroBuf\GroBuf.csproj">

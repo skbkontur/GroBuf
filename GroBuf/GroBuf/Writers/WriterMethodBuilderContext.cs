@@ -1,11 +1,13 @@
+using System.Reflection;
 using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class WriterBuilderContext
+    internal class WriterMethodBuilderContext
     {
-        public WriterBuilderContext(ILGenerator il)
+        public WriterMethodBuilderContext(WriterTypeBuilderContext context, ILGenerator il)
         {
+            Context = context;
             Il = il;
             LocalInt = il.DeclareLocal(typeof(int));
             pinnedBuf = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
@@ -78,12 +80,13 @@ namespace SKBKontur.GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads additional parameter onto the evaluation stack
+        /// Loads the specified field onto the evaluation stack
         /// </summary>
-        /// <param name="index">Index of parameter starting from 0</param>
-        public void LoadAdditionalParam(int index)
+        /// <param name="field">Field to load</param>
+        public void LoadField(FieldInfo field)
         {
-            Il.Emit(OpCodes.Ldarg_S, 5 + index);
+            Il.Emit(OpCodes.Ldnull);
+            Il.Emit(OpCodes.Ldfld, field);
         }
 
         /// <summary>
@@ -223,6 +226,7 @@ namespace SKBKontur.GroBuf.Writers
             IncreaseIndexBy1(); // index = index + 1
         }
 
+        public WriterTypeBuilderContext Context { get; private set; }
         public ILGenerator Il { get; private set; }
         public LocalBuilder LocalInt { get; private set; }
         private readonly LocalBuilder pinnedBuf;

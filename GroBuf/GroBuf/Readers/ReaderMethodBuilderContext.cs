@@ -3,10 +3,11 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class ReaderBuilderContext<T>
+    internal class ReaderMethodBuilderContext<T>
     {
-        public ReaderBuilderContext(ILGenerator il)
+        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, ILGenerator il)
         {
+            Context = context;
             Il = il;
             TypeCode = il.DeclareLocal(typeof(int));
             Length = il.DeclareLocal(typeof(uint));
@@ -47,15 +48,13 @@ namespace SKBKontur.GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads additional parameter onto the evaluation stack
+        /// Loads the specified field onto the evaluation stack
         /// </summary>
-        /// <param name="index">Index of parameter starting from 0</param>
-        public void LoadAdditionalParam(int index)
+        /// <param name="field">Field to load</param>
+        public void LoadField(FieldInfo field)
         {
-            if(index == 0)
-                Il.Emit(OpCodes.Ldarg_3);
-            else
-                Il.Emit(OpCodes.Ldarg_S, 3 + index);
+            Il.Emit(OpCodes.Ldnull);
+            Il.Emit(OpCodes.Ldfld, field);
         }
 
         /// <summary>
@@ -129,7 +128,7 @@ namespace SKBKontur.GroBuf.Readers
             var label = Il.DefineLabel();
             Il.Emit(OpCodes.Ble_Un, label);
             Il.Emit(OpCodes.Ldstr, "Unexpected end of data");
-            Il.Emit(OpCodes.Newobj, typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+            Il.Emit(OpCodes.Newobj, typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)}));
             Il.Emit(OpCodes.Throw);
             Il.MarkLabel(label);
         }
@@ -150,14 +149,13 @@ namespace SKBKontur.GroBuf.Readers
         /// </summary>
         public void CheckTypeCode()
         {
-            Il.Emit(OpCodes.Ldnull);
-            Il.Emit(OpCodes.Ldfld, typeof(GroBufHelpers).GetField("Lengths", BindingFlags.Static | BindingFlags.Public));
+            LoadField(Context.Lengths);
             Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [lengths, typeCode]
             Il.Emit(OpCodes.Ldelem_I4); // stack: [lengths[typeCode]]
             var okLabel = Il.DefineLabel();
             Il.Emit(OpCodes.Brtrue, okLabel); // if(lengths[typeCode] != 0) goto ok;
             Il.Emit(OpCodes.Ldstr, "Unknown type code");
-            Il.Emit(OpCodes.Newobj, typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+            Il.Emit(OpCodes.Newobj, typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)}));
             Il.Emit(OpCodes.Throw);
             Il.MarkLabel(okLabel);
         }
@@ -167,8 +165,7 @@ namespace SKBKontur.GroBuf.Readers
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
 
-            Il.Emit(OpCodes.Ldnull);
-            Il.Emit(OpCodes.Ldfld, typeof(GroBufHelpers).GetField("Lengths", BindingFlags.Static | BindingFlags.Public));
+            LoadField(Context.Lengths);
 
             Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [ref index, index, lengths, typeCode]
             Il.Emit(OpCodes.Ldelem_I4); // stack: [ref index, index, lengths[typeCode]]
@@ -208,6 +205,7 @@ namespace SKBKontur.GroBuf.Readers
             Il.MarkLabel(label);
         }
 
+        public ReaderTypeBuilderContext Context { get; private set; }
         public ILGenerator Il { get; private set; }
 
         public LocalBuilder TypeCode { get; private set; }

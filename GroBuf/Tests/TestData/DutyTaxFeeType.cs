@@ -2,12 +2,12 @@ namespace SKBKontur.GroBuf.Tests.TestData
 {
     public class DutyTaxFeeType
     {
-        public string DutyTaxFeeTypeNameCode { get; set; }
+        public byte?[] DutyTaxFeeTypeNameCode { get; set; }
 
-        public string CodeListIdentificationCode { get; set; }
+        public long[] CodeListIdentificationCode { get; set; }
 
-        public string CodeListResponsibleAgencyCode { get; set; }
+        public ulong[] CodeListResponsibleAgencyCode { get; set; }
 
-        public string DutyTaxFeeTypeName { get; set; }
+        public ushort?[] DutyTaxFeeTypeName { get; set; }
     }
 }

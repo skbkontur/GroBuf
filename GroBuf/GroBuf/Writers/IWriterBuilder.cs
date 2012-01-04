@@ -1,7 +1,9 @@
-﻿namespace SKBKontur.GroBuf.Writers
+﻿using System.Reflection;
+
+namespace SKBKontur.GroBuf.Writers
 {
-    internal interface IWriterBuilder<in T>
+    internal interface IWriterBuilder<T>
     {
-        WriterDelegate<T> BuildWriter();
+        MethodInfo BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext);
     }
 }

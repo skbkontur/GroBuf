@@ -3,14 +3,9 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class GuidWriterBuilder : WriterBuilderWithoutParams<Guid>
+    internal class GuidWriterBuilder : WriterBuilderBase<Guid>
     {
-        public GuidWriterBuilder(IWriterCollection writerCollection)
-            : base(writerCollection)
-        {
-        }
-
-        protected override void WriteNotEmpty(WriterBuilderContext context)
+        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
             il.Emit(OpCodes.Ldc_I4, 17); // stack: [17]

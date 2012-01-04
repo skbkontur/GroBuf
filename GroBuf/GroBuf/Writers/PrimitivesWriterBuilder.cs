@@ -3,15 +3,14 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class PrimitivesWriterBuilder<T> : WriterBuilderWithoutParams<T>
+    internal class PrimitivesWriterBuilder<T> : WriterBuilderBase<T>
     {
-        public PrimitivesWriterBuilder(IWriterCollection writerCollection)
-            : base(writerCollection)
+        public PrimitivesWriterBuilder()
         {
             if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was " + Type);
         }
 
-        protected override void WriteNotEmpty(WriterBuilderContext context)
+        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var typeCode = GroBufHelpers.GetTypeCode(Type);
             switch(typeCode)

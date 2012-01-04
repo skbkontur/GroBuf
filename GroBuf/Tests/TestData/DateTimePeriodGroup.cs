@@ -1,11 +1,13 @@
+using System;
+
 namespace SKBKontur.GroBuf.Tests.TestData
 {
     public class DateTimePeriodGroup
     {
-        public string FunctionCodeQualifier { get; set; }
+        public sbyte? FunctionCodeQualifier { get; set; }
 
-        public string Value { get; set; }
+        public DateTime Value { get; set; }
 
-        public string FormatCode { get; set; }
+        public byte? FormatCode { get; set; }
     }
 }

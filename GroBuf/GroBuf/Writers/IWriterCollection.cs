@@ -2,6 +2,6 @@
 {
     internal interface IWriterCollection
     {
-        WriterDelegate<T> GetWriter<T>();
+        IWriterBuilder<T> GetWriter<T>();
     }
 }

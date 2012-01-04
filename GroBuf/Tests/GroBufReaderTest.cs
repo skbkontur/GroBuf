@@ -17,7 +17,7 @@ namespace SKBKontur.GroBuf.Tests
         public void TestReadTrash()
         {
             var random = new Random(12345678);
-            for(int i = 0; i < 100000; ++i)
+            for(int i = 0; i < 10000; ++i)
             {
                 var length = random.Next(1, 100);
                 var data = new byte[length];

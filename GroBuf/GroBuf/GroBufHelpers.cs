@@ -131,7 +131,7 @@ namespace SKBKontur.GroBuf
 
         private static readonly CopyMemDelegate copyMem = EmitCopyMem();
 
-        private static readonly Random random = new Random(12345678);
+        private static readonly GroBufRandom random = new GroBufRandom(314159265);
         private static readonly List<ulong[]> randTable = new List<ulong[]>();
     }
 }

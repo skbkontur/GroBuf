@@ -2,6 +2,6 @@
 {
     internal interface IReaderCollection
     {
-        ReaderDelegate<T> GetReader<T>();
+        IReaderBuilder<T> GetReader<T>();
     }
 }

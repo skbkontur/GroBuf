@@ -1,7 +1,9 @@
-﻿namespace SKBKontur.GroBuf.Readers
+﻿using System.Reflection;
+
+namespace SKBKontur.GroBuf.Readers
 {
     internal interface IReaderBuilder<out T>
     {
-        ReaderDelegate<T> BuildReader();
+        MethodInfo BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext);
     }
 }

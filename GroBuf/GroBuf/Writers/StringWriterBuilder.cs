@@ -6,14 +6,9 @@ using System.Runtime.CompilerServices;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class StringWriterBuilder : WriterBuilderWithoutParams<string>
+    internal class StringWriterBuilder : WriterBuilderBase<string>
     {
-        public StringWriterBuilder(IWriterCollection writerCollection)
-            : base(writerCollection)
-        {
-        }
-
-        protected override void WriteNotEmpty(WriterBuilderContext context)
+        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var length = context.LocalInt;
             context.LoadObj(); // stack: [obj]
@@ -53,7 +48,7 @@ namespace SKBKontur.GroBuf.Writers
             context.Il.Emit(OpCodes.Stind_I4); // index = index + length
         }
 
-        protected override bool CheckEmpty(WriterBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
         {
             context.LoadObj(); // stack: [obj]
             context.Il.Emit(OpCodes.Call, GetIsNullOrEmptyMethod()); // stack: [string.isNullOrEmpty(obj)]

@@ -5,49 +5,49 @@ namespace SKBKontur.GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
-        public unsafe WriterDelegate<T> GetWriter<T>()
+        public IWriterBuilder<T> GetWriter<T>()
         {
             var type = typeof(T);
-            var writer = (WriterDelegate<T>)writers[type];
-            if(writer == null)
+            var writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
+            if(writerBuilder == null)
             {
-                lock(writersLock)
+                lock(writerBuildersLock)
                 {
-                    writer = (WriterDelegate<T>)writers[type];
-                    if(writer == null)
+                    writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
+                    if(writerBuilder == null)
                     {
-                        writer = BuildWriter<T>();
-                        writers[type] = writer;
+                        writerBuilder = BuildWriter<T>();
+                        writerBuilders[type] = writerBuilder;
                     }
                 }
             }
-            return writer;
+            return writerBuilder;
         }
 
-        private unsafe WriterDelegate<T> BuildWriter<T>()
+        private static IWriterBuilder<T> BuildWriter<T>()
         {
             var type = typeof(T);
             IWriterBuilder<T> writerBuilder;
             if(type == typeof(string))
-                writerBuilder = (IWriterBuilder<T>)new StringWriterBuilder(this);
+                writerBuilder = (IWriterBuilder<T>)new StringWriterBuilder();
             else if(type == typeof(DateTime))
-                writerBuilder = (IWriterBuilder<T>)new DateTimeWriterBuilder(this);
+                writerBuilder = (IWriterBuilder<T>)new DateTimeWriterBuilder();
             else if(type == typeof(Guid))
-                writerBuilder = (IWriterBuilder<T>)new GuidWriterBuilder(this);
+                writerBuilder = (IWriterBuilder<T>)new GuidWriterBuilder();
             else if(type.IsEnum)
-                writerBuilder = new EnumWriterBuilder<T>(this);
+                writerBuilder = new EnumWriterBuilder<T>();
             else if(type.IsPrimitive)
-                writerBuilder = new PrimitivesWriterBuilder<T>(this);
+                writerBuilder = new PrimitivesWriterBuilder<T>();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                writerBuilder = new NullableWriterBuilder<T>(this);
+                writerBuilder = new NullableWriterBuilder<T>();
             else if(type.IsArray)
-                writerBuilder = new ArrayWriterBuilder<T>(this);
+                writerBuilder = new ArrayWriterBuilder<T>();
             else
-                writerBuilder = new ClassWriterBuilder<T>(this);
-            return writerBuilder.BuildWriter();
+                writerBuilder = new ClassWriterBuilder<T>();
+            return writerBuilder;
         }
 
-        private readonly Hashtable writers = new Hashtable();
-        private readonly object writersLock = new object();
+        private readonly Hashtable writerBuilders = new Hashtable();
+        private readonly object writerBuildersLock = new object();
     }
 }

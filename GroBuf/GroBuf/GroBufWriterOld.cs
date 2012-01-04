@@ -5,8 +5,6 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
-using SKBKontur.GroBuf.Writers;
-
 namespace SKBKontur.GroBuf
 {
     internal class GroBufWriterOld
@@ -22,6 +20,8 @@ namespace SKBKontur.GroBuf
             Array.Copy(buf, result, index);
             return result;
         }
+
+        internal unsafe delegate void WriterDelegate<in T>(T obj, bool writeEmpty, ref byte[] result, ref int index, ref byte* pinnedResult);
 
         private delegate void PinningWriterDelegate<in T>(T obj, bool writeEmpty, ref byte[] result, ref int index);
 

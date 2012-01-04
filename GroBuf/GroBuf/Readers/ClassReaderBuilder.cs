@@ -6,14 +6,9 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class ClassReaderBuilder<T> : ReaderBuilderWithTwoParams<T, Delegate[], ulong[]>
+    internal class ClassReaderBuilder<T> : ReaderBuilderBase<T>
     {
-        public ClassReaderBuilder(IReaderCollection readerCollection)
-            : base(readerCollection)
-        {
-        }
-
-        protected override Tuple<Delegate[], ulong[]> ReadNotEmpty(ReaderBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
         {
             PropertyInfo[] properties;
             ulong[] hashCodes;
@@ -24,11 +19,13 @@ namespace SKBKontur.GroBuf.Readers
             var result = context.Result;
             var typeCode = context.TypeCode;
 
-            context.IncreaseIndexBy1();
-            context.AssertTypeCode(GroBufTypeCode.Object);
+            var setters = properties.Select(property => property == null ? null : GetPropertySetter(context.Context, property)).ToArray();
 
-            var type = typeof(T);
-            var setters = properties.Select(property => property == null ? null : GetPropertySetter(property)).ToArray();
+            var settersField = context.Context.BuildConstField<IntPtr[]>("setters_" + Type.Name + "_" + Guid.NewGuid(), field => BuildSettersFieldInitializer(context.Context, field, setters));
+            var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
+
+            context.IncreaseIndexBy1(); // index = index + 1
+            context.AssertTypeCode(GroBufTypeCode.Object);
 
             il.Emit(OpCodes.Ldc_I4_4);
             context.AssertLength();
@@ -44,15 +41,15 @@ namespace SKBKontur.GroBuf.Readers
             il.Emit(OpCodes.Add); // stack: [(uint)result[index] + index]
             il.Emit(OpCodes.Stloc, end); // end = (uint)result[index] + index
 
-            if(type.IsClass)
+            if(Type.IsClass)
             {
-                il.Emit(OpCodes.Newobj, type.GetConstructor(Type.EmptyTypes)); // stack: [new type()]
+                il.Emit(OpCodes.Newobj, Type.GetConstructor(Type.EmptyTypes)); // stack: [new type()]
                 il.Emit(OpCodes.Stloc, result); // result = new type(); stack: []
             }
             else
             {
                 il.Emit(OpCodes.Ldloca, result); // stack: [ref result]
-                il.Emit(OpCodes.Initobj, type); // result = default(type)
+                il.Emit(OpCodes.Initobj, Type); // result = default(type)
             }
             var cycleStartLabel = il.DefineLabel();
             il.MarkLabel(cycleStartLabel);
@@ -71,7 +68,7 @@ namespace SKBKontur.GroBuf.Readers
             var idx = il.DeclareLocal(typeof(int));
             il.Emit(OpCodes.Stloc, idx); // idx = (int)(hashCode % hashCodes.Length); stack: [hashCode]
 
-            context.LoadAdditionalParam(1); // stack: [hashCode, hashCodes]
+            context.LoadField(hashCodesField); // stack: [hashCode, hashCodes]
             il.Emit(OpCodes.Ldloc, idx); // stack: [hashCode, hashCodes, idx]
             il.Emit(OpCodes.Ldelem_I8); // stack: [hashCode, hashCodes[idx]]
 
@@ -79,15 +76,17 @@ namespace SKBKontur.GroBuf.Readers
             il.Emit(OpCodes.Bne_Un, skipDataLabel); // if(hashCode != hashCodes[idx]) goto skipData; stack: []
 
             // Read data
-            context.LoadAdditionalParam(0); // stack: [setters]
-            il.Emit(OpCodes.Ldloc, idx); // stack: [setters, idx]
-            il.Emit(OpCodes.Ldelem_Ref); // stack: [setters[idx]]
-            il.Emit(type.IsClass ? OpCodes.Ldloc : OpCodes.Ldloca, result); // stack: [setters[idx], {result}]
-            context.LoadData(); // stack: [setters[idx], {result}, pinnedData]
-            context.LoadIndexByRef(); // stack: [setters[idx], {result}, pinnedData, ref index]
-            context.LoadDataLength(); // stack: [setters[idx], {result}, pinnedData, ref index, dataLength]
-            var invoke = type.IsClass ? typeof(ClassPropertySetterDelegate).GetMethod("Invoke") : typeof(StructPropertySetterDelegate).GetMethod("Invoke");
-            il.Emit(OpCodes.Call, invoke); // setters[idx]({result}, pinnedData, ref index, dataLength); stack: []
+            il.Emit(Type.IsClass ? OpCodes.Ldloc : OpCodes.Ldloca, result); // stack: [{result}]
+            context.LoadData(); // stack: [{result}, pinnedData]
+            context.LoadIndexByRef(); // stack: [{result}, pinnedData, ref index]
+            context.LoadDataLength(); // stack: [{result}, pinnedData, ref index, dataLength]
+
+            context.LoadField(settersField); // stack: [{result}, pinnedData, ref index, dataLength, setters]
+            context.Il.Emit(OpCodes.Ldloc, idx); // stack: [{result}, pinnedData, ref index, dataLength, setters, idx]
+            context.Il.Emit(OpCodes.Ldelem_I); // stack: [{result}, pinnedData, ref index, dataLength, setters[idx]]
+            var parameterTypes = new[] {Type.IsClass ? Type : Type.MakeByRefType(), typeof(byte*), typeof(int).MakeByRefType(), typeof(int)};
+            context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // setters[idx]({result, pinnedData, ref index, dataLength}); stack: []
+
             var checkIndexLabel = il.DefineLabel();
             il.Emit(OpCodes.Br, checkIndexLabel); // goto checkIndex
 
@@ -106,21 +105,35 @@ namespace SKBKontur.GroBuf.Readers
             il.Emit(OpCodes.Ldloc, end); // stack: [index, end]
             il.Emit(OpCodes.Blt_Un, cycleStartLabel); // if(index < end) goto cycleStart; stack: []
             il.Emit(OpCodes.Ldloc, result); // stack: [result]
-
-            return new Tuple<Delegate[], ulong[]>(setters, hashCodes);
         }
 
-        private unsafe delegate void ClassPropertySetterDelegate(T obj, byte* pinnedData, ref int index, int dataLength);
-
-        private unsafe delegate void InternalClassPropertySetterDelegate(Delegate readerDelegate, T obj, byte* pinnedData, ref int index, int dataLength);
-
-        private unsafe delegate void StructPropertySetterDelegate(ref T obj, byte* pinnedData, ref int index, int dataLength);
-
-        private unsafe delegate void InternalStructPropertySetterDelegate(Delegate readerDelegate, ref T obj, byte* pinnedData, ref int index, int dataLength);
+        private static Action BuildSettersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] setters)
+        {
+            var typeBuilder = context.TypeBuilder;
+            var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
+            var il = method.GetILGenerator();
+            il.Emit(OpCodes.Ldnull); // stack: [null]
+            il.Emit(OpCodes.Ldc_I4, setters.Length); // stack: [null, setters.Length]
+            il.Emit(OpCodes.Newarr, typeof(IntPtr)); // stack: [null, new IntPtr[setters.Length]]
+            il.Emit(OpCodes.Stfld, field); // settersField = new IntPtr[setters.Length]
+            il.Emit(OpCodes.Ldnull); // stack: [null]
+            il.Emit(OpCodes.Ldfld, field); // stack: [settersField]
+            for(int i = 0; i < setters.Length; ++i)
+            {
+                if(setters[i] == null) continue;
+                il.Emit(OpCodes.Dup); // stack: [settersField, settersField]
+                il.Emit(OpCodes.Ldc_I4, i); // stack: [settersField, settersField, i]
+                il.Emit(OpCodes.Ldftn, setters[i]); // stack: [settersField, settersField, i, setters[i]]
+                il.Emit(OpCodes.Stelem_I); // settersField[i] = setters[i]; stack: [settersField]
+            }
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Ret);
+            return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
+        }
 
         private void BuildPropertiesTable(out ulong[] hashCodes, out PropertyInfo[] properties)
         {
-            var props = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Select(property => new Tuple<ulong, PropertyInfo>(GroBufHelpers.CalcHash(property.Name), property)).ToArray();
+            var props = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(property => property.CanWrite).Select(property => new Tuple<ulong, PropertyInfo>(GroBufHelpers.CalcHash(property.Name), property)).ToArray();
             var hashSet = new HashSet<uint>();
             for(var x = (uint)props.Length;; ++x)
             {
@@ -149,48 +162,24 @@ namespace SKBKontur.GroBuf.Readers
             }
         }
 
-        private unsafe Delegate GetPropertySetter(PropertyInfo property)
+        private MethodInfo GetPropertySetter(ReaderTypeBuilderContext context, PropertyInfo property)
         {
-            return Type.IsClass ? (Delegate)BuildClassPropertySetter(property) : BuildStructPropertySetter(property);
-        }
-
-        private unsafe ClassPropertySetterDelegate BuildClassPropertySetter(PropertyInfo property)
-        {
-            if(!Type.IsClass) throw new InvalidOperationException("Attempt to build class property setter for a value type " + Type);
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void),
-                                                  new[] {typeof(Delegate), Type, typeof(byte).MakePointerType(), typeof(int).MakeByRefType(), typeof(int)}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_1); // stack: [obj]
-            il.Emit(OpCodes.Ldarg_0); // stack: [obj, reader]
-            il.Emit(OpCodes.Ldarg_2); // stack: [obj, reader, pinnedData]
-            il.Emit(OpCodes.Ldarg_3); // stack: [obj, reader, pinnedData, ref index]
-            il.Emit(OpCodes.Ldarg_S, 4); // stack: [obj, reader, pinnedData, ref index, dataLength]
-            var reader = GetReader(property.PropertyType);
-            il.Emit(OpCodes.Call, reader.GetType().GetMethod("Invoke")); // stack: [obj, reader.Read(pinnedData, ref index, dataLength)]
-            il.Emit(OpCodes.Callvirt, property.GetSetMethod()); // obj.Property = reader.Read(pinnedData, ref index)
+            var method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + property.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
+                                                          new[]
+                                                              {
+                                                                  Type.IsClass ? Type : Type.MakeByRefType(),
+                                                                  typeof(byte*), typeof(int).MakeByRefType(), typeof(int)
+                                                              });
+            var il = method.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0); // stack: [{obj}]
+            il.Emit(OpCodes.Ldarg_1); // stack: [{obj}, pinnedData]
+            il.Emit(OpCodes.Ldarg_2); // stack: [{obj}, pinnedData, ref index]
+            il.Emit(OpCodes.Ldarg_3); // stack: [{obj}, pinnedData, ref index, dataLength]
+            il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
+            var setter = property.GetSetMethod();
+            il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // obj.Property = reader(pinnedData, ref index)
             il.Emit(OpCodes.Ret);
-            var propertySetter = (InternalClassPropertySetterDelegate)dynamicMethod.CreateDelegate(typeof(InternalClassPropertySetterDelegate));
-            return (T obj, byte* pinnedData, ref int index, int dataLength) => propertySetter(reader, obj, pinnedData, ref index, dataLength);
-        }
-
-        private unsafe StructPropertySetterDelegate BuildStructPropertySetter(PropertyInfo property)
-        {
-            if(Type.IsClass) throw new InvalidOperationException("Attempt to build struct property setter for a class type " + Type);
-            if(Type.IsPrimitive) throw new InvalidOperationException("Attempt to build struct property setter for a primitive type " + Type);
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void),
-                                                  new[] {typeof(Delegate), Type.MakeByRefType(), typeof(byte).MakePointerType(), typeof(int).MakeByRefType(), typeof(int)}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_1); // stack: [ref obj]
-            il.Emit(OpCodes.Ldarg_0); // stack: [ref obj, reader]
-            il.Emit(OpCodes.Ldarg_2); // stack: [ref obj, reader, pinnedData]
-            il.Emit(OpCodes.Ldarg_3); // stack: [ref obj, reader, pinnedData, ref index]
-            il.Emit(OpCodes.Ldarg_S, 4); // stack: [obj, reader, pinnedData, ref index, dataLength]
-            var reader = GetReader(property.PropertyType);
-            il.Emit(OpCodes.Call, reader.GetType().GetMethod("Invoke")); // stack: [ref obj, reader.Read(pinnedData, ref index, dataLength)]
-            il.Emit(OpCodes.Callvirt, property.GetSetMethod()); // obj.Property = reader.Read(pinnedData, ref index)
-            il.Emit(OpCodes.Ret);
-            var propertySetter = (InternalStructPropertySetterDelegate)dynamicMethod.CreateDelegate(typeof(InternalStructPropertySetterDelegate));
-            return (ref T obj, byte* pinnedData, ref int index, int dataLength) => propertySetter(reader, ref obj, pinnedData, ref index, dataLength);
+            return method;
         }
     }
 }

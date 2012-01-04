@@ -3,31 +3,27 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Writers
 {
-    internal class NullableWriterBuilder<T> : WriterBuilderWithOneParam<T, Delegate>
+    internal class NullableWriterBuilder<T> : WriterBuilderBase<T>
     {
-        public NullableWriterBuilder(IWriterCollection writerCollection)
-            : base(writerCollection)
+        public NullableWriterBuilder()
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 throw new InvalidOperationException("Expected nullable but was " + Type);
         }
 
-        protected override Delegate WriteNotEmpty(WriterBuilderContext context)
+        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
-            context.LoadAdditionalParam(0); // stack: [writer]
-            context.LoadObjByRef(); // stack: [writer, &obj]
-            il.Emit(OpCodes.Call, Type.GetProperty("Value").GetGetMethod()); // stack: [writer, obj.Value]
-            context.LoadWriteEmpty(); // stack: [writer, obj.Value, writeEmpty]
-            context.LoadResultByRef(); // stack: [writer, obj.Value, writeEmpty, ref result]
-            context.LoadIndexByRef(); // stack: [writer, obj.Value, writeEmpty, ref result, ref index]
-            context.LoadPinnedResultByRef(); // stack: [writer, obj.Value, writeEmpty, ref result, ref index, ref pinnedResult]
-            var writer = GetWriter(Type.GetGenericArguments()[0]);
-            il.Emit(OpCodes.Call, writer.GetType().GetMethod("Invoke")); // writer(obj.Value, writeEmpty, ref result, ref index, ref pinnedResult)
-            return writer;
+            context.LoadObjByRef(); // stack: [&obj]
+            il.Emit(OpCodes.Call, Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
+            context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
+            context.LoadResultByRef(); // stack: [obj.Value, writeEmpty, ref result]
+            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index]
+            context.LoadPinnedResultByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index, ref pinnedResult]
+            il.Emit(OpCodes.Call, context.Context.GetWriter(Type.GetGenericArguments()[0])); // writer(obj.Value, writeEmpty, ref result, ref index, ref pinnedResult)
         }
 
-        protected override bool CheckEmpty(WriterBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
         {
             context.LoadObjByRef(); // stack: [&obj]
             context.Il.Emit(OpCodes.Call, Type.GetProperty("HasValue").GetGetMethod()); // stack: obj.HasValue

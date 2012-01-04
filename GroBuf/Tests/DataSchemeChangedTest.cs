@@ -13,13 +13,13 @@ namespace SKBKontur.GroBuf.Tests
             serializer = new Serializer();
         }
 
-        class C1_Old
+        public class C1_Old
         {
             public string S { get; set; }
             public int X { get; set; }
         }
 
-        class C1_New
+        public class C1_New
         {
             public int X { get; set; }
             public double? D { get; set; }
@@ -37,14 +37,14 @@ namespace SKBKontur.GroBuf.Tests
             Assert.IsNull(oo.D);
         }
 
-        class C2_Old
+        public class C2_Old
         {
             public int X { get; set; }
             public double? D { get; set; }
             public string S { get; set; }
         }
 
-        class C2_New
+        public class C2_New
         {
             public string S { get; set; }
             public double? D { get; set; }

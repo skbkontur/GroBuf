@@ -1,37 +1,59 @@
 using System;
+using System.Reflection;
 using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class PrimitivesReaderBuilder<T> : ReaderBuilderWithOneParam<T, Delegate[]>
+    internal class PrimitivesReaderBuilder<T> : ReaderBuilderBase<T>
     {
-        public PrimitivesReaderBuilder(IReaderCollection readerCollection)
-            : base(readerCollection)
+        public PrimitivesReaderBuilder()
         {
             if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was " + Type);
         }
 
-        protected override Delegate[] ReadNotEmpty(ReaderBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
         {
             context.IncreaseIndexBy1();
-            var readers = BuildPrimitiveValueReaders();
+            var readers = BuildPrimitiveValueReaders(context.Context);
+            var readersField = context.Context.BuildConstField<IntPtr[]>("readers_" + Type.Name + "_" + Guid.NewGuid(), field => BuildReadersFieldInitializer(context.Context, field, readers));
             var il = context.Il;
 
-            context.LoadAdditionalParam(0); // stack: [readers]
-            il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [readers, typeCode]
-            il.Emit(OpCodes.Ldelem_Ref); // stack: [readers[typeCode]]
-            context.GoToCurrentLocation(); // stack: [readers[typeCode], &data[index]]
+            context.GoToCurrentLocation(); // stack: [&data[index]]
             context.SkipValue();
-            il.Emit(OpCodes.Call, typeof(PrimitiveValueReaderDelegate).GetMethod("Invoke")); // readers[typeCode](&data[index]); stack: [result]
-            return readers;
+            context.LoadField(readersField); // stack: [&data[index], readers]
+            il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [&data[index], readers, typeCode]
+            il.Emit(OpCodes.Ldelem_I); // stack: [&data[index], readers[typeCode]]
+            il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, Type, new[] {typeof(byte*)}, null); // readers[typeCode](&data[index]); stack: [result]
         }
 
-        private unsafe delegate T PrimitiveValueReaderDelegate(byte* buf);
-
-        private unsafe Delegate[] BuildPrimitiveValueReaders()
+        private static Action BuildReadersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] readers)
         {
-            var result = new Delegate[256];
-            var defaultReader = BuildDefaultValueReader();
+            var typeBuilder = context.TypeBuilder;
+            var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
+            var il = method.GetILGenerator();
+            il.Emit(OpCodes.Ldnull); // stack: [null]
+            il.Emit(OpCodes.Ldc_I4, readers.Length); // stack: [null, readers.Length]
+            il.Emit(OpCodes.Newarr, typeof(IntPtr)); // stack: [null, new IntPtr[readers.Length]]
+            il.Emit(OpCodes.Stfld, field); // readersField = new IntPtr[readers.Length]
+            il.Emit(OpCodes.Ldnull); // stack: [null]
+            il.Emit(OpCodes.Ldfld, field); // stack: [readersField]
+            for(int i = 0; i < readers.Length; ++i)
+            {
+                if(readers[i] == null) continue;
+                il.Emit(OpCodes.Dup); // stack: [readersField, readersField]
+                il.Emit(OpCodes.Ldc_I4, i); // stack: [readersField, readersField, i]
+                il.Emit(OpCodes.Ldftn, readers[i]); // stack: [readersField, readersField, i, readers[i]]
+                il.Emit(OpCodes.Stelem_I); // readersField[i] = readers[i]; stack: [readersField]
+            }
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Ret);
+            return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
+        }
+
+        private MethodInfo[] BuildPrimitiveValueReaders(ReaderTypeBuilderContext context)
+        {
+            var result = new MethodInfo[256];
+            var defaultReader = BuildDefaultValueReader(context);
             for(int i = 0; i < 256; ++i)
                 result[i] = defaultReader;
             foreach(var typeCode in new[]
@@ -42,28 +64,28 @@ namespace SKBKontur.GroBuf.Readers
                     GroBufTypeCode.Int64, GroBufTypeCode.UInt64,
                     GroBufTypeCode.Single, GroBufTypeCode.Double
                 })
-                result[(int)typeCode] = BuildPrimitiveValueReader(typeCode);
+                result[(int)typeCode] = BuildPrimitiveValueReader(context, typeCode);
             return result;
         }
 
-        private PrimitiveValueReaderDelegate BuildDefaultValueReader()
+        private MethodInfo BuildDefaultValueReader(ReaderTypeBuilderContext context)
         {
-            var type = typeof(T);
-            if(!type.IsPrimitive) throw new InvalidOperationException("Attempt to build primitive value reader for a non-primitive type " + type);
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), type, new[] {typeof(byte).MakePointerType()}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            var result = il.DeclareLocal(type);
+            var method = context.TypeBuilder.DefineMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
+                                                          Type, new[] {typeof(byte*)});
+            var il = method.GetILGenerator();
+            var result = il.DeclareLocal(Type);
             il.Emit(OpCodes.Ldloca, result);
-            il.Emit(OpCodes.Initobj, type);
+            il.Emit(OpCodes.Initobj, Type);
             il.Emit(OpCodes.Ldloc, result);
             il.Emit(OpCodes.Ret);
-            return (PrimitiveValueReaderDelegate)dynamicMethod.CreateDelegate(typeof(PrimitiveValueReaderDelegate));
+            return method;
         }
 
-        private PrimitiveValueReaderDelegate BuildPrimitiveValueReader(GroBufTypeCode typeCode)
+        private MethodInfo BuildPrimitiveValueReader(ReaderTypeBuilderContext context, GroBufTypeCode typeCode)
         {
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), Type, new[] {typeof(byte).MakePointerType()}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
+            var method = context.TypeBuilder.DefineMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
+                                                          Type, new[] {typeof(byte*)});
+            var il = method.GetILGenerator();
             var expectedTypeCode = GroBufHelpers.GetTypeCode(Type);
             il.Emit(OpCodes.Ldarg_0); // stack: [address]
             EmitReadPrimitiveValue(il, typeCode); // stack: [value]
@@ -77,7 +99,7 @@ namespace SKBKontur.GroBuf.Readers
             else
                 EmitConvertValue(il, typeCode, expectedTypeCode);
             il.Emit(OpCodes.Ret);
-            return (PrimitiveValueReaderDelegate)dynamicMethod.CreateDelegate(typeof(PrimitiveValueReaderDelegate));
+            return method;
         }
 
         private static void EmitConvertValue(ILGenerator il, GroBufTypeCode typeCode, GroBufTypeCode expectedTypeCode)

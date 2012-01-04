@@ -2,18 +2,18 @@ namespace SKBKontur.GroBuf.Tests.TestData
 {
     public class DutyTaxFeeDetail
     {
-        public string DutyTaxFeeRateCode { get; set; }
+        public char? DutyTaxFeeRateCode { get; set; }
 
-        public string CodeListIdentificationCode1 { get; set; }
+        public int?[] CodeListIdentificationCode1 { get; set; }
 
-        public string CodeListResponsibleAgencyCode1 { get; set; }
+        public uint? CodeListResponsibleAgencyCode1 { get; set; }
 
-        public string DutyTaxFeeRate { get; set; }
+        public long? DutyTaxFeeRate { get; set; }
 
-        public string DutyTaxFeeRateBasisCode { get; set; }
+        public ulong DutyTaxFeeRateBasisCode { get; set; }
 
-        public string CodeListIdentificationCode2 { get; set; }
+        public long CodeListIdentificationCode2 { get; set; }
 
-        public string CodeListResponsibleAgencyCode2 { get; set; }
+        public ulong? CodeListResponsibleAgencyCode2 { get; set; }
     }
 }

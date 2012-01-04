@@ -1,14 +1,16 @@
+using System;
+
 namespace SKBKontur.GroBuf.Tests.TestData
 {
     public class PercentageDetailsGroup
     {
-        public string PercentageTypeCodeQualifier { get; set; }
+        public uint[] PercentageTypeCodeQualifier { get; set; }
 
-        public string Percentage { get; set; }
+        public DateTime? Percentage { get; set; }
 
-        public string PercentageBasisIdentificationCode { get; set; }
+        public float PercentageBasisIdentificationCode { get; set; }
 
-        public string CodeListIdentificationCode { get; set; }
+        public float? CodeListIdentificationCode { get; set; }
 
         public string CodeListResponsibleAgencyCode { get; set; }
     }

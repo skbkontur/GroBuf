@@ -3,14 +3,9 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class GuidReaderBuilder : ReaderBuilderWithoutParams<Guid>
+    internal class GuidReaderBuilder : ReaderBuilderBase<Guid>
     {
-        public GuidReaderBuilder(IReaderCollection readerCollection)
-            : base(readerCollection)
-        {
-        }
-
-        protected override void ReadNotEmpty(ReaderBuilderContext<Guid> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext<Guid> context)
         {
             context.IncreaseIndexBy1();
             context.AssertTypeCode(GroBufTypeCode.Guid); // Assert typeCode == TypeCode.Guid

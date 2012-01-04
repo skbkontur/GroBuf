@@ -2,14 +2,9 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class StringReaderBuilder : ReaderBuilderWithoutParams<string>
+    internal class StringReaderBuilder : ReaderBuilderBase<string>
     {
-        public StringReaderBuilder(IReaderCollection readerCollection)
-            : base(readerCollection)
-        {
-        }
-
-        protected override void ReadNotEmpty(ReaderBuilderContext<string> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext<string> context)
         {
             context.IncreaseIndexBy1(); // Skip typeCode
             context.AssertTypeCode(GroBufTypeCode.String); // Assert typeCode == TypeCode.String

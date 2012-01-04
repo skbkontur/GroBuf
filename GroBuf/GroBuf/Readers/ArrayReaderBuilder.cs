@@ -3,16 +3,15 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class ArrayReaderBuilder<T> : ReaderBuilderWithOneParam<T, Delegate>
+    internal class ArrayReaderBuilder<T> : ReaderBuilderBase<T>
     {
-        public ArrayReaderBuilder(IReaderCollection readerCollection)
-            : base(readerCollection)
+        public ArrayReaderBuilder()
         {
-            if (!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
-            if (Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
+            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
         }
 
-        protected override Delegate ReadNotEmpty(ReaderBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
         {
             context.IncreaseIndexBy1();
             context.AssertTypeCode(GroBufTypeCode.Array);
@@ -49,16 +48,14 @@ namespace SKBKontur.GroBuf.Readers
             il.MarkLabel(cycleStart);
             il.Emit(OpCodes.Dup); // stack: [result, result]
             il.Emit(OpCodes.Ldloc, i); // stack: [result, result, i]
-            var reader = GetReader(elementType);
 
             if(elementType.IsValueType && !elementType.IsPrimitive) // struct
                 il.Emit(OpCodes.Ldelema, elementType);
 
-            context.LoadAdditionalParam(0); // stack: [result, {result[i]}, reader]
-            context.LoadData(); // stack: [result, {result[i]}, reader, pinnedData]
-            context.LoadIndexByRef(); // stack: [result, {result[i]}, reader, pinnedData, ref index]
-            context.LoadDataLength(); // stack: [result, {result[i]}, reader, pinnedData, ref index, dataLength]
-            il.Emit(OpCodes.Call, reader.GetType().GetMethod("Invoke")); // reader(pinnedData, ref index, dataLength); stack: [result, {result[i]}, item]
+            context.LoadData(); // stack: [result, {result[i]}, pinnedData]
+            context.LoadIndexByRef(); // stack: [result, {result[i]}, pinnedData, ref index]
+            context.LoadDataLength(); // stack: [result, {result[i]}, pinnedData, ref index, dataLength]
+            il.Emit(OpCodes.Call, context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength); stack: [result, {result[i]}, item]
             EmitArrayItemSetter(elementType, il); // result[i] = item; stack: [result]
             il.Emit(OpCodes.Ldloc, i); // stack: [result, i]
             il.Emit(OpCodes.Ldc_I4_1); // stack: [result, i, 1]
@@ -68,8 +65,6 @@ namespace SKBKontur.GroBuf.Readers
             il.Emit(OpCodes.Ldloc, length); // stack: [result, i, length]
             il.Emit(OpCodes.Blt_Un, cycleStart); // if(i < length) goto cycleStart
             il.MarkLabel(allDoneLabel); // stack: [result]
-
-            return reader;
         }
 
         private static void EmitArrayItemSetter(Type elementType, ILGenerator il)
@@ -90,6 +85,7 @@ namespace SKBKontur.GroBuf.Readers
                     break;
                 case TypeCode.Int16:
                 case TypeCode.UInt16:
+                case TypeCode.Char:
                     il.Emit(OpCodes.Stelem_I2);
                     break;
                 case TypeCode.Int32:

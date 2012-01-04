@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -7,13 +6,33 @@ namespace SKBKontur.GroBuf.Readers
 {
     internal abstract class ReaderBuilderBase<T> : IReaderBuilder<T>
     {
-        protected ReaderBuilderBase(IReaderCollection readerCollection)
+        protected ReaderBuilderBase()
         {
-            this.readerCollection = readerCollection;
             Type = typeof(T);
         }
 
-        public abstract ReaderDelegate<T> BuildReader();
+        public MethodInfo BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext)
+        {
+            var typeBuilder = readerTypeBuilderContext.TypeBuilder;
+
+            var method = typeBuilder.DefineMethod("Read_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, Type,
+                                                  new[]
+                                                      {
+                                                          typeof(byte*), typeof(int).MakeByRefType(), typeof(int)
+                                                      });
+            readerTypeBuilderContext.SetReader(Type, method);
+            var il = method.GetILGenerator();
+            var context = new ReaderMethodBuilderContext<T>(readerTypeBuilderContext, il);
+
+            ReadTypeCodeAndCheck(context); // Read TypeCode and check
+            ReadNotEmpty(context); // Read obj
+            il.Emit(OpCodes.Ret);
+            return method;
+        }
+
+        protected abstract void ReadNotEmpty(ReaderMethodBuilderContext<T> context);
+
+        protected Type Type { get; private set; }
 
         /// <summary>
         /// Reads TypeCode at <c>data</c>[<c>index</c>] and checks it
@@ -21,7 +40,7 @@ namespace SKBKontur.GroBuf.Readers
         /// Returns default(<typeparamref name="T"/>) if TypeCode = Empty
         /// </summary>
         /// <param name="context">Current context</param>
-        protected void ReadTypeCodeAndCheck(ReaderBuilderContext<T> context)
+        private static void ReadTypeCodeAndCheck(ReaderMethodBuilderContext<T> context)
         {
             var il = context.Il;
             var notEmptyLabel = il.DefineLabel();
@@ -42,16 +61,5 @@ namespace SKBKontur.GroBuf.Readers
 
             context.CheckTypeCode();
         }
-
-        protected unsafe Delegate GetReader(Type type)
-        {
-            if(getWriterMethod == null)
-                getWriterMethod = ((MethodCallExpression)((Expression<Action<IReaderCollection>>)(collection => collection.GetReader<int>())).Body).Method.GetGenericMethodDefinition();
-            return ((Delegate)getWriterMethod.MakeGenericMethod(new[] {type}).Invoke(readerCollection, new object[0]));
-        }
-
-        protected Type Type { get; private set; }
-        private readonly IReaderCollection readerCollection;
-        private MethodInfo getWriterMethod;
     }
 }

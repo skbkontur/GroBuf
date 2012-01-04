@@ -1,5 +1,4 @@
 using System;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -7,13 +6,35 @@ namespace SKBKontur.GroBuf.Writers
 {
     internal abstract class WriterBuilderBase<T> : IWriterBuilder<T>
     {
-        protected WriterBuilderBase(IWriterCollection writerCollection)
+        protected WriterBuilderBase()
         {
-            this.writerCollection = writerCollection;
             Type = typeof(T);
         }
 
-        public abstract WriterDelegate<T> BuildWriter();
+        public MethodInfo BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext)
+        {
+            var typeBuilder = writerTypeBuilderContext.TypeBuilder;
+
+            var method = typeBuilder.DefineMethod("Write_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
+                                                  new[]
+                                                      {
+                                                          Type, typeof(bool), typeof(byte[]).MakeByRefType(),
+                                                          typeof(int).MakeByRefType(), typeof(byte*).MakeByRefType()
+                                                      });
+            writerTypeBuilderContext.SetWriter(Type, method);
+            var il = method.GetILGenerator();
+            var context = new WriterMethodBuilderContext(writerTypeBuilderContext, il);
+
+            var notEmptyLabel = il.DefineLabel();
+            if(CheckEmpty(context, notEmptyLabel)) // Check if obj is empty
+                context.WriteNull(); // Write null & return
+            il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
+            WriteNotEmpty(context); // Write obj
+            il.Emit(OpCodes.Ret);
+            return method;
+        }
+
+        protected abstract void WriteNotEmpty(WriterMethodBuilderContext context);
 
         /// <summary>
         /// Checks whether <c>obj</c> is empty
@@ -21,7 +42,7 @@ namespace SKBKontur.GroBuf.Writers
         /// <param name="context">Current context</param>
         /// <param name="notEmptyLabel">Label where to go if <c>obj</c> is not empty</param>
         /// <returns>true if <c>obj</c> can be empty</returns>
-        protected virtual bool CheckEmpty(WriterBuilderContext context, Label notEmptyLabel)
+        protected virtual bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
         {
             if(!Type.IsClass) return false;
             context.LoadObj(); // stack: [obj]
@@ -29,15 +50,6 @@ namespace SKBKontur.GroBuf.Writers
             return true;
         }
 
-        protected unsafe Delegate GetWriter(Type type)
-        {
-            if(getWriterMethod == null)
-                getWriterMethod = ((MethodCallExpression)((Expression<Action<IWriterCollection>>)(collection => collection.GetWriter<int>())).Body).Method.GetGenericMethodDefinition();
-            return ((Delegate)getWriterMethod.MakeGenericMethod(new[] {type}).Invoke(writerCollection, new object[0]));
-        }
-
         protected Type Type { get; private set; }
-        private readonly IWriterCollection writerCollection;
-        private MethodInfo getWriterMethod;
     }
 }

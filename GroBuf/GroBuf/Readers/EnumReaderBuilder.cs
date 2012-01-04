@@ -5,19 +5,20 @@ using System.Reflection.Emit;
 
 namespace SKBKontur.GroBuf.Readers
 {
-    internal class EnumReaderBuilder<T> : ReaderBuilderWithTwoParams<T, int[], ulong[]>
+    internal class EnumReaderBuilder<T> : ReaderBuilderBase<T>
     {
-        public EnumReaderBuilder(IReaderCollection readerCollection)
-            : base(readerCollection)
+        public EnumReaderBuilder()
         {
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was " + Type);
         }
 
-        protected override Tuple<int[], ulong[]> ReadNotEmpty(ReaderBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
         {
             int[] values;
             ulong[] hashCodes;
             BuildValuesTable(out values, out hashCodes);
+            var valuesField = context.Context.BuildConstField("values_" + Type.Name + "_" + Guid.NewGuid(), values);
+            var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
             context.AssertTypeCode(GroBufTypeCode.Enum);
             context.IncreaseIndexBy1();
             context.Il.Emit(OpCodes.Ldc_I4_8); // stack: [8]
@@ -32,18 +33,18 @@ namespace SKBKontur.GroBuf.Readers
             context.Il.Emit(OpCodes.Conv_I4); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
             var idx = context.Length;
             context.Il.Emit(OpCodes.Stloc, idx); // idx = (int)(hashCode % hashCodes.Length); stack: [hashCode]
-            context.LoadAdditionalParam(1); // stack: [hashCode, hashCodes]
+
+            context.LoadField(hashCodesField); // stack: [hashCode, hashCodes]
             context.Il.Emit(OpCodes.Ldloc, idx); // stack: [hashCode, hashCodes, idx]
             context.Il.Emit(OpCodes.Ldelem_I8); // stack: [hashCode, hashCodes[idx]]
             var returnDefaultLabel = context.Il.DefineLabel();
             context.Il.Emit(OpCodes.Bne_Un, returnDefaultLabel); // if(hashCode != hashCodes[idx]) goto returnDefault;
-            context.LoadAdditionalParam(0); // stack: [values]
+            context.LoadField(valuesField); // stack: [values]
             context.Il.Emit(OpCodes.Ldloc, idx); // stack: [values, idx]
             context.Il.Emit(OpCodes.Ldelem_I4); // stack: [values[idx]]
             context.Il.Emit(OpCodes.Ret);
             context.Il.MarkLabel(returnDefaultLabel);
             context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            return new Tuple<int[], ulong[]>(values, hashCodes);
         }
 
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)
