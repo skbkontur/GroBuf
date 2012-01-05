@@ -128,7 +128,10 @@ namespace SKBKontur.GroBuf.Readers
             var label = Il.DefineLabel();
             Il.Emit(OpCodes.Ble_Un, label);
             Il.Emit(OpCodes.Ldstr, "Unexpected end of data");
-            Il.Emit(OpCodes.Newobj, typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)}));
+            var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
+            if(constructor == null)
+                throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));
+            Il.Emit(OpCodes.Newobj, constructor);
             Il.Emit(OpCodes.Throw);
             Il.MarkLabel(label);
         }
@@ -155,7 +158,10 @@ namespace SKBKontur.GroBuf.Readers
             var okLabel = Il.DefineLabel();
             Il.Emit(OpCodes.Brtrue, okLabel); // if(lengths[typeCode] != 0) goto ok;
             Il.Emit(OpCodes.Ldstr, "Unknown type code");
-            Il.Emit(OpCodes.Newobj, typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)}));
+            var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
+            if(constructor == null)
+                throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));
+            Il.Emit(OpCodes.Newobj, constructor);
             Il.Emit(OpCodes.Throw);
             Il.MarkLabel(okLabel);
         }

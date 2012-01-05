@@ -124,7 +124,7 @@ namespace SKBKontur.GroBuf.Writers
                     il.Emit(OpCodes.Ldelem_R8);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException("Type " + elementType.Name + " is not supported");
                 }
             }
         }

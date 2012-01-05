@@ -19,7 +19,10 @@ namespace SKBKontur.GroBuf.Readers
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
             var elementType = Type.GetGenericArguments()[0];
             il.Emit(OpCodes.Call, context.Context.GetReader(elementType)); // stack: [reader(pinnedData, ref index, dataLength)]
-            il.Emit(OpCodes.Newobj, Type.GetConstructor(new[] {elementType})); // stack: new type(reader(pinnedData, ref index, dataLength))
+            var constructor = Type.GetConstructor(new[] {elementType});
+            if(constructor == null)
+                throw new MissingConstructorException(Type, elementType);
+            il.Emit(OpCodes.Newobj, constructor); // stack: new type(reader(pinnedData, ref index, dataLength))
         }
     }
 }

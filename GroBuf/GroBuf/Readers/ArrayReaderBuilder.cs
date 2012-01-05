@@ -103,7 +103,7 @@ namespace SKBKontur.GroBuf.Readers
                     il.Emit(OpCodes.Stelem_R8);
                     break;
                 default:
-                    throw new NotSupportedException();
+                    throw new NotSupportedException("Type " + elementType.Name + " is not supported");
                 }
             }
         }

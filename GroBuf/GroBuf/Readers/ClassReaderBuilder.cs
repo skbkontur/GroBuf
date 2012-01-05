@@ -43,7 +43,10 @@ namespace SKBKontur.GroBuf.Readers
 
             if(Type.IsClass)
             {
-                il.Emit(OpCodes.Newobj, Type.GetConstructor(Type.EmptyTypes)); // stack: [new type()]
+                var constructor = Type.GetConstructor(Type.EmptyTypes);
+                if(constructor == null)
+                    throw new MissingConstructorException(Type);
+                il.Emit(OpCodes.Newobj, constructor); // stack: [new type()]
                 il.Emit(OpCodes.Stloc, result); // result = new type(); stack: []
             }
             else

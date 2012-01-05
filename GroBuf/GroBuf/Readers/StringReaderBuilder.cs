@@ -27,7 +27,10 @@ namespace SKBKontur.GroBuf.Readers
             context.Il.Emit(OpCodes.Ldloc, length); // stack: [&data[index], 0, length]
             context.Il.Emit(OpCodes.Ldc_I4_1); // stack: [&data[index], 0, length, 1]
             context.Il.Emit(OpCodes.Shr_Un); // stack: [&data[index], 0, length >> 1]
-            context.Il.Emit(OpCodes.Newobj, typeof(string).GetConstructor(new[] {typeof(char*), typeof(int), typeof(int)})); // stack: [new string(&data[index], 0, length >> 1)]
+            var constructor = Type.GetConstructor(new[] {typeof(char*), typeof(int), typeof(int)});
+            if(constructor == null)
+                throw new MissingConstructorException(Type, typeof(char*), typeof(int), typeof(int));
+            context.Il.Emit(OpCodes.Newobj, constructor); // stack: [new string(&data[index], 0, length >> 1)]
             context.LoadIndexByRef(); // stack: [new string(&data[index], 0, length >> 1), ref index]
             context.LoadIndex(); // stack: [new string(&data[index], 0, length >> 1), ref index, index]
             context.Il.Emit(OpCodes.Ldloc, length); // stack: [new string(&data[index], 0, length >> 1), ref index, index, length]
