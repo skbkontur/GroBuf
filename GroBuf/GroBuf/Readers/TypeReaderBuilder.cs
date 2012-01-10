@@ -2,20 +2,23 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
+using SKBKontur.GroBuf.DataMembersExtracters;
+
 namespace SKBKontur.GroBuf.Readers
 {
     internal class TypeReaderBuilder
     {
-        public TypeReaderBuilder(ModuleBuilder module, IReaderCollection readerCollection)
+        public TypeReaderBuilder(ModuleBuilder module, IReaderCollection readerCollection, IDataMembersExtracter dataMembersExtracter)
         {
             this.module = module;
             this.readerCollection = readerCollection;
+            this.dataMembersExtracter = dataMembersExtracter;
         }
 
         public MethodInfo BuildTypeReader<T>()
         {
             var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufReader_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new ReaderTypeBuilderContext(readerCollection, typeBuilder);
+            var context = new ReaderTypeBuilderContext(typeBuilder, readerCollection, dataMembersExtracter);
             var readMethod = context.GetReader<T>();
 
             var initializer = BuildInitializer(typeBuilder);
@@ -58,5 +61,6 @@ namespace SKBKontur.GroBuf.Readers
 
         private readonly ModuleBuilder module;
         private readonly IReaderCollection readerCollection;
+        private readonly IDataMembersExtracter dataMembersExtracter;
     }
 }

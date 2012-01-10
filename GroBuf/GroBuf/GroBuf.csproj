@@ -42,10 +42,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataMembersExtracters\FieldsExtracter.cs" />
+    <Compile Include="DataMembersExtracters\PropertiesExtracter.cs" />
     <Compile Include="GroBufRandom.cs" />
     <Compile Include="GroBufReader.cs" />
     <Compile Include="DataLengthAttribute.cs" />
     <Compile Include="GroBufWriter.cs" />
+    <Compile Include="DataMembersExtracters\IDataMembersExtracter.cs" />
+    <Compile Include="MissingConstructorException.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeReaderBuilder.cs" />
@@ -72,8 +76,6 @@
     <Compile Include="Writers\NullableWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesWriterBuilder.cs" />
     <Compile Include="Serializer.cs" />
-    <Compile Include="GroBufReaderOld.cs" />
-    <Compile Include="GroBufWriterOld.cs" />
     <Compile Include="GroBufHelpers.cs" />
     <Compile Include="ISerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

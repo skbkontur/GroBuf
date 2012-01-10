@@ -5,14 +5,22 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
+using SKBKontur.GroBuf.DataMembersExtracters;
+
 namespace SKBKontur.GroBuf.Writers
 {
     internal class WriterTypeBuilderContext
     {
-        public WriterTypeBuilderContext(IWriterCollection writerCollection, TypeBuilder typeBuilder)
+        public WriterTypeBuilderContext(TypeBuilder typeBuilder, IWriterCollection writerCollection, IDataMembersExtracter dataMembersExtracter)
         {
-            this.writerCollection = writerCollection;
             TypeBuilder = typeBuilder;
+            this.writerCollection = writerCollection;
+            this.dataMembersExtracter = dataMembersExtracter;
+        }
+
+        public MemberInfo[] GetDataMembers(Type type)
+        {
+            return dataMembersExtracter.GetMembers(type);
         }
 
         public FieldInfo BuildConstField<T>(string name, T value)
@@ -72,6 +80,7 @@ namespace SKBKontur.GroBuf.Writers
 
         private MethodInfo getWriterMethod;
         private readonly IWriterCollection writerCollection;
+        private readonly IDataMembersExtracter dataMembersExtracter;
 
         private readonly Hashtable writers = new Hashtable();
         private readonly Hashtable fields = new Hashtable();

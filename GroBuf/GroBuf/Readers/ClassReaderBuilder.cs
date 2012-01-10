@@ -10,16 +10,16 @@ namespace SKBKontur.GroBuf.Readers
     {
         protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
         {
-            PropertyInfo[] properties;
+            MemberInfo[] dataMembers;
             ulong[] hashCodes;
-            BuildPropertiesTable(out hashCodes, out properties);
+            BuildMembersTable(context.Context, out hashCodes, out dataMembers);
 
             var il = context.Il;
             var end = context.Length;
             var result = context.Result;
             var typeCode = context.TypeCode;
 
-            var setters = properties.Select(property => property == null ? null : GetPropertySetter(context.Context, property)).ToArray();
+            var setters = dataMembers.Select(member => member == null ? null : GetMemberSetter(context.Context, member)).ToArray();
 
             var settersField = context.Context.BuildConstField<IntPtr[]>("setters_" + Type.Name + "_" + Guid.NewGuid(), field => BuildSettersFieldInitializer(context.Context, field, setters));
             var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
@@ -65,7 +65,7 @@ namespace SKBKontur.GroBuf.Readers
             context.IncreaseIndexBy8(); // index = index + 8; stack: [*(int64*)&data[index] = hashCode]
 
             il.Emit(OpCodes.Dup); // stack: [hashCode, hashCode]
-            il.Emit(OpCodes.Ldc_I8, (long)properties.Length); // stack: [hashCode, hashCode, (int64)hashCodes.Length]
+            il.Emit(OpCodes.Ldc_I8, (long)dataMembers.Length); // stack: [hashCode, hashCode, (int64)hashCodes.Length]
             il.Emit(OpCodes.Rem_Un); // stack: [hashCode, hashCode % hashCodes.Length]
             il.Emit(OpCodes.Conv_I4); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
             var idx = il.DeclareLocal(typeof(int));
@@ -134,15 +134,15 @@ namespace SKBKontur.GroBuf.Readers
             return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
         }
 
-        private void BuildPropertiesTable(out ulong[] hashCodes, out PropertyInfo[] properties)
+        private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
-            var props = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(property => property.CanWrite).Select(property => new Tuple<ulong, PropertyInfo>(GroBufHelpers.CalcHash(property.Name), property)).ToArray();
+            var members = context.GetDataMembers(Type).Select(member => new Tuple<ulong, MemberInfo>(GroBufHelpers.CalcHash(member.Name), member)).ToArray();
             var hashSet = new HashSet<uint>();
-            for(var x = (uint)props.Length;; ++x)
+            for(var x = (uint)members.Length;; ++x)
             {
                 hashSet.Clear();
                 bool ok = true;
-                foreach(var t in props)
+                foreach(var t in members)
                 {
                     var item = (uint)(t.Item1 % x);
                     if(hashSet.Contains(item))
@@ -154,20 +154,20 @@ namespace SKBKontur.GroBuf.Readers
                 }
                 if(!ok) continue;
                 hashCodes = new ulong[x];
-                properties = new PropertyInfo[x];
-                foreach(var t in props)
+                dataMembers = new MemberInfo[x];
+                foreach(var t in members)
                 {
                     var index = (int)(t.Item1 % x);
                     hashCodes[index] = t.Item1;
-                    properties[index] = t.Item2;
+                    dataMembers[index] = t.Item2;
                 }
                 return;
             }
         }
 
-        private MethodInfo GetPropertySetter(ReaderTypeBuilderContext context, PropertyInfo property)
+        private MethodInfo GetMemberSetter(ReaderTypeBuilderContext context, MemberInfo member)
         {
-            var method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + property.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
+            var method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
                                                           new[]
                                                               {
                                                                   Type.IsClass ? Type : Type.MakeByRefType(),
@@ -178,9 +178,22 @@ namespace SKBKontur.GroBuf.Readers
             il.Emit(OpCodes.Ldarg_1); // stack: [{obj}, pinnedData]
             il.Emit(OpCodes.Ldarg_2); // stack: [{obj}, pinnedData, ref index]
             il.Emit(OpCodes.Ldarg_3); // stack: [{obj}, pinnedData, ref index, dataLength]
-            il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
-            var setter = property.GetSetMethod();
-            il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // obj.Property = reader(pinnedData, ref index)
+            switch(member.MemberType)
+            {
+            case MemberTypes.Property:
+                var property = (PropertyInfo)member;
+                il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
+                var setter = property.GetSetMethod();
+                il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // obj.Property = reader(pinnedData, ref index)
+                break;
+            case MemberTypes.Field:
+                var field = (FieldInfo)member;
+                il.Emit(OpCodes.Call, context.GetReader(field.FieldType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
+                il.Emit(OpCodes.Stfld, field); // obj.Field = reader(pinnedData, ref index)
+                break;
+            default:
+                throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+            }
             il.Emit(OpCodes.Ret);
             return method;
         }

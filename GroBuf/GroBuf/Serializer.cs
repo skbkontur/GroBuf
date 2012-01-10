@@ -1,7 +1,20 @@
-﻿namespace SKBKontur.GroBuf
+﻿using SKBKontur.GroBuf.DataMembersExtracters;
+
+namespace SKBKontur.GroBuf
 {
     public class Serializer : ISerializer
     {
+        public Serializer()
+            : this(new PropertiesExtracter())
+        {
+        }
+
+        public Serializer(IDataMembersExtracter dataMembersExtracter)
+        {
+            writer = new GroBufWriter(dataMembersExtracter);
+            reader = new GroBufReader(dataMembersExtracter);
+        }
+
         public byte[] Serialize<T>(T obj)
         {
             return writer.Write(obj);
@@ -12,7 +25,7 @@
             return reader.Read<T>(data);
         }
 
-        private readonly GroBufWriter writer = new GroBufWriter();
-        private readonly GroBufReader reader = new GroBufReader();
+        private readonly GroBufWriter writer;
+        private readonly GroBufReader reader;
     }
 }

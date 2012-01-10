@@ -35,8 +35,12 @@
     <Reference Include="nunit.framework">
       <HintPath>..\..\Assemblies\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>..\..\Assemblies\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,41 +49,67 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DataSchemeChangedTest.cs" />
-    <Compile Include="GroBufReaderTest.cs" />
-    <Compile Include="GroBufWriterTest.cs" />
     <Compile Include="TestCycle.cs" />
+    <Compile Include="TestData\Invoic\AdditionalInformation.cs" />
+    <Compile Include="TestData\Invoic\AllowanceChargeInformation.cs" />
+    <Compile Include="TestData\Invoic\AllowanceOrCharge.cs" />
+    <Compile Include="TestData\Invoic\DateTimePeriod.cs" />
+    <Compile Include="TestData\Invoic\DateTimePeriodGroup.cs" />
+    <Compile Include="TestData\Invoic\DutyTaxFeeAccountDetail.cs" />
+    <Compile Include="TestData\Invoic\DutyTaxFeeDetail.cs" />
+    <Compile Include="TestData\Invoic\DutyTaxFeeDetails.cs" />
+    <Compile Include="TestData\Invoic\DutyTaxFeeType.cs" />
+    <Compile Include="TestData\Invoic\MonetaryAmount.cs" />
+    <Compile Include="TestData\Invoic\MonetaryAmountGroup.cs" />
+    <Compile Include="TestData\Invoic\PercentageDetails.cs" />
+    <Compile Include="TestData\Invoic\PercentageDetailsGroup.cs" />
+    <Compile Include="TestData\Invoic\Quantity.cs" />
+    <Compile Include="TestData\Invoic\QuantityDetails.cs" />
+    <Compile Include="TestData\Invoic\Range.cs" />
+    <Compile Include="TestData\Invoic\RangeDetails.cs" />
+    <Compile Include="TestData\Invoic\RateDetails.cs" />
+    <Compile Include="TestData\Invoic\RateDetailsGroup.cs" />
+    <Compile Include="TestData\Invoic\Invoic.cs" />
+    <Compile Include="TestData\Invoic\SG44.cs" />
+    <Compile Include="TestData\Invoic\SG45.cs" />
+    <Compile Include="TestData\Invoic\SG46.cs" />
+    <Compile Include="TestData\Invoic\SG47.cs" />
+    <Compile Include="TestData\Invoic\SG48.cs" />
+    <Compile Include="TestData\Invoic\SpecialServicesIdentification.cs" />
+    <Compile Include="TestFields.cs" />
+    <Compile Include="TestPerformance.cs" />
     <Compile Include="TestPrimitives.cs" />
     <Compile Include="TestTools\ExtenderImpl.cs" />
     <Compile Include="IntegrationTest.cs" />
     <Compile Include="TestTools\ObjectComparer.cs" />
     <Compile Include="TestTools\ObjectSerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestData\AdditionalInformation.cs" />
-    <Compile Include="TestData\AllowanceChargeInformation.cs" />
-    <Compile Include="TestData\AllowanceOrCharge.cs" />
-    <Compile Include="TestData\DateTimePeriod.cs" />
-    <Compile Include="TestData\DateTimePeriodGroup.cs" />
-    <Compile Include="TestData\DutyTaxFeeAccountDetail.cs" />
-    <Compile Include="TestData\DutyTaxFeeDetail.cs" />
-    <Compile Include="TestData\DutyTaxFeeDetails.cs" />
-    <Compile Include="TestData\DutyTaxFeeType.cs" />
-    <Compile Include="TestData\MonetaryAmount.cs" />
-    <Compile Include="TestData\MonetaryAmountGroup.cs" />
-    <Compile Include="TestData\PercentageDetails.cs" />
-    <Compile Include="TestData\PercentageDetailsGroup.cs" />
-    <Compile Include="TestData\Quantity.cs" />
-    <Compile Include="TestData\QuantityDetails.cs" />
-    <Compile Include="TestData\Range.cs" />
-    <Compile Include="TestData\RangeDetails.cs" />
-    <Compile Include="TestData\RateDetails.cs" />
-    <Compile Include="TestData\RateDetailsGroup.cs" />
-    <Compile Include="TestData\SG43.cs" />
-    <Compile Include="TestData\SG44.cs" />
-    <Compile Include="TestData\SG45.cs" />
-    <Compile Include="TestData\SG46.cs" />
-    <Compile Include="TestData\SG47.cs" />
-    <Compile Include="TestData\SG48.cs" />
-    <Compile Include="TestData\SpecialServicesIdentification.cs" />
+    <Compile Include="TestData\Orders\AdditionalInformation.cs" />
+    <Compile Include="TestData\Orders\AllowanceChargeInformation.cs" />
+    <Compile Include="TestData\Orders\AllowanceOrCharge.cs" />
+    <Compile Include="TestData\Orders\DateTimePeriod.cs" />
+    <Compile Include="TestData\Orders\DateTimePeriodGroup.cs" />
+    <Compile Include="TestData\Orders\DutyTaxFeeAccountDetail.cs" />
+    <Compile Include="TestData\Orders\DutyTaxFeeDetail.cs" />
+    <Compile Include="TestData\Orders\DutyTaxFeeDetails.cs" />
+    <Compile Include="TestData\Orders\DutyTaxFeeType.cs" />
+    <Compile Include="TestData\Orders\MonetaryAmount.cs" />
+    <Compile Include="TestData\Orders\MonetaryAmountGroup.cs" />
+    <Compile Include="TestData\Orders\PercentageDetails.cs" />
+    <Compile Include="TestData\Orders\PercentageDetailsGroup.cs" />
+    <Compile Include="TestData\Orders\Quantity.cs" />
+    <Compile Include="TestData\Orders\QuantityDetails.cs" />
+    <Compile Include="TestData\Orders\Range.cs" />
+    <Compile Include="TestData\Orders\RangeDetails.cs" />
+    <Compile Include="TestData\Orders\RateDetails.cs" />
+    <Compile Include="TestData\Orders\RateDetailsGroup.cs" />
+    <Compile Include="TestData\Orders\Orders.cs" />
+    <Compile Include="TestData\Orders\SG44.cs" />
+    <Compile Include="TestData\Orders\SG45.cs" />
+    <Compile Include="TestData\Orders\SG46.cs" />
+    <Compile Include="TestData\Orders\SG47.cs" />
+    <Compile Include="TestData\Orders\SG48.cs" />
+    <Compile Include="TestData\Orders\SpecialServicesIdentification.cs" />
     <Compile Include="TestTools\TestHelpers.cs" />
     <Compile Include="TestTools\ConcurrentCache.cs" />
     <Compile Include="TestTools\XmlHelpers.cs" />
@@ -91,6 +121,7 @@
       <Name>GroBuf</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

@@ -1,4 +1,4 @@
-using System.Linq;
+using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -19,16 +19,31 @@ namespace SKBKontur.GroBuf.Writers
             il.Emit(OpCodes.Add); // stack: [ref index, index + 5]
             il.Emit(OpCodes.Stind_I4); // index = index + 5; stack: []
 
-            var properties = Type.GetProperties(BindingFlags.Instance | BindingFlags.Public).Where(property => property.CanRead);
+            var dataMembers = context.Context.GetDataMembers(Type);
             var prev = il.DeclareLocal(typeof(int));
-            foreach(var property in properties)
+            foreach(var member in dataMembers)
             {
                 if(Type.IsClass)
                     context.LoadObj(); // stack: [obj]
                 else
                     context.LoadObjByRef(); // stack: [ref obj]
-                var getter = property.GetGetMethod();
-                il.Emit(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter); // stack: [obj.prop]
+                Type memberType;
+                switch(member.MemberType)
+                {
+                case MemberTypes.Property:
+                    var property = (PropertyInfo)member;
+                    var getter = property.GetGetMethod();
+                    il.Emit(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter); // stack: [obj.prop]
+                    memberType = property.PropertyType;
+                    break;
+                case MemberTypes.Field:
+                    var field = (FieldInfo)member;
+                    il.Emit(OpCodes.Ldfld, field); // stack: [obj.field]
+                    memberType = field.FieldType;
+                    break;
+                default:
+                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                }
                 il.Emit(OpCodes.Ldc_I4_0); // stack: [obj.prop, false]
                 context.LoadResultByRef(); // stack: [obj.prop, false, ref result]
                 context.LoadIndexByRef(); // stack: [obj.prop, false, ref result, ref index]
@@ -40,7 +55,7 @@ namespace SKBKontur.GroBuf.Writers
                 il.Emit(OpCodes.Add); // stack: [obj.prop, false, ref result, ref index, ref index, index + 8]
                 il.Emit(OpCodes.Stind_I4); // index = index + 8; stack: [obj.prop, false, ref result, ref index]
                 context.LoadPinnedResultByRef(); // stack: [obj.prop, false, ref result, ref index, ref pinnedResult]
-                il.Emit(OpCodes.Call, context.Context.GetWriter(property.PropertyType)); // writers[i](obj.prop, false, ref result, ref index, ref pinnedResult)
+                il.Emit(OpCodes.Call, context.Context.GetWriter(memberType)); // writers[i](obj.prop, false, ref result, ref index, ref pinnedResult)
                 context.LoadIndex(); // stack: [index]
                 il.Emit(OpCodes.Ldc_I4_8); // stack: [index, 8]
                 il.Emit(OpCodes.Sub); // stack: [index - 8]
@@ -58,7 +73,7 @@ namespace SKBKontur.GroBuf.Writers
                 context.LoadPinnedResult(); // stack: [pinnedResult]
                 il.Emit(OpCodes.Ldloc, prev); // stack: [pinnedResult, prev]
                 il.Emit(OpCodes.Add); // stack: [pinnedResult + prev]
-                il.Emit(OpCodes.Ldc_I8, (long)GroBufHelpers.CalcHash(property.Name)); // stack: [&result[index], prop.Name.HashCode]
+                il.Emit(OpCodes.Ldc_I8, (long)GroBufHelpers.CalcHash(member.Name)); // stack: [&result[index], prop.Name.HashCode]
                 il.Emit(OpCodes.Stind_I8); // *(long*)(pinnedResult + prev) = prop.Name.HashCode; stack: []
 
                 il.MarkLabel(next);

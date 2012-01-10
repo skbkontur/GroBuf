@@ -3,24 +3,32 @@ using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 
+using SKBKontur.GroBuf.DataMembersExtracters;
 using SKBKontur.GroBuf.Writers;
 
 namespace SKBKontur.GroBuf
 {
-    public class GroBufWriter
+    internal class GroBufWriter
     {
-        public GroBufWriter()
+        private readonly IDataMembersExtracter dataMembersExtracter;
+
+        public GroBufWriter(IDataMembersExtracter dataMembersExtracter)
         {
+            this.dataMembersExtracter = dataMembersExtracter;
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
 
-        // TODO: derived types, decimal
+        byte[] buf = new byte[/*4096*/1024 * 128];
+
+        // TODO: decimal
         public byte[] Write<T>(T obj)
         {
-            var buf = new byte[4096];
+            //var buf = new byte[/*4096*/1024 * 128];
             int index = 0;
             Write(obj, true, ref buf, ref index);
+            /*Array.Resize(ref buf, index);
+            return buf;*/
             var result = new byte[index];
             // TODO
             Array.Copy(buf, result, index);
@@ -29,9 +37,9 @@ namespace SKBKontur.GroBuf
 
         private delegate void PinningWriterDelegate<in T>(T obj, bool writeEmpty, ref byte[] result, ref int index);
 
-        private void Write<T>(T obj, bool writeEmpty, ref byte[] buf, ref int index)
+        private void Write<T>(T obj, bool writeEmpty, ref byte[] result, ref int index)
         {
-            GetPinningWriter<T>()(obj, writeEmpty, ref buf, ref index);
+            GetPinningWriter<T>()(obj, writeEmpty, ref result, ref index);
         }
 
         private PinningWriterDelegate<T> GetPinningWriter<T>()
@@ -56,7 +64,7 @@ namespace SKBKontur.GroBuf
         private PinningWriterDelegate<T> BuildPinningWriter<T>()
         {
             var type = typeof(T);
-            var writeMethod = new TypeWriterBuilder(module, writerCollection).BuildTypeWriter<T>();
+            var writeMethod = new TypeWriterBuilder(module, writerCollection, dataMembersExtracter).BuildTypeWriter<T>();
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(byte[]).MakeByRefType(), typeof(int).MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();

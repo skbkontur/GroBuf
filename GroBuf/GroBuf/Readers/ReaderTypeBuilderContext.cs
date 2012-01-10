@@ -5,15 +5,23 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
+using SKBKontur.GroBuf.DataMembersExtracters;
+
 namespace SKBKontur.GroBuf.Readers
 {
     internal class ReaderTypeBuilderContext
     {
-        public ReaderTypeBuilderContext(IReaderCollection readerCollection, TypeBuilder typeBuilder)
+        public ReaderTypeBuilderContext(TypeBuilder typeBuilder, IReaderCollection readerCollection, IDataMembersExtracter dataMembersExtracter)
         {
-            this.readerCollection = readerCollection;
             TypeBuilder = typeBuilder;
+            this.readerCollection = readerCollection;
+            this.dataMembersExtracter = dataMembersExtracter;
             Lengths = BuildConstField("lengths", GroBufHelpers.Lengths);
+        }
+
+        public MemberInfo[] GetDataMembers(Type type)
+        {
+            return dataMembersExtracter.GetMembers(type);
         }
 
         public FieldInfo BuildConstField<T>(string name, T value)
@@ -80,6 +88,7 @@ namespace SKBKontur.GroBuf.Readers
         private MethodInfo getReaderMethod;
 
         private readonly IReaderCollection readerCollection;
+        private readonly IDataMembersExtracter dataMembersExtracter;
 
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable fields = new Hashtable();

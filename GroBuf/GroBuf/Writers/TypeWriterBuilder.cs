@@ -2,20 +2,23 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
+using SKBKontur.GroBuf.DataMembersExtracters;
+
 namespace SKBKontur.GroBuf.Writers
 {
     internal class TypeWriterBuilder
     {
-        public TypeWriterBuilder(ModuleBuilder module, IWriterCollection writerCollection)
+        public TypeWriterBuilder(ModuleBuilder module, IWriterCollection writerCollection, IDataMembersExtracter dataMembersExtracter)
         {
             this.module = module;
             this.writerCollection = writerCollection;
+            this.dataMembersExtracter = dataMembersExtracter;
         }
 
         public MethodInfo BuildTypeWriter<T>()
         {
             var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufWriter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new WriterTypeBuilderContext(writerCollection, typeBuilder);
+            var context = new WriterTypeBuilderContext(typeBuilder, writerCollection, dataMembersExtracter);
             var writeMethod = context.GetWriter<T>();
 
             var initializer = BuildInitializer(typeBuilder);
@@ -58,5 +61,6 @@ namespace SKBKontur.GroBuf.Writers
 
         private readonly ModuleBuilder module;
         private readonly IWriterCollection writerCollection;
+        private readonly IDataMembersExtracter dataMembersExtracter;
     }
 }

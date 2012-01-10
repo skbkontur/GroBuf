@@ -36,45 +36,43 @@ namespace SKBKontur.GroBuf.Tests.TestTools
             PropertyInfo[] properties = typePropertiesCache.Get(type);
             var isNull = new bool[properties.Length];
             for(int i = 0; i < isNull.Length; ++i)
-                isNull[i] = CanBeNull(properties[i].PropertyType) && random.Next(91) > 60;
+                isNull[i] = CanBeNull(properties[i].PropertyType) && random.Next(91) > 70;
             for(int index = 0; index < properties.Length; index++)
             {
+                if (isNull[index]) continue;
                 PropertyInfo property = properties[index];
                 Type propertyType = property.PropertyType;
                 MethodInfo setter = property.GetSetMethod();
-                if(!isNull[index])
+                if(!propertyType.IsArray)
                 {
-                    if(!propertyType.IsArray)
+                    if(IsALeaf(propertyType))
+                        setter.Invoke(obj, new[] {GetRandomValue(propertyType, random)});
+                    else
                     {
-                        if(IsALeaf(propertyType))
-                            setter.Invoke(obj, new[] {GetRandomValue(propertyType, random)});
-                        else
-                        {
-                            ConstructorInfo constructorInfo = typeConstructorCache.Get(propertyType);
-                            object child = constructorInfo.Invoke(new object[0]);
-                            setter.Invoke(obj, new[] {child});
-                            FillWithRandomTrash(child, random);
-                        }
+                        ConstructorInfo constructorInfo = typeConstructorCache.Get(propertyType);
+                        object child = constructorInfo.Invoke(new object[0]);
+                        setter.Invoke(obj, new[] {child});
+                        FillWithRandomTrash(child, random);
+                    }
+                }
+                else
+                {
+                    Type elementType = propertyType.GetElementType();
+                    int length = random.Next(5, 10);
+                    Array array = Array.CreateInstance(elementType, length);
+                    setter.Invoke(obj, new[] {array});
+                    if(IsALeaf(elementType))
+                    {
+                        for(int i = 0; i < length; ++i)
+                            array.SetValue(GetRandomValue(elementType, random), i);
                     }
                     else
                     {
-                        Type elementType = propertyType.GetElementType();
-                        int length = random.Next(1, 3);
-                        Array array = Array.CreateInstance(elementType, length);
-                        setter.Invoke(obj, new[] {array});
-                        if(IsALeaf(elementType))
-                        {
-                            for(int i = 0; i < length; ++i)
-                                array.SetValue(GetRandomValue(elementType, random), i);
-                        }
-                        else
-                        {
-                            ConstructorInfo constructorInfo = typeConstructorCache.Get(elementType);
-                            for(int i = 0; i < length; ++i)
-                                array.SetValue(constructorInfo.Invoke(new object[0]), i);
-                            for(int i = 0; i < length; ++i)
-                                FillWithRandomTrash(array.GetValue(i), random);
-                        }
+                        ConstructorInfo constructorInfo = typeConstructorCache.Get(elementType);
+                        for(int i = 0; i < length; ++i)
+                            array.SetValue(constructorInfo.Invoke(new object[0]), i);
+                        for(int i = 0; i < length; ++i)
+                            FillWithRandomTrash(array.GetValue(i), random);
                     }
                 }
             }
@@ -115,7 +113,7 @@ namespace SKBKontur.GroBuf.Tests.TestTools
             case TypeCode.Double:
                 return random.NextDouble();
             case TypeCode.String:
-                return RandomString(random, random.Next(2, 11), 'a', 'z');
+                return RandomString(random, random.Next(1000, 5000), 'a', 'z');
             default:
                 throw new NotSupportedException();
             }
