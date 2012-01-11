@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal class StringWriterBuilder : WriterBuilderBase<string>
     {

@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Readers
 {
     internal interface IReaderBuilder<out T>
     {

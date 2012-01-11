@@ -1,4 +1,4 @@
-﻿namespace SKBKontur.GroBuf
+﻿namespace GroBuf
 {
     internal enum GroBufTypeCode
     {

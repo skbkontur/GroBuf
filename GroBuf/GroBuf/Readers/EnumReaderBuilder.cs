@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Readers
 {
     internal class EnumReaderBuilder<T> : ReaderBuilderBase<T>
     {

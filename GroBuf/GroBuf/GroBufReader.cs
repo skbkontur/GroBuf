@@ -3,10 +3,10 @@ using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using SKBKontur.GroBuf.DataMembersExtracters;
-using SKBKontur.GroBuf.Readers;
+using GroBuf.DataMembersExtracters;
+using GroBuf.Readers;
 
-namespace SKBKontur.GroBuf
+namespace GroBuf
 {
     internal class GroBufReader
     {
@@ -58,7 +58,7 @@ namespace SKBKontur.GroBuf
         private PinningReaderDelegate<T> BuildPinningReader<T>()
         {
             var type = typeof(T);
-            var readMethod = new TypeReaderBuilder(module, readerCollection, dataMembersExtracter).BuildTypeReader<T>();
+            var readMethod = new ReaderTypeBuilder(module, readerCollection, dataMembersExtracter).BuildReader<T>();
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), type, new[] {typeof(byte[]), typeof(int).MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
             var pinnedData = il.DeclareLocal(typeof(byte).MakeByRefType(), true);

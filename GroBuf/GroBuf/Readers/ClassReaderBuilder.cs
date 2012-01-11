@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Readers
 {
     internal class ClassReaderBuilder<T> : ReaderBuilderBase<T>
     {
@@ -184,6 +184,8 @@ namespace SKBKontur.GroBuf.Readers
                 var property = (PropertyInfo)member;
                 il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
                 var setter = property.GetSetMethod();
+                if(setter == null)
+                    throw new MissingMethodException(Type.Name, property.Name + "_set");
                 il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // obj.Property = reader(pinnedData, ref index)
                 break;
             case MemberTypes.Field:

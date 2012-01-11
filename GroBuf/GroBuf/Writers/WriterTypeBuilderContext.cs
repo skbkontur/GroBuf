@@ -5,9 +5,9 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using SKBKontur.GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtracters;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal class WriterTypeBuilderContext
     {

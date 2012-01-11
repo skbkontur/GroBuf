@@ -1,8 +1,8 @@
-﻿using NUnit.Framework;
+﻿using GroBuf.DataMembersExtracters;
 
-using SKBKontur.GroBuf.DataMembersExtracters;
+using NUnit.Framework;
 
-namespace SKBKontur.GroBuf.Tests
+namespace GroBuf.Tests
 {
     [TestFixture]
     public class TestFields

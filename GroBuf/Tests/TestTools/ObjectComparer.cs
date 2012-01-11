@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace SKBKontur.GroBuf.Tests.TestTools
+namespace GroBuf.Tests.TestTools
 {
     public static class ObjectComparer
     {

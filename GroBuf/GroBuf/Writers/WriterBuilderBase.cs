@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal abstract class WriterBuilderBase<T> : IWriterBuilder<T>
     {

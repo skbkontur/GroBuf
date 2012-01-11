@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
@@ -16,7 +16,7 @@ namespace SKBKontur.GroBuf.Writers
                     writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
                     if(writerBuilder == null)
                     {
-                        writerBuilder = BuildWriter<T>();
+                        writerBuilder = GetWriterBuilder<T>();
                         writerBuilders[type] = writerBuilder;
                     }
                 }
@@ -24,7 +24,7 @@ namespace SKBKontur.GroBuf.Writers
             return writerBuilder;
         }
 
-        private static IWriterBuilder<T> BuildWriter<T>()
+        private static IWriterBuilder<T> GetWriterBuilder<T>()
         {
             var type = typeof(T);
             IWriterBuilder<T> writerBuilder;

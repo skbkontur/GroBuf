@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 using ProtoBuf;
 
-namespace SKBKontur.GroBuf.Tests.TestData.Orders
+namespace GroBuf.Tests.TestData.Orders
 {
     [DataContract]
     [ProtoContract]

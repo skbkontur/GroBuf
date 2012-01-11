@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal interface IWriterBuilder<T>
     {

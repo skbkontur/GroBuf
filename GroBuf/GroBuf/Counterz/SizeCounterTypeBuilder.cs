@@ -2,31 +2,31 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-using SKBKontur.GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtracters;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Counterz
 {
-    internal class TypeReaderBuilder
+    internal class SizeCounterTypeBuilder
     {
-        public TypeReaderBuilder(ModuleBuilder module, IReaderCollection readerCollection, IDataMembersExtracter dataMembersExtracter)
+        public SizeCounterTypeBuilder(ModuleBuilder module, ISizeCounterCollection sizeCounterCollection, IDataMembersExtracter dataMembersExtracter)
         {
             this.module = module;
-            this.readerCollection = readerCollection;
+            this.sizeCounterCollection = sizeCounterCollection;
             this.dataMembersExtracter = dataMembersExtracter;
         }
 
-        public MethodInfo BuildTypeReader<T>()
+        public MethodInfo BuildSizeCounter<T>()
         {
-            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufReader_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new ReaderTypeBuilderContext(typeBuilder, readerCollection, dataMembersExtracter);
-            var readMethod = context.GetReader<T>();
+            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufSizeCounter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
+            var context = new SizeCounterTypeBuilderContext(typeBuilder, sizeCounterCollection, dataMembersExtracter);
+            var writeMethod = context.GetCounter<T>();
 
             var initializer = BuildInitializer(typeBuilder);
 
             var type = typeBuilder.CreateType();
 
             type.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
-            return type.GetMethod(readMethod.Name);
+            return type.GetMethod(writeMethod.Name);
         }
 
         private static MethodInfo BuildInitializer(TypeBuilder typeBuilder)
@@ -60,7 +60,7 @@ namespace SKBKontur.GroBuf.Readers
         }
 
         private readonly ModuleBuilder module;
-        private readonly IReaderCollection readerCollection;
+        private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly IDataMembersExtracter dataMembersExtracter;
     }
 }

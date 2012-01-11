@@ -2,7 +2,7 @@ using System.Runtime.Serialization;
 
 using ProtoBuf;
 
-namespace SKBKontur.GroBuf.Tests.TestData.Invoic
+namespace GroBuf.Tests.TestData.Invoic
 {
     [DataContract]
     [ProtoContract]

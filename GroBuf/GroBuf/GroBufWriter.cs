@@ -3,10 +3,11 @@ using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using SKBKontur.GroBuf.DataMembersExtracters;
-using SKBKontur.GroBuf.Writers;
+using GroBuf.DataMembersExtracters;
+using GroBuf.Counterz;
+using GroBuf.Writers;
 
-namespace SKBKontur.GroBuf
+namespace GroBuf
 {
     internal class GroBufWriter
     {
@@ -19,20 +20,44 @@ namespace SKBKontur.GroBuf
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
 
-        byte[] buf = new byte[/*4096*/1024 * 128];
+        public int GetSize<T>(T obj)
+        {
+            return GetSize(obj, true);
+        }
+
+        private delegate int CounterDelegate<in T>(T obj, bool writeEmpty);
+
+        private int GetSize<T>(T obj, bool writeEmpty)
+        {
+            return GetCounter<T>()(obj, writeEmpty);
+        }
+
+        public void Write<T>(T obj, IntPtr result)
+        {
+            
+        }
+
+        public unsafe void Write<T>(T obj, byte[] result, int index)
+        {
+            fixed (byte* res = &result[index])
+            {
+                Write(obj, (IntPtr)res);
+            }
+        }
 
         // TODO: decimal
-        public byte[] Write<T>(T obj)
+        public unsafe byte[] Write<T>(T obj)
         {
-            //var buf = new byte[/*4096*/1024 * 128];
+            var result = new byte[GetSize(obj)];
             int index = 0;
-            Write(obj, true, ref buf, ref index);
-            /*Array.Resize(ref buf, index);
-            return buf;*/
-            var result = new byte[index];
-            // TODO
-            Array.Copy(buf, result, index);
+            Write(obj, true, ref result, ref index);
             return result;
+//            var result = new byte[GetSize(obj)];
+//            fixed (byte* res = &result[0])
+//            {
+//                Write(obj, (IntPtr)res);
+//            }
+//            return result;
         }
 
         private delegate void PinningWriterDelegate<in T>(T obj, bool writeEmpty, ref byte[] result, ref int index);
@@ -61,10 +86,29 @@ namespace SKBKontur.GroBuf
             return pinningWriter;
         }
 
+        private CounterDelegate<T> GetCounter<T>()
+        {
+            var type = typeof(T);
+            var counter = (CounterDelegate<T>)counters[type];
+            if(counter == null)
+            {
+                lock (countersLock)
+                {
+                    counter = (CounterDelegate<T>)counters[type];
+                    if(counter == null)
+                    {
+                        counter = BuildCounter<T>();
+                        counters[type] = counter;
+                    }
+                }
+            }
+            return counter;
+        }
+
         private PinningWriterDelegate<T> BuildPinningWriter<T>()
         {
             var type = typeof(T);
-            var writeMethod = new TypeWriterBuilder(module, writerCollection, dataMembersExtracter).BuildTypeWriter<T>();
+            var writeMethod = new WriterTypeBuilder(module, writerCollection, dataMembersExtracter).BuildWriter<T>();
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(byte[]).MakeByRefType(), typeof(int).MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
@@ -88,9 +132,27 @@ namespace SKBKontur.GroBuf
             return (PinningWriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(PinningWriterDelegate<T>));
         }
 
+        private CounterDelegate<T> BuildCounter<T>()
+        {
+            var type = typeof(T);
+            var counter = new SizeCounterTypeBuilder(module, sizeCounterCollection, dataMembersExtracter).BuildSizeCounter<T>();
+
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {type, typeof(bool)}, GetType(), true);
+            var il = dynamicMethod.GetILGenerator();
+            il.Emit(OpCodes.Ldarg_0); // stack: [obj]
+            il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
+            il.Emit(OpCodes.Call, counter); // writer.write<T>(obj, writeEmpty, ref result, ref index, ref pinnedResult); stack: []
+            il.Emit(OpCodes.Ret);
+
+            return (CounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(CounterDelegate<T>));
+        }
+
         private readonly Hashtable pinningWriters = new Hashtable();
         private readonly object pinningWritersLock = new object();
+        private readonly Hashtable counters = new Hashtable();
+        private readonly object countersLock = new object();
         private readonly IWriterCollection writerCollection = new WriterCollection();
+        private readonly ISizeCounterCollection sizeCounterCollection = new SizeCounterCollection();
         private readonly AssemblyBuilder assembly;
         private readonly ModuleBuilder module;
     }

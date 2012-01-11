@@ -1,7 +1,7 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Readers
 {
     internal class ReaderMethodBuilderContext<T>
     {

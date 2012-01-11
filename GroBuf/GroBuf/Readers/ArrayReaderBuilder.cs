@@ -1,7 +1,7 @@
 using System;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Readers
 {
     internal class ArrayReaderBuilder<T> : ReaderBuilderBase<T>
     {

@@ -2,31 +2,31 @@
 using System.Reflection;
 using System.Reflection.Emit;
 
-using SKBKontur.GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtracters;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Readers
 {
-    internal class TypeWriterBuilder
+    internal class ReaderTypeBuilder
     {
-        public TypeWriterBuilder(ModuleBuilder module, IWriterCollection writerCollection, IDataMembersExtracter dataMembersExtracter)
+        public ReaderTypeBuilder(ModuleBuilder module, IReaderCollection readerCollection, IDataMembersExtracter dataMembersExtracter)
         {
             this.module = module;
-            this.writerCollection = writerCollection;
+            this.readerCollection = readerCollection;
             this.dataMembersExtracter = dataMembersExtracter;
         }
 
-        public MethodInfo BuildTypeWriter<T>()
+        public MethodInfo BuildReader<T>()
         {
-            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufWriter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new WriterTypeBuilderContext(typeBuilder, writerCollection, dataMembersExtracter);
-            var writeMethod = context.GetWriter<T>();
+            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufReader_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
+            var context = new ReaderTypeBuilderContext(typeBuilder, readerCollection, dataMembersExtracter);
+            var readMethod = context.GetReader<T>();
 
             var initializer = BuildInitializer(typeBuilder);
 
             var type = typeBuilder.CreateType();
 
             type.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
-            return type.GetMethod(writeMethod.Name);
+            return type.GetMethod(readMethod.Name);
         }
 
         private static MethodInfo BuildInitializer(TypeBuilder typeBuilder)
@@ -60,7 +60,7 @@ namespace SKBKontur.GroBuf.Writers
         }
 
         private readonly ModuleBuilder module;
-        private readonly IWriterCollection writerCollection;
+        private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtracter dataMembersExtracter;
     }
 }

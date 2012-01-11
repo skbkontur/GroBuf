@@ -8,7 +8,7 @@
     <ProjectGuid>{80D1D3A4-A424-43C3-B46B-3A87941A68B4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SKBKontur.GroBuf</RootNamespace>
+    <RootNamespace>GroBuf</RootNamespace>
     <AssemblyName>GroBuf</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -42,6 +42,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Counterz\ArraySizeCounterBuilder.cs" />
+    <Compile Include="Counterz\ClassSizeCounterBuilder.cs" />
+    <Compile Include="Counterz\DateTimeSizeCounterBuilder.cs" />
+    <Compile Include="Counterz\EnumSizeCounterBuilder.cs" />
+    <Compile Include="Counterz\GuidSizeCounterBuilder.cs" />
+    <Compile Include="Counterz\ISizeCounterBuilder.cs" />
+    <Compile Include="Counterz\ISizeCounterCollection.cs" />
+    <Compile Include="Counterz\NullableSizeCounterBuilder.cs" />
+    <Compile Include="Counterz\PrimitivesSizeCounterBuilder.cs" />
+    <Compile Include="Counterz\SizeCounterBuilderBase.cs" />
+    <Compile Include="Counterz\SizeCounterCollection.cs" />
+    <Compile Include="Counterz\SizeCounterMethodBuilderContext.cs" />
+    <Compile Include="Counterz\SizeCounterTypeBuilder.cs" />
+    <Compile Include="Counterz\SizeCounterTypeBuilderContext.cs" />
+    <Compile Include="Counterz\StringSizeCounterBuilder.cs" />
     <Compile Include="DataMembersExtracters\FieldsExtracter.cs" />
     <Compile Include="DataMembersExtracters\PropertiesExtracter.cs" />
     <Compile Include="GroBufRandom.cs" />
@@ -63,7 +78,7 @@
     <Compile Include="Readers\ReaderMethodBuilderContext.cs" />
     <Compile Include="Readers\StringReaderBuilder.cs" />
     <Compile Include="Readers\ReaderCollection.cs" />
-    <Compile Include="Readers\TypeReaderBuilder.cs" />
+    <Compile Include="Readers\ReaderTypeBuilder.cs" />
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
@@ -85,7 +100,7 @@
     <Compile Include="Writers\WriterBuilderBase.cs" />
     <Compile Include="Writers\WriterMethodBuilderContext.cs" />
     <Compile Include="Writers\WriterCollection.cs" />
-    <Compile Include="Writers\TypeWriterBuilder.cs" />
+    <Compile Include="Writers\WriterTypeBuilder.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

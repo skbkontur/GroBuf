@@ -1,4 +1,4 @@
-﻿namespace SKBKontur.GroBuf.Writers
+﻿namespace GroBuf.Writers
 {
     internal interface IWriterCollection
     {

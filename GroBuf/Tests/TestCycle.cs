@@ -1,6 +1,6 @@
 ﻿using NUnit.Framework;
 
-namespace SKBKontur.GroBuf.Tests
+namespace GroBuf.Tests
 {
     [TestFixture]
     public class TestCycle

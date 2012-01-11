@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace SKBKontur.GroBuf.Tests.TestTools
+namespace GroBuf.Tests.TestTools
 {
     public static class TestHelpers
     {
@@ -10,10 +10,10 @@ namespace SKBKontur.GroBuf.Tests.TestTools
             extender.Extend(typeof(T), obj);
         }
 
-        public static T GenerateRandomTrash<T>(Random random) where T : new()
+        public static T GenerateRandomTrash<T>(Random random, int stringsLength, int arraysSize) where T : new()
         {
             var result = new T();
-            FillWithRandomTrash(result, random);
+            FillWithRandomTrash(result, random, stringsLength, arraysSize);
             return result;
         }
 
@@ -30,7 +30,7 @@ namespace SKBKontur.GroBuf.Tests.TestTools
             return type.IsClass || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
 
-        private static void FillWithRandomTrash(object obj, Random random)
+        private static void FillWithRandomTrash(object obj, Random random, int stringsLength, int arraysSize)
         {
             Type type = obj.GetType();
             PropertyInfo[] properties = typePropertiesCache.Get(type);
@@ -46,25 +46,25 @@ namespace SKBKontur.GroBuf.Tests.TestTools
                 if(!propertyType.IsArray)
                 {
                     if(IsALeaf(propertyType))
-                        setter.Invoke(obj, new[] {GetRandomValue(propertyType, random)});
+                        setter.Invoke(obj, new[] { GetRandomValue(propertyType, random, stringsLength) });
                     else
                     {
                         ConstructorInfo constructorInfo = typeConstructorCache.Get(propertyType);
                         object child = constructorInfo.Invoke(new object[0]);
                         setter.Invoke(obj, new[] {child});
-                        FillWithRandomTrash(child, random);
+                        FillWithRandomTrash(child, random, stringsLength, arraysSize);
                     }
                 }
                 else
                 {
                     Type elementType = propertyType.GetElementType();
-                    int length = random.Next(5, 10);
+                    int length = random.Next(arraysSize, arraysSize * 2);
                     Array array = Array.CreateInstance(elementType, length);
                     setter.Invoke(obj, new[] {array});
                     if(IsALeaf(elementType))
                     {
                         for(int i = 0; i < length; ++i)
-                            array.SetValue(GetRandomValue(elementType, random), i);
+                            array.SetValue(GetRandomValue(elementType, random, stringsLength), i);
                     }
                     else
                     {
@@ -72,16 +72,16 @@ namespace SKBKontur.GroBuf.Tests.TestTools
                         for(int i = 0; i < length; ++i)
                             array.SetValue(constructorInfo.Invoke(new object[0]), i);
                         for(int i = 0; i < length; ++i)
-                            FillWithRandomTrash(array.GetValue(i), random);
+                            FillWithRandomTrash(array.GetValue(i), random, stringsLength, arraysSize);
                     }
                 }
             }
         }
 
-        private static object GetRandomValue(Type type, Random random)
+        private static object GetRandomValue(Type type, Random random, int stringsLength)
         {
             if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                return GetRandomValue(type.GetGenericArguments()[0], random);
+                return GetRandomValue(type.GetGenericArguments()[0], random, stringsLength);
             if(type == typeof(Guid))
                 return Guid.NewGuid();
             switch(Type.GetTypeCode(type))
@@ -113,7 +113,7 @@ namespace SKBKontur.GroBuf.Tests.TestTools
             case TypeCode.Double:
                 return random.NextDouble();
             case TypeCode.String:
-                return RandomString(random, random.Next(1000, 5000), 'a', 'z');
+                return RandomString(random, random.Next(stringsLength, stringsLength * 5), 'a', 'z');
             default:
                 throw new NotSupportedException();
             }

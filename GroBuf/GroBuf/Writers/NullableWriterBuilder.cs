@@ -1,7 +1,7 @@
 using System;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal class NullableWriterBuilder<T> : WriterBuilderBase<T>
     {

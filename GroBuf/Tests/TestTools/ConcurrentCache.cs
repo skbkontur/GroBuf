@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace SKBKontur.GroBuf.Tests.TestTools
+namespace GroBuf.Tests.TestTools
 {
     public class ConcurrentCache<TKey, TValue>
     {

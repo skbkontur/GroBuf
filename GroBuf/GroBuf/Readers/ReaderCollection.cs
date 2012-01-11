@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 
-namespace SKBKontur.GroBuf.Readers
+namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
@@ -16,7 +16,7 @@ namespace SKBKontur.GroBuf.Readers
                     readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
                     if(readerBuilder == null)
                     {
-                        readerBuilder = BuildReader<T>();
+                        readerBuilder = GetReaderBuilder<T>();
                         readerBuilders[type] = readerBuilder;
                     }
                 }
@@ -24,7 +24,7 @@ namespace SKBKontur.GroBuf.Readers
             return readerBuilder;
         }
 
-        private static IReaderBuilder<T> BuildReader<T>()
+        private static IReaderBuilder<T> GetReaderBuilder<T>()
         {
             var type = typeof(T);
             IReaderBuilder<T> readerBuilder;

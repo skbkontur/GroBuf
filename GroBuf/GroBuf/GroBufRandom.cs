@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SKBKontur.GroBuf
+namespace GroBuf
 {
     internal class GroBufRandom
     {

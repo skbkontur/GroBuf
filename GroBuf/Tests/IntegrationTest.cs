@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 
+using GroBuf.Tests.TestData.Orders;
+using GroBuf.Tests.TestTools;
+
 using NUnit.Framework;
 
-using SKBKontur.GroBuf.Tests.TestData.Orders;
-using SKBKontur.GroBuf.Tests.TestTools;
-
-namespace SKBKontur.GroBuf.Tests
+namespace GroBuf.Tests
 {
     [TestFixture]
     public class IntegrationTest
@@ -25,9 +25,9 @@ namespace SKBKontur.GroBuf.Tests
             const int numberOfMessages = 10000;
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
-            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random);
+            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
             for (int i = 1; i < datas.Length; ++i)
-                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random);
+                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
 
             var messages = new byte[numberOfMessages][];
             for(int i = 0; i < datas.Length; ++i)
@@ -62,9 +62,9 @@ namespace SKBKontur.GroBuf.Tests
             const int numberOfMessages = 100000;
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
-            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random);
+            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
             for (int i = 1; i < datas.Length; ++i)
-                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random);
+                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
 
             stop = false;
             var thread = new Thread(Collect);

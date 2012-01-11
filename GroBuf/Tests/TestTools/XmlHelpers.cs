@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using System.Xml;
 
-namespace SKBKontur.GroBuf.Tests.TestTools
+namespace GroBuf.Tests.TestTools
 {
     public static class XmlHelpers
     {

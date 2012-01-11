@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Tests.TestTools
+namespace GroBuf.Tests.TestTools
 {
     public class ExtenderImpl
     {

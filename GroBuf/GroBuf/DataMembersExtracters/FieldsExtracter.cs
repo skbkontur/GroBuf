@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace SKBKontur.GroBuf.DataMembersExtracters
+namespace GroBuf.DataMembersExtracters
 {
     public class FieldsExtracter : IDataMembersExtracter
     {

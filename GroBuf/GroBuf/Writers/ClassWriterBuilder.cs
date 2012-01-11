@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf.Writers
+namespace GroBuf.Writers
 {
     internal class ClassWriterBuilder<T> : WriterBuilderBase<T>
     {
@@ -33,6 +33,8 @@ namespace SKBKontur.GroBuf.Writers
                 case MemberTypes.Property:
                     var property = (PropertyInfo)member;
                     var getter = property.GetGetMethod();
+                    if(getter == null)
+                        throw new MissingMethodException(Type.Name, property.Name + "_get");
                     il.Emit(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter); // stack: [obj.prop]
                     memberType = property.PropertyType;
                     break;

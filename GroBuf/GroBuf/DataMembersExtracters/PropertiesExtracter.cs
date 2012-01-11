@@ -2,13 +2,13 @@ using System;
 using System.Reflection;
 using System.Linq;
 
-namespace SKBKontur.GroBuf.DataMembersExtracters
+namespace GroBuf.DataMembersExtracters
 {
     public class PropertiesExtracter : IDataMembersExtracter
     {
         public MemberInfo[] GetMembers(Type type)
         {
-            return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.CanRead && property.CanWrite).ToArray();
+            return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.GetGetMethod() != null && property.GetSetMethod() != null).ToArray();
         }
     }
 }

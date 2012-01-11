@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace SKBKontur.GroBuf
+namespace GroBuf
 {
     public class MissingConstructorException : Exception
     {

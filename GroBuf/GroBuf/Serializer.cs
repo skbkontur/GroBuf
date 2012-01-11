@@ -1,6 +1,8 @@
-﻿using SKBKontur.GroBuf.DataMembersExtracters;
+﻿using System;
 
-namespace SKBKontur.GroBuf
+using GroBuf.DataMembersExtracters;
+
+namespace GroBuf
 {
     public class Serializer : ISerializer
     {
@@ -13,6 +15,21 @@ namespace SKBKontur.GroBuf
         {
             writer = new GroBufWriter(dataMembersExtracter);
             reader = new GroBufReader(dataMembersExtracter);
+        }
+        
+        public int GetSize<T>(T obj)
+        {
+            return writer.GetSize(obj);
+        }
+
+        public void Serialize<T>(T obj, byte[] result, int index)
+        {
+            writer.Write(obj, result, index);
+        }
+
+        public void Serialize<T>(T obj, IntPtr result)
+        {
+            writer.Write(obj, result);
         }
 
         public byte[] Serialize<T>(T obj)

@@ -1,4 +1,4 @@
-﻿namespace SKBKontur.GroBuf.Readers
+﻿namespace GroBuf.Readers
 {
     internal interface IReaderCollection
     {

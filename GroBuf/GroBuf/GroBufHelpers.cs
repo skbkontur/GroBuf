@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 
-namespace SKBKontur.GroBuf
+namespace GroBuf
 {
     internal static class GroBufHelpers
     {
