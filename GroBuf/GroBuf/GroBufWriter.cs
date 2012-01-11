@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 
 using GroBuf.DataMembersExtracters;
-using GroBuf.Counterz;
+using GroBuf.SizeCounters;
 using GroBuf.Writers;
 
 namespace GroBuf

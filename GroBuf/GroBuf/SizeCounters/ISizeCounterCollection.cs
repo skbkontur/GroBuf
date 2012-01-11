@@ -1,4 +1,4 @@
-﻿namespace GroBuf.Counterz
+﻿namespace GroBuf.SizeCounters
 {
     internal interface ISizeCounterCollection
     {

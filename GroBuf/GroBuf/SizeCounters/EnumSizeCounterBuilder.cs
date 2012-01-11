@@ -1,7 +1,7 @@
 using System;
 using System.Reflection.Emit;
 
-namespace GroBuf.Counterz
+namespace GroBuf.SizeCounters
 {
     internal class EnumSizeCounterBuilder<T> : SizeCounterBuilderBase<T>
     {

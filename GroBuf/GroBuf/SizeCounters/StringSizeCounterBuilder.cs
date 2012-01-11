@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace GroBuf.Counterz
+namespace GroBuf.SizeCounters
 {
     internal class StringSizeCounterBuilder : SizeCounterBuilderBase<string>
     {

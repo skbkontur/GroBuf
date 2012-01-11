@@ -2,7 +2,7 @@ using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
-namespace GroBuf.Counterz
+namespace GroBuf.SizeCounters
 {
     internal abstract class SizeCounterBuilderBase<T> : ISizeCounterBuilder<T>
     {

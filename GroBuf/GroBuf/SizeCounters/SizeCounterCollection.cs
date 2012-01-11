@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 
-namespace GroBuf.Counterz
+namespace GroBuf.SizeCounters
 {
     internal class SizeCounterCollection : ISizeCounterCollection
     {

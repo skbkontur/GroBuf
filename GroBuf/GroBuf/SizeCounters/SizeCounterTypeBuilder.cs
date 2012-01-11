@@ -4,7 +4,7 @@ using System.Reflection.Emit;
 
 using GroBuf.DataMembersExtracters;
 
-namespace GroBuf.Counterz
+namespace GroBuf.SizeCounters
 {
     internal class SizeCounterTypeBuilder
     {
