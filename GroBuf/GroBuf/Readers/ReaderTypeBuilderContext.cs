@@ -55,7 +55,7 @@ namespace GroBuf.Readers
             var reader = (MethodInfo)readers[type];
             if (reader == null)
             {
-                reader = readerCollection.GetReader<T>().BuildReader(this);
+                reader = readerCollection.GetReaderBuilder<T>().BuildReader(this);
                 if (readers[type] == null)
                     readers[type] = reader;
                 else if ((MethodInfo)readers[type] != reader)

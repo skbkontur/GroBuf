@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection.Emit;
 
 namespace GroBuf.Readers
@@ -9,7 +8,7 @@ namespace GroBuf.Readers
     {
         public EnumReaderBuilder()
         {
-            if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was " + Type);
+            if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was '" + Type + "'");
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
@@ -51,15 +50,15 @@ namespace GroBuf.Readers
         {
             var names = Enum.GetNames(Type);
             var arr = Enum.GetValues(Type);
-            var items = names.Select((s, i) => new Tuple<ulong, int>(GroBufHelpers.CalcHash(s), (int)arr.GetValue(i))).ToArray();
+            var hashes = GroBufHelpers.CalcHashAndCheck(names);
             var hashSet = new HashSet<uint>();
-            for(var x = (uint)items.Length;; ++x)
+            for(var x = (uint)hashes.Length;; ++x)
             {
                 hashSet.Clear();
                 bool ok = true;
-                foreach(var t in items)
+                foreach(var hash in hashes)
                 {
-                    var item = (uint)(t.Item1 % x);
+                    var item = (uint)(hash % x);
                     if(hashSet.Contains(item))
                     {
                         ok = false;
@@ -70,11 +69,12 @@ namespace GroBuf.Readers
                 if(!ok) continue;
                 hashCodes = new ulong[x];
                 values = new int[x];
-                foreach(var t in items)
+                for(int i = 0; i < hashes.Length; i++)
                 {
-                    var index = (int)(t.Item1 % x);
-                    hashCodes[index] = t.Item1;
-                    values[index] = t.Item2;
+                    var hash = hashes[i];
+                    var index = (int)(hash % x);
+                    hashCodes[index] = hash;
+                    values[index] = (int)arr.GetValue(i);
                 }
                 return;
             }

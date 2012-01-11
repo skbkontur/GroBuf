@@ -5,7 +5,7 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterCollection : ISizeCounterCollection
     {
-        public ISizeCounterBuilder<T> GetSizeCounter<T>()
+        public ISizeCounterBuilder<T> GetSizeCounterBuilder<T>()
         {
             var type = typeof(T);
             var sizeCounterBuilder = (ISizeCounterBuilder<T>)sizeCounterBuilders[type];
@@ -16,7 +16,7 @@ namespace GroBuf.SizeCounters
                     sizeCounterBuilder = (ISizeCounterBuilder<T>)sizeCounterBuilders[type];
                     if(sizeCounterBuilder == null)
                     {
-                        sizeCounterBuilder = GetSizeCounterBuilder<T>();
+                        sizeCounterBuilder = GetSizeCounterBuilderInternal<T>();
                         sizeCounterBuilders[type] = sizeCounterBuilder;
                     }
                 }
@@ -24,7 +24,7 @@ namespace GroBuf.SizeCounters
             return sizeCounterBuilder;
         }
 
-        private static ISizeCounterBuilder<T> GetSizeCounterBuilder<T>()
+        private static ISizeCounterBuilder<T> GetSizeCounterBuilderInternal<T>()
         {
             var type = typeof(T);
             ISizeCounterBuilder<T> sizeCounterBuilder;

@@ -7,7 +7,7 @@ namespace GroBuf.Readers
     {
         public ArrayReaderBuilder()
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
             if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
         }
 
@@ -103,7 +103,7 @@ namespace GroBuf.Readers
                     il.Emit(OpCodes.Stelem_R8);
                     break;
                 default:
-                    throw new NotSupportedException("Type " + elementType.Name + " is not supported");
+                    throw new NotSupportedException("Type '" + elementType + "' is not supported");
                 }
             }
         }

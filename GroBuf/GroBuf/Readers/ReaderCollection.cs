@@ -5,7 +5,7 @@ namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
-        public IReaderBuilder<T> GetReader<T>()
+        public IReaderBuilder<T> GetReaderBuilder<T>()
         {
             var type = typeof(T);
             var readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
@@ -16,7 +16,7 @@ namespace GroBuf.Readers
                     readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
                     if(readerBuilder == null)
                     {
-                        readerBuilder = GetReaderBuilder<T>();
+                        readerBuilder = GetReaderBuilderInternal<T>();
                         readerBuilders[type] = readerBuilder;
                     }
                 }
@@ -24,7 +24,7 @@ namespace GroBuf.Readers
             return readerBuilder;
         }
 
-        private static IReaderBuilder<T> GetReaderBuilder<T>()
+        private static IReaderBuilder<T> GetReaderBuilderInternal<T>()
         {
             var type = typeof(T);
             IReaderBuilder<T> readerBuilder;

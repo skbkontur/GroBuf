@@ -8,7 +8,7 @@ namespace GroBuf.Readers
         public NullableReaderBuilder()
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
-                throw new InvalidOperationException("Expected nullable but was " + Type);
+                throw new InvalidOperationException("Expected nullable but was '" + Type + "'");
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)

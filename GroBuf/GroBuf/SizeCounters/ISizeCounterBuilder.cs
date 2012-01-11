@@ -4,6 +4,6 @@ namespace GroBuf.SizeCounters
 {
     internal interface ISizeCounterBuilder<T>
     {
-        MethodInfo BuildCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext);
+        MethodInfo BuildSizeCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext);
     }
 }

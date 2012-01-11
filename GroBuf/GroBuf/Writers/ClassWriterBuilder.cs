@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -20,9 +21,11 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Stind_I4); // index = index + 5; stack: []
 
             var dataMembers = context.Context.GetDataMembers(Type);
+            var hashCodes = GroBufHelpers.CalcHashAndCheck(dataMembers.Select(member => member.Name));
             var prev = il.DeclareLocal(typeof(int));
-            foreach(var member in dataMembers)
+            for(int i = 0; i < dataMembers.Length; i++)
             {
+                var member = dataMembers[i];
                 if(Type.IsClass)
                     context.LoadObj(); // stack: [obj]
                 else
@@ -75,7 +78,7 @@ namespace GroBuf.Writers
                 context.LoadPinnedResult(); // stack: [pinnedResult]
                 il.Emit(OpCodes.Ldloc, prev); // stack: [pinnedResult, prev]
                 il.Emit(OpCodes.Add); // stack: [pinnedResult + prev]
-                il.Emit(OpCodes.Ldc_I8, (long)GroBufHelpers.CalcHash(member.Name)); // stack: [&result[index], prop.Name.HashCode]
+                il.Emit(OpCodes.Ldc_I8, (long)hashCodes[i]); // stack: [&result[index], prop.Name.HashCode]
                 il.Emit(OpCodes.Stind_I8); // *(long*)(pinnedResult + prev) = prop.Name.HashCode; stack: []
 
                 il.MarkLabel(next);

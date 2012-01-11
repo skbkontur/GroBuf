@@ -8,7 +8,7 @@ namespace GroBuf.Readers
     {
         public PrimitivesReaderBuilder()
         {
-            if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was " + Type);
+            if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
@@ -157,7 +157,7 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Conv_R8);
                 break;
             default:
-                throw new NotSupportedException();
+                throw new NotSupportedException("Type with type code '" + expectedTypeCode + "' is not supported");
             }
         }
 
@@ -196,7 +196,7 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Ldind_R8);
                 break;
             default:
-                throw new NotSupportedException();
+                throw new NotSupportedException("Type with type code '" + typeCode + "' is not supported");
             }
         }
     }

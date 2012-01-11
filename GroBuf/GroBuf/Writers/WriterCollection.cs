@@ -5,7 +5,7 @@ namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
-        public IWriterBuilder<T> GetWriter<T>()
+        public IWriterBuilder<T> GetWriterBuilder<T>()
         {
             var type = typeof(T);
             var writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
@@ -16,7 +16,7 @@ namespace GroBuf.Writers
                     writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
                     if(writerBuilder == null)
                     {
-                        writerBuilder = GetWriterBuilder<T>();
+                        writerBuilder = GetWriterBuilderInternal<T>();
                         writerBuilders[type] = writerBuilder;
                     }
                 }
@@ -24,7 +24,7 @@ namespace GroBuf.Writers
             return writerBuilder;
         }
 
-        private static IWriterBuilder<T> GetWriterBuilder<T>()
+        private static IWriterBuilder<T> GetWriterBuilderInternal<T>()
         {
             var type = typeof(T);
             IWriterBuilder<T> writerBuilder;

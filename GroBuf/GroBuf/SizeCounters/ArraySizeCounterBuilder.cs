@@ -7,7 +7,7 @@ namespace GroBuf.SizeCounters
     {
         public ArraySizeCounterBuilder()
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
             if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
         }
 
@@ -30,27 +30,27 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [obj]
             il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
             il.Emit(OpCodes.Stloc, length); // length = obj.Length
-            il.Emit(OpCodes.Ldc_I4, 9); // stack: [9]
+            il.Emit(OpCodes.Ldc_I4, 9); // stack: [9 = size]
 
             var i = il.DeclareLocal(typeof(int));
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            il.Emit(OpCodes.Stloc, i); // i = 0; stack: []
+            il.Emit(OpCodes.Ldc_I4_0); // stack: [size, 0]
+            il.Emit(OpCodes.Stloc, i); // i = 0; stack: [size]
             var cycleStart = il.DefineLabel();
             il.MarkLabel(cycleStart);
-            context.LoadObj(); // stack: [obj]
-            il.Emit(OpCodes.Ldloc, i); // stack: [obj, i]
+            context.LoadObj(); // stack: [size, obj]
+            il.Emit(OpCodes.Ldloc, i); // stack: [size, obj, i]
             var elementType = Type.GetElementType();
-            LoadArrayElement(elementType, il); // stack: [obj[i]]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [obj[i], true]
-            il.Emit(OpCodes.Call, context.Context.GetCounter(elementType)); // stack: [sum, writer(obj[i], true, ref result, ref index, ref pinnedResult)]
-            il.Emit(OpCodes.Add);
-            il.Emit(OpCodes.Ldloc, length); // stack: [length]
-            il.Emit(OpCodes.Ldloc, i); // stack: [length, i]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [length, i, 1]
-            il.Emit(OpCodes.Add); // stack: [length, i + 1]
-            il.Emit(OpCodes.Dup); // stack: [length, i + 1, i + 1]
-            il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [length, i]
-            il.Emit(OpCodes.Bgt, cycleStart); // if(length > i) goto cycleStart; stack: []
+            LoadArrayElement(elementType, il); // stack: [size, obj[i]]
+            il.Emit(OpCodes.Ldc_I4_1); // stack: [size, obj[i], true]
+            il.Emit(OpCodes.Call, context.Context.GetCounter(elementType)); // stack: [size, writer(obj[i], true) = itemSize]
+            il.Emit(OpCodes.Add); // stack: [size + itemSize]
+            il.Emit(OpCodes.Ldloc, length); // stack: [size, length]
+            il.Emit(OpCodes.Ldloc, i); // stack: [size, length, i]
+            il.Emit(OpCodes.Ldc_I4_1); // stack: [size, length, i, 1]
+            il.Emit(OpCodes.Add); // stack: [size, length, i + 1]
+            il.Emit(OpCodes.Dup); // stack: [size, length, i + 1, i + 1]
+            il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [size, length, i]
+            il.Emit(OpCodes.Bgt, cycleStart); // if(length > i) goto cycleStart; stack: [size]
         }
 
         private static void LoadArrayElement(Type elementType, ILGenerator il)
@@ -99,7 +99,7 @@ namespace GroBuf.SizeCounters
                     il.Emit(OpCodes.Ldelem_R8);
                     break;
                 default:
-                    throw new NotSupportedException("Type " + elementType.Name + " is not supported");
+                    throw new NotSupportedException("Type '" + elementType + "' is not supported");
                 }
             }
         }

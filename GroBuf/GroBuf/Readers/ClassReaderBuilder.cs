@@ -136,15 +136,16 @@ namespace GroBuf.Readers
 
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
-            var members = context.GetDataMembers(Type).Select(member => new Tuple<ulong, MemberInfo>(GroBufHelpers.CalcHash(member.Name), member)).ToArray();
+            var members = context.GetDataMembers(Type);
+            var hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
             var hashSet = new HashSet<uint>();
             for(var x = (uint)members.Length;; ++x)
             {
                 hashSet.Clear();
                 bool ok = true;
-                foreach(var t in members)
+                foreach(var hash in hashes)
                 {
-                    var item = (uint)(t.Item1 % x);
+                    var item = (uint)(hash % x);
                     if(hashSet.Contains(item))
                     {
                         ok = false;
@@ -155,11 +156,11 @@ namespace GroBuf.Readers
                 if(!ok) continue;
                 hashCodes = new ulong[x];
                 dataMembers = new MemberInfo[x];
-                foreach(var t in members)
+                for(int i = 0; i < members.Length; i++)
                 {
-                    var index = (int)(t.Item1 % x);
-                    hashCodes[index] = t.Item1;
-                    dataMembers[index] = t.Item2;
+                    var index = (int)(hashes[i] % x);
+                    hashCodes[index] = hashes[i];
+                    dataMembers[index] = members[i];
                 }
                 return;
             }
@@ -194,7 +195,7 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Stfld, field); // obj.Field = reader(pinnedData, ref index)
                 break;
             default:
-                throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                throw new NotSupportedException("Data member of type '" + member.MemberType + "' is not supported");
             }
             il.Emit(OpCodes.Ret);
             return method;

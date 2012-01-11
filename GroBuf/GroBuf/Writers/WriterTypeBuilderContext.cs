@@ -49,7 +49,7 @@ namespace GroBuf.Writers
             var writer = (MethodInfo)writers[type];
             if(writer == null)
             {
-                writer = writerCollection.GetWriter<T>().BuildWriter(this);
+                writer = writerCollection.GetWriterBuilder<T>().BuildWriter(this);
                 if(writers[type] == null)
                     writers[type] = writer;
                 else if((MethodInfo)writers[type] != writer)

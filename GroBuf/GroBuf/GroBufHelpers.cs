@@ -52,7 +52,23 @@ namespace GroBuf
             }
         }
 
-        // TODO: write own random
+        public static ulong[] CalcHashAndCheck(IEnumerable<string> strings)
+        {
+            var dict = new Dictionary<ulong, string>();
+            foreach(var s in strings)
+            {
+                var hash = CalcHash(s);
+                if(dict.ContainsKey(hash))
+                {
+                    if(dict[hash] == s)
+                        throw new InvalidOperationException("Duplicated string '" + s + "'");
+                    throw new InvalidOperationException("Hash collision: strings '" + s + "' and '" + dict[hash] + "' have the same hash = '" + hash + "'");
+                }
+                dict.Add(hash, s);
+            }
+            return dict.Keys.ToArray();
+        }
+
         public static ulong CalcHash(string str)
         {
             var bytes = GetBytes(str);

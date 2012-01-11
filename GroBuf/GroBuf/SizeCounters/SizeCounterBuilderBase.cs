@@ -11,7 +11,7 @@ namespace GroBuf.SizeCounters
             Type = typeof(T);
         }
 
-        public MethodInfo BuildCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext)
+        public MethodInfo BuildSizeCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext)
         {
             var typeBuilder = sizeCounterTypeBuilderContext.TypeBuilder;
 

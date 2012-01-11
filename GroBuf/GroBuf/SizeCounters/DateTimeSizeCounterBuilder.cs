@@ -7,7 +7,7 @@ namespace GroBuf.SizeCounters
     {
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
-            context.Il.Emit(OpCodes.Ldc_I4, 9);
+            context.Il.Emit(OpCodes.Ldc_I4, 9); // stack: [9]
         }
     }
 }

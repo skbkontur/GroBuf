@@ -2,6 +2,6 @@
 {
     internal interface ISizeCounterCollection
     {
-        ISizeCounterBuilder<T> GetSizeCounter<T>();
+        ISizeCounterBuilder<T> GetSizeCounterBuilder<T>();
     }
 }

@@ -7,7 +7,7 @@ namespace GroBuf.SizeCounters
     {
         public PrimitivesSizeCounterBuilder()
         {
-            if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was " + Type);
+            if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
@@ -38,7 +38,7 @@ namespace GroBuf.SizeCounters
                 context.Il.Emit(OpCodes.Ldc_I4, 9);
                 break;
             default:
-                throw new NotSupportedException();
+                throw new NotSupportedException("Type '" + Type + "' is not supported");
             }
         }
     }

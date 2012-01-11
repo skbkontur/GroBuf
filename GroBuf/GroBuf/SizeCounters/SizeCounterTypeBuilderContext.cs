@@ -49,7 +49,7 @@ namespace GroBuf.SizeCounters
             var counter = (MethodInfo)counters[type];
             if(counter == null)
             {
-                counter = sizeCounterCollection.GetSizeCounter<T>().BuildCounter(this);
+                counter = sizeCounterCollection.GetSizeCounterBuilder<T>().BuildSizeCounter(this);
                 if(counters[type] == null)
                     counters[type] = counter;
                 else if((MethodInfo)counters[type] != counter)
