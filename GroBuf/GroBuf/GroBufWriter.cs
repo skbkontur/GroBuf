@@ -11,8 +11,6 @@ namespace GroBuf
 {
     internal class GroBufWriter
     {
-        private readonly IDataMembersExtracter dataMembersExtracter;
-
         public GroBufWriter(IDataMembersExtracter dataMembersExtracter)
         {
             this.dataMembersExtracter = dataMembersExtracter;
@@ -25,46 +23,35 @@ namespace GroBuf
             return GetSize(obj, true);
         }
 
+        public void Write<T>(T obj, byte[] result, int index)
+        {
+            var size = GetSize(obj);
+            if(result.Length < index + size)
+                throw new ArgumentOutOfRangeException("result", "Too small: required size = " + size);
+            Write(obj, true, result, ref index);
+        }
+
+        // TODO: decimal
+        public byte[] Write<T>(T obj)
+        {
+            var result = new byte[GetSize(obj)];
+            int index = 0;
+            Write(obj, true, result, ref index);
+            return result;
+        }
+
         private delegate int CounterDelegate<in T>(T obj, bool writeEmpty);
+
+        private delegate void PinningWriterDelegate<in T>(T obj, bool writeEmpty, byte[] result, ref int index);
 
         private int GetSize<T>(T obj, bool writeEmpty)
         {
             return GetCounter<T>()(obj, writeEmpty);
         }
 
-        public void Write<T>(T obj, IntPtr result)
+        private void Write<T>(T obj, bool writeEmpty, byte[] result, ref int index)
         {
-            
-        }
-
-        public unsafe void Write<T>(T obj, byte[] result, int index)
-        {
-            fixed (byte* res = &result[index])
-            {
-                Write(obj, (IntPtr)res);
-            }
-        }
-
-        // TODO: decimal
-        public unsafe byte[] Write<T>(T obj)
-        {
-            var result = new byte[GetSize(obj)];
-            int index = 0;
-            Write(obj, true, ref result, ref index);
-            return result;
-//            var result = new byte[GetSize(obj)];
-//            fixed (byte* res = &result[0])
-//            {
-//                Write(obj, (IntPtr)res);
-//            }
-//            return result;
-        }
-
-        private delegate void PinningWriterDelegate<in T>(T obj, bool writeEmpty, ref byte[] result, ref int index);
-
-        private void Write<T>(T obj, bool writeEmpty, ref byte[] result, ref int index)
-        {
-            GetPinningWriter<T>()(obj, writeEmpty, ref result, ref index);
+            GetPinningWriter<T>()(obj, writeEmpty, result, ref index);
         }
 
         private PinningWriterDelegate<T> GetPinningWriter<T>()
@@ -92,7 +79,7 @@ namespace GroBuf
             var counter = (CounterDelegate<T>)counters[type];
             if(counter == null)
             {
-                lock (countersLock)
+                lock(countersLock)
                 {
                     counter = (CounterDelegate<T>)counters[type];
                     if(counter == null)
@@ -110,22 +97,21 @@ namespace GroBuf
             var type = typeof(T);
             var writeMethod = new WriterTypeBuilder(module, writerCollection, dataMembersExtracter).BuildWriter<T>();
 
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(byte[]).MakeByRefType(), typeof(int).MakeByRefType()}, GetType(), true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(byte[]), typeof(int).MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
-            var result = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
-            il.Emit(OpCodes.Ldarg_2); // stack: [ref result]
-            il.Emit(OpCodes.Ldind_Ref); // stack: [result]
+            var pinnedResult = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
+            il.Emit(OpCodes.Ldarg_2); // stack: [result]
             il.Emit(OpCodes.Ldc_I4_0); // stack: [result, 0]
             il.Emit(OpCodes.Ldelema, typeof(byte)); // stack: [&result[0]]
-            il.Emit(OpCodes.Stloc, result); // result = &result[0]; stack: []
+            il.Emit(OpCodes.Stloc, pinnedResult); // result = &result[0]; stack: []
             il.Emit(OpCodes.Ldarg_0); // stack: [obj]
             il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
-            il.Emit(OpCodes.Ldloc, result); // stack: [obj, writeEmpty, result]
-            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, result, ref index]
+            il.Emit(OpCodes.Ldloc, pinnedResult); // stack: [obj, writeEmpty, pinnedResult]
+            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, pinnedResult, ref index]
             il.Emit(OpCodes.Call, writeMethod); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
             il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
             il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
-            il.Emit(OpCodes.Stloc, result); // result = null
+            il.Emit(OpCodes.Stloc, pinnedResult); // result = null
             il.Emit(OpCodes.Ret);
 
             return (PinningWriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(PinningWriterDelegate<T>));
@@ -145,6 +131,8 @@ namespace GroBuf
 
             return (CounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(CounterDelegate<T>));
         }
+
+        private readonly IDataMembersExtracter dataMembersExtracter;
 
         private readonly Hashtable pinningWriters = new Hashtable();
         private readonly object pinningWritersLock = new object();

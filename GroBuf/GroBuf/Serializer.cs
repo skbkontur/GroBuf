@@ -1,6 +1,4 @@
-﻿using System;
-
-using GroBuf.DataMembersExtracters;
+﻿using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {
@@ -16,7 +14,7 @@ namespace GroBuf
             writer = new GroBufWriter(dataMembersExtracter);
             reader = new GroBufReader(dataMembersExtracter);
         }
-        
+
         public int GetSize<T>(T obj)
         {
             return writer.GetSize(obj);
@@ -25,11 +23,6 @@ namespace GroBuf
         public void Serialize<T>(T obj, byte[] result, int index)
         {
             writer.Write(obj, result, index);
-        }
-
-        public void Serialize<T>(T obj, IntPtr result)
-        {
-            writer.Write(obj, result);
         }
 
         public byte[] Serialize<T>(T obj)
