@@ -113,7 +113,7 @@ namespace GroBuf.Tests.TestTools
             case TypeCode.Double:
                 return random.NextDouble();
             case TypeCode.String:
-                return RandomString(random, random.Next(stringsLength, stringsLength * 5), 'a', 'z');
+                return RandomString(random, random.Next(stringsLength, stringsLength * 2), 'a', 'z');
             default:
                 throw new NotSupportedException();
             }

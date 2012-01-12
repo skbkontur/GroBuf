@@ -71,18 +71,18 @@ namespace GroBuf
 
         public static ulong CalcHash(string str)
         {
-            var bytes = GetBytes(str);
-            if(randTable.Count < bytes.Length)
-                InitRandTable(bytes.Length);
+            if (randTable.Count < str.Length * 2)
+                InitRandTable(str.Length * 2);
             ulong result = 0;
-            for(int i = 0; i < bytes.Length; ++i)
-                result ^= randTable[i][bytes[i]];
+            for (int i = 0; i < str.Length; ++i)
+            {
+                result ^= randTable[2 * i][str[i] & 0xFF];
+                result ^= randTable[2 * i + 1][(str[i] >> 8) & 0xFF];
+            }
             return result;
         }
 
         public static readonly int[] Lengths = BuildLengths();
-
-        private delegate void CopyMemDelegate(IntPtr src, IntPtr dst, uint len);
 
         private static int[] BuildLengths()
         {
@@ -101,22 +101,6 @@ namespace GroBuf
             }
             return lengths;
         }
-
-        private static CopyMemDelegate EmitCopyMem()
-        {
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(IntPtr), typeof(uint)}, typeof(GroBufHelpers).Module, true);
-
-            ILGenerator il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_1); // dest
-            il.Emit(OpCodes.Ldarg_0); // src
-            il.Emit(OpCodes.Ldarg_2); // bytesCount
-            il.Emit(OpCodes.Unaligned, 1L);
-            il.Emit(OpCodes.Cpblk);
-
-            il.Emit(OpCodes.Ret);
-            return (CopyMemDelegate)dynamicMethod.CreateDelegate(typeof(CopyMemDelegate));
-        }
-
         private static void InitRandTable(int count)
         {
             while(randTable.Count < count)
@@ -128,24 +112,7 @@ namespace GroBuf
             }
         }
 
-        private static byte[] GetBytes(string str)
-        {
-            int length = str.Length << 1;
-            var result = new byte[length];
-            unsafe
-            {
-                fixed(char* s = str)
-                {
-                    fixed(byte* r = &result[0])
-                        copyMem((IntPtr)s, (IntPtr)r, (uint)length);
-                }
-            }
-            return result;
-        }
-
         private static readonly object dummy = new object();
-
-        private static readonly CopyMemDelegate copyMem = EmitCopyMem();
 
         private static readonly GroBufRandom random = new GroBufRandom(314159265);
         private static readonly List<ulong[]> randTable = new List<ulong[]>();

@@ -48,7 +48,21 @@ namespace GroBuf
         // TODO: decimal
         public unsafe byte[] Write<T>(T obj)
         {
-            var result = new byte[GetSize(obj)];
+            var size = GetSize(obj);
+            if(size < 0 || size > 10000000)
+            {
+                return new byte[0];
+            }
+            byte[] result;
+            try
+            {
+                result = new byte[size];
+            }
+            catch(Exception e)
+            {
+
+                return new byte[e.Data.Count];
+            }
             int index = 0;
             Write(obj, true, ref result, ref index);
             return result;
@@ -141,7 +155,7 @@ namespace GroBuf
             var il = dynamicMethod.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0); // stack: [obj]
             il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
-            il.Emit(OpCodes.Call, counter); // writer.write<T>(obj, writeEmpty, ref result, ref index, ref pinnedResult); stack: []
+            il.Emit(OpCodes.Call, counter); // counter(obj, writeEmpty); stack: []
             il.Emit(OpCodes.Ret);
 
             return (CounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(CounterDelegate<T>));

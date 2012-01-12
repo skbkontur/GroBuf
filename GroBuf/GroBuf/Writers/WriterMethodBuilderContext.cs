@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -152,7 +153,7 @@ namespace GroBuf.Writers
         /// <para></para>
         /// The number of bytes must be pushed onto the evaluation stack
         /// </summary>
-        public void EnsureSize()
+        public unsafe void EnsureSize()
         {
             var desiredLength = LocalInt;
             var dest = pinnedBuf;
@@ -187,7 +188,8 @@ namespace GroBuf.Writers
             Il.Emit(OpCodes.Ldloc, dest); // stack: [ref result, new byte[length], dest]
             LoadPinnedResult(); // stack: [ref result, new byte[length], dest, pinnedResult]
             LoadIndex(); // stack: [ref result, new byte[length], dest, pinnedResult, index]
-            Il.Emit(OpCodes.Unaligned, 1L);
+            if (sizeof(IntPtr) == 8)
+                Il.Emit(OpCodes.Unaligned, 1L);
             Il.Emit(OpCodes.Cpblk); // dest[0 .. index - 1] = pinnedResult[0 .. index - 1]; stack: [ref result, new byte[length]]
             Il.Emit(OpCodes.Stind_Ref); // result = new byte[length]; stack: []
             LoadPinnedResultByRef(); // stack: [ref pinnedResult]

@@ -8,7 +8,7 @@ namespace GroBuf.Writers
 {
     internal class StringWriterBuilder : WriterBuilderBase<string>
     {
-        protected override void WriteNotEmpty(WriterMethodBuilderContext context)
+        protected override unsafe void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var length = context.LocalInt;
             context.LoadObj(); // stack: [obj]
@@ -35,7 +35,8 @@ namespace GroBuf.Writers
             context.Il.Emit(OpCodes.Ldc_I4, RuntimeHelpers.OffsetToStringData); // stack: [&result[index], (IntPtr)str, offset]
             context.Il.Emit(OpCodes.Add); // stack: [&result[index], (IntPtr)str + offset]
             context.Il.Emit(OpCodes.Ldloc, length); // stack: [&result[index], (IntPtr)str + offset, length]
-            context.Il.Emit(OpCodes.Unaligned, 1L);
+            if(sizeof(IntPtr) == 8)
+                context.Il.Emit(OpCodes.Unaligned, 1L);
             context.Il.Emit(OpCodes.Cpblk); // &result[index] = str
             context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
             context.Il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
