@@ -25,101 +25,71 @@ namespace GroBuf
 
         public void Write<T>(T obj, IntPtr result)
         {
-            // todo
+            int index = 0;
+            GetWriterAndCounter<T>().Item1(obj, true, result, ref index);
         }
 
-        public void Write<T>(T obj, byte[] result, int index)
+        public unsafe void Write<T>(T obj, byte[] result, int index)
         {
-            var size = GetSize(obj);
-            if(result.Length < index + size)
-                throw new ArgumentOutOfRangeException("result", "Too small: required size = " + size);
-            Write(obj, true, result, ref index);
+            fixed(byte* r = &result[index])
+                GetWriterAndCounter<T>().Item1(obj, true, (IntPtr)r, ref index);
         }
 
         // TODO: decimal
-        public byte[] Write<T>(T obj)
+        public unsafe byte[] Write<T>(T obj)
         {
-            var result = new byte[GetSize(obj)];
+            var writerAndCounter = GetWriterAndCounter<T>();
+            var size = writerAndCounter.Item2(obj, true);
+            var result = new byte[size];
             int index = 0;
-            Write(obj, true, result, ref index);
+            fixed(byte* r = &result[index])
+                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index);
             return result;
         }
 
         private delegate int CounterDelegate<in T>(T obj, bool writeEmpty);
 
-        private delegate void PinningWriterDelegate<in T>(T obj, bool writeEmpty, byte[] result, ref int index);
+        private delegate void WriterDelegate<in T>(T obj, bool writeEmpty, IntPtr result, ref int index);
 
         private int GetSize<T>(T obj, bool writeEmpty)
         {
-            return GetCounter<T>()(obj, writeEmpty);
+            return GetWriterAndCounter<T>().Item2(obj, writeEmpty);
         }
 
-        private void Write<T>(T obj, bool writeEmpty, byte[] result, ref int index)
-        {
-            GetPinningWriter<T>()(obj, writeEmpty, result, ref index);
-        }
-
-        private PinningWriterDelegate<T> GetPinningWriter<T>()
+        private Tuple<WriterDelegate<T>, CounterDelegate<T>> GetWriterAndCounter<T>()
         {
             var type = typeof(T);
-            var pinningWriter = (PinningWriterDelegate<T>)pinningWriters[type];
-            if(pinningWriter == null)
+            var writerAndCounter = (Tuple<WriterDelegate<T>, CounterDelegate<T>>)writers[type];
+            if(writerAndCounter == null)
             {
-                lock(pinningWritersLock)
+                lock(writersLock)
                 {
-                    pinningWriter = (PinningWriterDelegate<T>)pinningWriters[type];
-                    if(pinningWriter == null)
+                    writerAndCounter = (Tuple<WriterDelegate<T>, CounterDelegate<T>>)writers[type];
+                    if(writerAndCounter == null)
                     {
-                        pinningWriter = BuildPinningWriter<T>();
-                        pinningWriters[type] = pinningWriter;
+                        writerAndCounter = new Tuple<WriterDelegate<T>, CounterDelegate<T>>(BuildWriter<T>(), BuildCounter<T>());
+                        writers[type] = writerAndCounter;
                     }
                 }
             }
-            return pinningWriter;
+            return writerAndCounter;
         }
 
-        private CounterDelegate<T> GetCounter<T>()
-        {
-            var type = typeof(T);
-            var counter = (CounterDelegate<T>)counters[type];
-            if(counter == null)
-            {
-                lock(countersLock)
-                {
-                    counter = (CounterDelegate<T>)counters[type];
-                    if(counter == null)
-                    {
-                        counter = BuildCounter<T>();
-                        counters[type] = counter;
-                    }
-                }
-            }
-            return counter;
-        }
-
-        private PinningWriterDelegate<T> BuildPinningWriter<T>()
+        private WriterDelegate<T> BuildWriter<T>()
         {
             var type = typeof(T);
             var writeMethod = new WriterTypeBuilder(module, writerCollection, dataMembersExtracter).BuildWriter<T>();
 
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(byte[]), typeof(int).MakeByRefType()}, GetType(), true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
-            var pinnedResult = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
-            il.Emit(OpCodes.Ldarg_2); // stack: [result]
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [result, 0]
-            il.Emit(OpCodes.Ldelema, typeof(byte)); // stack: [&result[0]]
-            il.Emit(OpCodes.Stloc, pinnedResult); // result = &result[0]; stack: []
             il.Emit(OpCodes.Ldarg_0); // stack: [obj]
             il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
-            il.Emit(OpCodes.Ldloc, pinnedResult); // stack: [obj, writeEmpty, pinnedResult]
-            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, pinnedResult, ref index]
+            il.Emit(OpCodes.Ldarg_2); // stack: [obj, writeEmpty, result]
+            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, result, ref index]
             il.Emit(OpCodes.Call, writeMethod); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
-            il.Emit(OpCodes.Stloc, pinnedResult); // result = null
             il.Emit(OpCodes.Ret);
 
-            return (PinningWriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(PinningWriterDelegate<T>));
+            return (WriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(WriterDelegate<T>));
         }
 
         private CounterDelegate<T> BuildCounter<T>()
@@ -139,10 +109,8 @@ namespace GroBuf
 
         private readonly IDataMembersExtracter dataMembersExtracter;
 
-        private readonly Hashtable pinningWriters = new Hashtable();
-        private readonly object pinningWritersLock = new object();
-        private readonly Hashtable counters = new Hashtable();
-        private readonly object countersLock = new object();
+        private readonly Hashtable writers = new Hashtable();
+        private readonly object writersLock = new object();
         private readonly IWriterCollection writerCollection = new WriterCollection();
         private readonly ISizeCounterCollection sizeCounterCollection = new SizeCounterCollection();
         private readonly AssemblyBuilder assembly;
