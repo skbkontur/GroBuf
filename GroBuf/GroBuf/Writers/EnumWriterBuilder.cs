@@ -13,8 +13,6 @@ namespace GroBuf.Writers
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), BuildHashCodes());
-            context.Il.Emit(OpCodes.Ldc_I4, 9); // stack: [9]
-            context.EnsureSize();
             context.WriteTypeCode(GroBufTypeCode.Enum);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadField(hashCodesField); // stack: [&result[index], hashCodes]

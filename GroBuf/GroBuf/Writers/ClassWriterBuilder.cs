@@ -50,17 +50,16 @@ namespace GroBuf.Writers
                     throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
                 }
                 il.Emit(OpCodes.Ldc_I4_0); // stack: [obj.prop, false]
-                context.LoadResultByRef(); // stack: [obj.prop, false, ref result]
-                context.LoadIndexByRef(); // stack: [obj.prop, false, ref result, ref index]
-                il.Emit(OpCodes.Dup); // stack: [obj.prop, false, ref result, ref index, ref index]
-                context.LoadIndex(); // stack: [obj.prop, false, ref result, ref index, ref index, index]
-                il.Emit(OpCodes.Dup); // stack: [obj.prop, false, ref result, ref index, ref index, index, index]
-                il.Emit(OpCodes.Stloc, prev); // prev = index; stack: [obj.prop, false, ref result, ref index, ref index, index]
-                il.Emit(OpCodes.Ldc_I4_8); // stack: [obj.prop, false, ref result, ref index, ref index, index, 8]
-                il.Emit(OpCodes.Add); // stack: [obj.prop, false, ref result, ref index, ref index, index + 8]
-                il.Emit(OpCodes.Stind_I4); // index = index + 8; stack: [obj.prop, false, ref result, ref index]
-                context.LoadPinnedResultByRef(); // stack: [obj.prop, false, ref result, ref index, ref pinnedResult]
-                il.Emit(OpCodes.Call, context.Context.GetWriter(memberType)); // writers[i](obj.prop, false, ref result, ref index, ref pinnedResult)
+                context.LoadResult(); // stack: [obj.prop, false, result]
+                context.LoadIndexByRef(); // stack: [obj.prop, false, result, ref index]
+                il.Emit(OpCodes.Dup); // stack: [obj.prop, false, result, ref index, ref index]
+                context.LoadIndex(); // stack: [obj.prop, false, result, ref index, ref index, index]
+                il.Emit(OpCodes.Dup); // stack: [obj.prop, false, result, ref index, ref index, index, index]
+                il.Emit(OpCodes.Stloc, prev); // prev = index; stack: [obj.prop, false, result, ref index, ref index, index]
+                il.Emit(OpCodes.Ldc_I4_8); // stack: [obj.prop, false, result, ref index, ref index, index, 8]
+                il.Emit(OpCodes.Add); // stack: [obj.prop, false, result, ref index, ref index, index + 8]
+                il.Emit(OpCodes.Stind_I4); // index = index + 8; stack: [obj.prop, false, result, ref index]
+                il.Emit(OpCodes.Call, context.Context.GetWriter(memberType)); // writers[i](obj.prop, false, result, ref index, ref result)
                 context.LoadIndex(); // stack: [index]
                 il.Emit(OpCodes.Ldc_I4_8); // stack: [index, 8]
                 il.Emit(OpCodes.Sub); // stack: [index - 8]
@@ -75,11 +74,11 @@ namespace GroBuf.Writers
 
                 il.MarkLabel(writeHashCodeLabel);
 
-                context.LoadPinnedResult(); // stack: [pinnedResult]
-                il.Emit(OpCodes.Ldloc, prev); // stack: [pinnedResult, prev]
-                il.Emit(OpCodes.Add); // stack: [pinnedResult + prev]
+                context.LoadResult(); // stack: [result]
+                il.Emit(OpCodes.Ldloc, prev); // stack: [result, prev]
+                il.Emit(OpCodes.Add); // stack: [result + prev]
                 il.Emit(OpCodes.Ldc_I8, (long)hashCodes[i]); // stack: [&result[index], prop.Name.HashCode]
-                il.Emit(OpCodes.Stind_I8); // *(long*)(pinnedResult + prev) = prop.Name.HashCode; stack: []
+                il.Emit(OpCodes.Stind_I8); // *(long*)(result + prev) = prop.Name.HashCode; stack: []
 
                 il.MarkLabel(next);
             }
@@ -103,16 +102,16 @@ namespace GroBuf.Writers
 
             il.MarkLabel(writeLengthLabel);
 
-            context.LoadPinnedResult(); // stack: [pinnedResult]
-            il.Emit(OpCodes.Ldloc, start); // stack: [pinnedResult, start]
-            il.Emit(OpCodes.Add); // stack: [pinnedResult + start]
-            il.Emit(OpCodes.Dup); // stack: [pinnedResult + start, pinnedResult + start]
-            il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Object); // stack: [pinnedResult + start, pinnedResult + start, TypeCode.Object]
-            il.Emit(OpCodes.Stind_I1); // *(pinnedResult + start) = TypeCode.Object; stack: [pinnedResult + start]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [pinnedResult + start, 1]
-            il.Emit(OpCodes.Add); // stack: [pinnedResult + start + 1]
-            il.Emit(OpCodes.Ldloc, length); // stack: [pinnedResult + start + 1, length]
-            il.Emit(OpCodes.Stind_I4); // *(int*)(pinnedResult + start + 1) = length
+            context.LoadResult(); // stack: [result]
+            il.Emit(OpCodes.Ldloc, start); // stack: [result, start]
+            il.Emit(OpCodes.Add); // stack: [result + start]
+            il.Emit(OpCodes.Dup); // stack: [result + start, result + start]
+            il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Object); // stack: [result + start, result + start, TypeCode.Object]
+            il.Emit(OpCodes.Stind_I1); // *(result + start) = TypeCode.Object; stack: [result + start]
+            il.Emit(OpCodes.Ldc_I4_1); // stack: [result + start, 1]
+            il.Emit(OpCodes.Add); // stack: [result + start + 1]
+            il.Emit(OpCodes.Ldloc, length); // stack: [result + start + 1, length]
+            il.Emit(OpCodes.Stind_I4); // *(int*)(result + start + 1) = length
             il.MarkLabel(allDoneLabel);
         }
     }

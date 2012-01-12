@@ -48,21 +48,7 @@ namespace GroBuf
         // TODO: decimal
         public unsafe byte[] Write<T>(T obj)
         {
-            var size = GetSize(obj);
-            if(size < 0 || size > 10000000)
-            {
-                return new byte[0];
-            }
-            byte[] result;
-            try
-            {
-                result = new byte[size];
-            }
-            catch(Exception e)
-            {
-
-                return new byte[e.Data.Count];
-            }
+            var result = new byte[GetSize(obj)];
             int index = 0;
             Write(obj, true, ref result, ref index);
             return result;
@@ -126,21 +112,20 @@ namespace GroBuf
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(byte[]).MakeByRefType(), typeof(int).MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
-            var pinnedResult = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
+            var result = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
             il.Emit(OpCodes.Ldarg_2); // stack: [ref result]
             il.Emit(OpCodes.Ldind_Ref); // stack: [result]
             il.Emit(OpCodes.Ldc_I4_0); // stack: [result, 0]
             il.Emit(OpCodes.Ldelema, typeof(byte)); // stack: [&result[0]]
-            il.Emit(OpCodes.Stloc, pinnedResult); // pinnedResult = &result[0]; stack: []
+            il.Emit(OpCodes.Stloc, result); // result = &result[0]; stack: []
             il.Emit(OpCodes.Ldarg_0); // stack: [obj]
             il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
-            il.Emit(OpCodes.Ldarg_2); // stack: [obj, writeEmpty, ref result]
-            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, ref result, ref index]
-            il.Emit(OpCodes.Ldloca, pinnedResult); // stack: [obj, writeEmpty, ref result, ref index, ref pinnedResult]
-            il.Emit(OpCodes.Call, writeMethod); // writer.write<T>(obj, writeEmpty, ref result, ref index, ref pinnedResult); stack: []
+            il.Emit(OpCodes.Ldloc, result); // stack: [obj, writeEmpty, result]
+            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, result, ref index]
+            il.Emit(OpCodes.Call, writeMethod); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
             il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
             il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
-            il.Emit(OpCodes.Stloc, pinnedResult); // pinnedResult = null
+            il.Emit(OpCodes.Stloc, result); // result = null
             il.Emit(OpCodes.Ret);
 
             return (PinningWriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(PinningWriterDelegate<T>));

@@ -8,8 +8,6 @@ namespace GroBuf.Writers
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
-            il.Emit(OpCodes.Ldc_I4, 17); // stack: [17]
-            context.EnsureSize();
             context.WriteTypeCode(GroBufTypeCode.Guid);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]

@@ -17,10 +17,9 @@ namespace GroBuf.Writers
             context.LoadObjByRef(); // stack: [&obj]
             il.Emit(OpCodes.Call, Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
-            context.LoadResultByRef(); // stack: [obj.Value, writeEmpty, ref result]
-            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index]
-            context.LoadPinnedResultByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index, ref pinnedResult]
-            il.Emit(OpCodes.Call, context.Context.GetWriter(Type.GetGenericArguments()[0])); // writer(obj.Value, writeEmpty, ref result, ref index, ref pinnedResult)
+            context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
+            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
+            il.Emit(OpCodes.Call, context.Context.GetWriter(Type.GetGenericArguments()[0])); // writer(obj.Value, writeEmpty, result, ref index)
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)

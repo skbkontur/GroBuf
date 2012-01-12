@@ -11,10 +11,9 @@ namespace GroBuf.Writers
             context.LoadObjByRef(); // stack: [&obj]
             il.Emit(OpCodes.Call, Type.GetProperty("Ticks").GetGetMethod()); // stack: [obj.Ticks]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
-            context.LoadResultByRef(); // stack: [obj.Value, writeEmpty, ref result]
-            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index]
-            context.LoadPinnedResultByRef(); // stack: [obj.Value, writeEmpty, ref result, ref index, ref pinnedResult]
-            il.Emit(OpCodes.Call, context.Context.GetWriter(typeof(long))); // writer(obj.Ticks, writeEmpty, ref result, ref index, ref pinnedResult)
+            context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
+            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
+            il.Emit(OpCodes.Call, context.Context.GetWriter(typeof(long))); // writer(obj.Ticks, writeEmpty, result, ref index)
         }
     }
 }

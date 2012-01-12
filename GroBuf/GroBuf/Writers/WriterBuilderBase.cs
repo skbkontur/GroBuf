@@ -18,8 +18,7 @@ namespace GroBuf.Writers
             var method = typeBuilder.DefineMethod("Write_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
                                                   new[]
                                                       {
-                                                          Type, typeof(bool), typeof(byte[]).MakeByRefType(),
-                                                          typeof(int).MakeByRefType(), typeof(byte*).MakeByRefType()
+                                                          Type, typeof(bool), typeof(byte*), typeof(int).MakeByRefType(),
                                                       });
             writerTypeBuilderContext.SetWriter(Type, method);
             var il = method.GetILGenerator();

@@ -15,10 +15,6 @@ namespace GroBuf.Writers
             context.Il.Emit(OpCodes.Call, GetLengthPropertyGetter()); // stack: [obj.Length]
             context.Il.Emit(OpCodes.Ldc_I4_1); // stack: [obj.Length, 1]
             context.Il.Emit(OpCodes.Shl); // stack: [obj.Length << 1]
-            context.Il.Emit(OpCodes.Dup); // stack: [obj.Length << 1, obj.Length << 1]
-            context.Il.Emit(OpCodes.Ldc_I4_5); // stack: [obj.Length << 1, obj.Length << 1, 5]
-            context.Il.Emit(OpCodes.Add); // stack: [obj.Length << 1, obj.Length << 1 + 5]
-            context.EnsureSize();
             context.Il.Emit(OpCodes.Stloc, length); // length = obj.Length << 1
             context.WriteTypeCode(GroBufTypeCode.String);
             context.GoToCurrentLocation(); // stack: [&result[index]]
