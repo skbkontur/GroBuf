@@ -106,6 +106,7 @@
     <Compile Include="TestData\Invoic\SG47.cs" />
     <Compile Include="TestData\Invoic\SG48.cs" />
     <Compile Include="TestData\Invoic\SpecialServicesIdentification.cs" />
+    <Compile Include="TestEnum.cs" />
     <Compile Include="TestFields.cs" />
     <Compile Include="TestPerformance.cs" />
     <Compile Include="TestPrimitives.cs" />

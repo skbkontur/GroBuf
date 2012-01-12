@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
 
 namespace GroBuf
 {
@@ -58,11 +57,13 @@ namespace GroBuf
             foreach(var s in strings)
             {
                 var hash = CalcHash(s);
+                if(hash == 0)
+                    throw new InvalidOperationException("Hash code of '" + s + "' equals to zero");
                 if(dict.ContainsKey(hash))
                 {
                     if(dict[hash] == s)
                         throw new InvalidOperationException("Duplicated string '" + s + "'");
-                    throw new InvalidOperationException("Hash collision: strings '" + s + "' and '" + dict[hash] + "' have the same hash = '" + hash + "'");
+                    throw new InvalidOperationException("Hash code collision: strings '" + s + "' and '" + dict[hash] + "' have the same hash code = '" + hash + "'");
                 }
                 dict.Add(hash, s);
             }
@@ -71,10 +72,10 @@ namespace GroBuf
 
         public static ulong CalcHash(string str)
         {
-            if (randTable.Count < str.Length * 2)
+            if(randTable.Count < str.Length * 2)
                 InitRandTable(str.Length * 2);
             ulong result = 0;
-            for (int i = 0; i < str.Length; ++i)
+            for(int i = 0; i < str.Length; ++i)
             {
                 result ^= randTable[2 * i][str[i] & 0xFF];
                 result ^= randTable[2 * i + 1][(str[i] >> 8) & 0xFF];
@@ -101,6 +102,7 @@ namespace GroBuf
             }
             return lengths;
         }
+
         private static void InitRandTable(int count)
         {
             while(randTable.Count < count)

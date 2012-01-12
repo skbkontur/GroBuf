@@ -23,6 +23,11 @@ namespace GroBuf
             return GetSize(obj, true);
         }
 
+        public void Write<T>(T obj, IntPtr result)
+        {
+            // todo
+        }
+
         public void Write<T>(T obj, byte[] result, int index)
         {
             var size = GetSize(obj);

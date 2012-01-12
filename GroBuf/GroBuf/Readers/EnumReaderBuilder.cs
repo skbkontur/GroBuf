@@ -18,7 +18,10 @@ namespace GroBuf.Readers
             BuildValuesTable(out values, out hashCodes);
             var valuesField = context.Context.BuildConstField("values_" + Type.Name + "_" + Guid.NewGuid(), values);
             var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
-            context.AssertTypeCode(GroBufTypeCode.Enum);
+            context.Il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [typeCode]
+            context.Il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Enum);
+            var readAsIntLabel = context.Il.DefineLabel();
+            context.Il.Emit(OpCodes.Bne_Un, readAsIntLabel);
             context.IncreaseIndexBy1();
             context.Il.Emit(OpCodes.Ldc_I4_8); // stack: [8]
             context.AssertLength();
@@ -41,9 +44,15 @@ namespace GroBuf.Readers
             context.LoadField(valuesField); // stack: [values]
             context.Il.Emit(OpCodes.Ldloc, idx); // stack: [values, idx]
             context.Il.Emit(OpCodes.Ldelem_I4); // stack: [values[idx]]
-            context.Il.Emit(OpCodes.Ret);
+            context.Il.Emit(OpCodes.Ret); // return values[idx]
             context.Il.MarkLabel(returnDefaultLabel);
             context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
+            context.Il.Emit(OpCodes.Ret); // return 0
+            context.Il.MarkLabel(readAsIntLabel);
+            context.LoadData(); // stack: [pinnedData]
+            context.LoadIndexByRef(); // stack: [pinnedData, ref index]
+            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
+            context.Il.Emit(OpCodes.Call, context.Context.GetReader(typeof(int))); // stack: [reader<int>(pinnedData, ref index, dataLength)]
         }
 
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)
