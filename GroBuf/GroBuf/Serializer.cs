@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System.Runtime.InteropServices;
+
+using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {
@@ -33,6 +35,25 @@ namespace GroBuf
         public T Deserialize<T>(byte[] data)
         {
             return reader.Read<T>(data);
+        }
+
+        public TTo ChangeType<TFrom, TTo>(TFrom obj)
+        {
+            var size = writer.GetSize(obj);
+            if(size <= 768)
+            {
+                var buf = new byte[size];
+                writer.Write(obj, buf, 0);
+                return reader.Read<TTo>(buf);
+            }
+            else
+            {
+                var buf = Marshal.AllocHGlobal(size);
+                writer.Write(obj, buf);
+                var result = reader.Read<TTo>(buf, size);
+                Marshal.FreeHGlobal(buf);
+                return result;
+            }
         }
 
         private readonly GroBufWriter writer;

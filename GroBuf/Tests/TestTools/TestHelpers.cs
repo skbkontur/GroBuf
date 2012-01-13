@@ -10,10 +10,10 @@ namespace GroBuf.Tests.TestTools
             extender.Extend(typeof(T), obj);
         }
 
-        public static T GenerateRandomTrash<T>(Random random, int stringsLength, int arraysSize) where T : new()
+        public static T GenerateRandomTrash<T>(Random random, int fillRate, int stringsLength, int arraysSize) where T : new()
         {
             var result = new T();
-            FillWithRandomTrash(result, random, stringsLength, arraysSize);
+            FillWithRandomTrash(result, random, fillRate, stringsLength, arraysSize);
             return result;
         }
 
@@ -30,13 +30,13 @@ namespace GroBuf.Tests.TestTools
             return type.IsClass || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
 
-        private static void FillWithRandomTrash(object obj, Random random, int stringsLength, int arraysSize)
+        private static void FillWithRandomTrash(object obj, Random random, int fillRate, int stringsLength, int arraysSize)
         {
             Type type = obj.GetType();
             PropertyInfo[] properties = typePropertiesCache.Get(type);
             var isNull = new bool[properties.Length];
             for(int i = 0; i < isNull.Length; ++i)
-                isNull[i] = CanBeNull(properties[i].PropertyType) && random.Next(91) > 70;
+                isNull[i] = CanBeNull(properties[i].PropertyType) && random.Next(101) > fillRate;
             for(int index = 0; index < properties.Length; index++)
             {
                 if (isNull[index]) continue;
@@ -52,7 +52,7 @@ namespace GroBuf.Tests.TestTools
                         ConstructorInfo constructorInfo = typeConstructorCache.Get(propertyType);
                         object child = constructorInfo.Invoke(new object[0]);
                         setter.Invoke(obj, new[] {child});
-                        FillWithRandomTrash(child, random, stringsLength, arraysSize);
+                        FillWithRandomTrash(child, random, fillRate, stringsLength, arraysSize);
                     }
                 }
                 else
@@ -72,7 +72,7 @@ namespace GroBuf.Tests.TestTools
                         for(int i = 0; i < length; ++i)
                             array.SetValue(constructorInfo.Invoke(new object[0]), i);
                         for(int i = 0; i < length; ++i)
-                            FillWithRandomTrash(array.GetValue(i), random, stringsLength, arraysSize);
+                            FillWithRandomTrash(array.GetValue(i), random, fillRate, stringsLength, arraysSize);
                     }
                 }
             }
@@ -113,7 +113,7 @@ namespace GroBuf.Tests.TestTools
             case TypeCode.Double:
                 return random.NextDouble();
             case TypeCode.String:
-                return RandomString(random, random.Next(stringsLength, stringsLength * 2), 'a', 'z');
+                return RandomString(random, random.Next(stringsLength, stringsLength * 3), 'a', 'z');
             default:
                 throw new NotSupportedException();
             }

@@ -25,9 +25,9 @@ namespace GroBuf.Tests
             const int numberOfMessages = 10000;
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
-            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
+            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
             for (int i = 1; i < datas.Length; ++i)
-                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
+                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
 
             var messages = new byte[numberOfMessages][];
             for(int i = 0; i < datas.Length; ++i)
@@ -62,9 +62,9 @@ namespace GroBuf.Tests
             const int numberOfMessages = 100000;
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
-            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
+            datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
             for (int i = 1; i < datas.Length; ++i)
-                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 10, 2);
+                datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
 
             stop = false;
             var thread = new Thread(Collect);

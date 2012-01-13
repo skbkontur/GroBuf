@@ -10,8 +10,6 @@ namespace GroBuf
 {
     internal class GroBufReader
     {
-        private readonly IDataMembersExtracter dataMembersExtracter;
-
         public GroBufReader(IDataMembersExtracter dataMembersExtracter)
         {
             this.dataMembersExtracter = dataMembersExtracter;
@@ -19,70 +17,69 @@ namespace GroBuf
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
 
-        // TODO: decimal
-        public T Read<T>(byte[] data)
+        public T Read<T>(IntPtr data, int length)
         {
             int index = 0;
-            var result = Read<T>(data, ref index);
-            if(index < data.Length)
+            var result = Read<T>(data, ref index, length);
+            if(index < length)
                 throw new DataCorruptedException("Encountered extra data");
             return result;
         }
 
-        private delegate T PinningReaderDelegate<out T>(byte[] data, ref int index);
-
-        private T Read<T>(byte[] data, ref int index)
+        // TODO: decimal
+        public unsafe T Read<T>(byte[] data)
         {
-            return GetPinningReader<T>()(data, ref index);
+            fixed(byte* d = &data[0])
+                return Read<T>((IntPtr)d, data.Length);
         }
 
-        private PinningReaderDelegate<T> GetPinningReader<T>()
+        private delegate T ReaderDelegate<out T>(IntPtr data, ref int index, int length);
+
+        private T Read<T>(IntPtr data, ref int index, int length)
+        {
+            return GetReader<T>()(data, ref index, length);
+        }
+
+        private ReaderDelegate<T> GetReader<T>()
         {
             var type = typeof(T);
-            var pinningReader = (PinningReaderDelegate<T>)pinnedReaders[type];
-            if(pinningReader == null)
+            var reader = (ReaderDelegate<T>)readers[type];
+            if(reader == null)
             {
-                lock(pinningReadersLock)
+                lock(readersLock)
                 {
-                    pinningReader = (PinningReaderDelegate<T>)pinnedReaders[type];
-                    if(pinningReader == null)
+                    reader = (ReaderDelegate<T>)readers[type];
+                    if(reader == null)
                     {
-                        pinningReader = BuildPinningReader<T>();
-                        pinnedReaders[type] = pinningReader;
+                        reader = BuildReader<T>();
+                        readers[type] = reader;
                     }
                 }
             }
-            return pinningReader;
+            return reader;
         }
 
-        private PinningReaderDelegate<T> BuildPinningReader<T>()
+        private ReaderDelegate<T> BuildReader<T>()
         {
             var type = typeof(T);
             var readMethod = new ReaderTypeBuilder(module, readerCollection, dataMembersExtracter).BuildReader<T>();
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), type, new[] {typeof(byte[]), typeof(int).MakeByRefType()}, GetType(), true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), type, new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
-            var pinnedData = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
             il.Emit(OpCodes.Ldarg_0); // stack: [data]
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [data, 0]
-            il.Emit(OpCodes.Ldelema, typeof(byte)); // stack: [&data[0]]
-            il.Emit(OpCodes.Stloc, pinnedData); // pinnedData = &data[0]; stack: []
-            il.Emit(OpCodes.Ldloc, pinnedData); // stack: [pinnedData]
-            il.Emit(OpCodes.Ldarg_1); // stack: [pinnedData, ref index]
-            il.Emit(OpCodes.Ldarg_0); // stack: [pinnedData, ref index, data]
-            il.Emit(OpCodes.Ldlen); // stack: [pinnedData, ref index, data.Length]
-            il.Emit(OpCodes.Call, readMethod); // reader(pinnedData, ref index, data.Length); stack: [result]
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [result, 0]
-            il.Emit(OpCodes.Conv_U); // stack: [result, (U)0]
-            il.Emit(OpCodes.Stloc, pinnedData); // pinnedData = null; stack: [result]
+            il.Emit(OpCodes.Ldarg_1); // stack: [data, ref index]
+            il.Emit(OpCodes.Ldarg_2); // stack: [data, ref index, length]
+            il.Emit(OpCodes.Call, readMethod); // reader(data, ref index, length); stack: [result]
             il.Emit(OpCodes.Ret);
 
-            return (PinningReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(PinningReaderDelegate<T>));
+            return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));
         }
+
+        private readonly IDataMembersExtracter dataMembersExtracter;
 
         private readonly IReaderCollection readerCollection = new ReaderCollection();
 
-        private readonly Hashtable pinnedReaders = new Hashtable();
-        private readonly object pinningReadersLock = new object();
+        private readonly Hashtable readers = new Hashtable();
+        private readonly object readersLock = new object();
         private readonly AssemblyBuilder assembly;
         private readonly ModuleBuilder module;
     }

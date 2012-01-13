@@ -6,5 +6,6 @@
         void Serialize<T>(T obj, byte[] result, int index);
         byte[] Serialize<T>(T obj);
         T Deserialize<T>(byte[] data);
+        TTo ChangeType<TFrom, TTo>(TFrom obj);
     }
 }
