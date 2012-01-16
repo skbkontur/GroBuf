@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Xml.Serialization;
@@ -243,17 +244,17 @@ namespace GroBuf.Tests
             return (Invoic)invoicJsonSerializer.ReadObject(new MemoryStream(data));
         }
 
-        private static void DoTestBig<TData>(int iterations, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData: class, new()
+        private static void DoTestBig<TData>(int iterations, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData : class, new()
         {
             DoTest(iterations, 80, 100, 10, serializer, deserializer);
         }
 
-        private static void DoTestSmall<TData>(int iterations, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData: class, new()
+        private static void DoTestSmall<TData>(int iterations, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData : class, new()
         {
             DoTest(iterations, 60, 10, 5, serializer, deserializer);
         }
 
-        private static void DoTestTiny<TData>(int iterations, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData: class, new()
+        private static void DoTestTiny<TData>(int iterations, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData : class, new()
         {
             DoTest(iterations, 30, 5, 2, serializer, deserializer);
         }
@@ -271,7 +272,7 @@ namespace GroBuf.Tests
 
             var datas = new byte[numberOfObjects][];
             long size = 0;
-            DateTime start = DateTime.Now;
+            var stopwatch = Stopwatch.StartNew();
             for(int i = 0; i < objects.Length; ++i)
             {
                 byte[] cur = null;
@@ -282,12 +283,13 @@ namespace GroBuf.Tests
                 }
                 datas[i] = cur;
             }
-            TimeSpan elapsed = DateTime.Now - start;
+            stopwatch.Stop();
+            var elapsed = stopwatch.Elapsed;
             Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / numberOfObjects / iterations + " microseconds (" + Math.Round(1000.0 * numberOfObjects * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
             Console.WriteLine("Size: " + ((double)size) / numberOfObjects / iterations + " bytes");
 
             var deserializedDatas = new TData[numberOfObjects];
-            start = DateTime.Now;
+            stopwatch = Stopwatch.StartNew();
             for(int i = 0; i < datas.Length; ++i)
             {
                 TData cur = null;
@@ -295,7 +297,8 @@ namespace GroBuf.Tests
                     cur = deserializer(datas[(i + j) % datas.Length]);
                 deserializedDatas[i] = cur;
             }
-            elapsed = DateTime.Now - start;
+            stopwatch.Stop();
+            elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / numberOfObjects / iterations + " microseconds (" + Math.Round(1000.0 * numberOfObjects * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
@@ -327,7 +330,7 @@ namespace GroBuf.Tests
 
             var sizes = new int[numberOfObjects];
             long size = 0;
-            DateTime start = DateTime.Now;
+            var stopwatch = Stopwatch.StartNew();
             for(int i = 0; i < objects.Length; ++i)
             {
                 int cur = 0;
@@ -338,7 +341,8 @@ namespace GroBuf.Tests
                 }
                 sizes[i] = cur;
             }
-            TimeSpan elapsed = DateTime.Now - start;
+            stopwatch.Stop();
+            TimeSpan elapsed = stopwatch.Elapsed;
             Console.WriteLine("Size counting: " + elapsed.TotalMilliseconds * 1000 / numberOfObjects / iterations + " microseconds (" + Math.Round(1000.0 * numberOfObjects * iterations / elapsed.TotalMilliseconds) + " size counts per second)");
             Console.WriteLine("Size: " + ((double)size) / numberOfObjects / iterations + " bytes");
         }
@@ -370,7 +374,7 @@ namespace GroBuf.Tests
             typeChanger(from[0]);
 
             var to = new TTo[numberOfObjects];
-            DateTime start = DateTime.Now;
+            var stopwatch = Stopwatch.StartNew();
             for(int i = 0; i < from.Length; ++i)
             {
                 TTo cur = default(TTo);
@@ -378,7 +382,8 @@ namespace GroBuf.Tests
                     cur = typeChanger(from[(i + j) % from.Length]);
                 to[i] = cur;
             }
-            TimeSpan elapsed = DateTime.Now - start;
+            stopwatch.Stop();
+            TimeSpan elapsed = stopwatch.Elapsed;
             Console.WriteLine("Type changing: " + elapsed.TotalMilliseconds * 1000 / numberOfObjects / iterations + " microseconds (" + Math.Round(1000.0 * numberOfObjects * iterations / elapsed.TotalMilliseconds) + " type changes per second)");
         }
 
