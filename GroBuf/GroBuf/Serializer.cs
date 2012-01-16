@@ -48,10 +48,17 @@ namespace GroBuf
             }
             else
             {
+                TTo result;
                 var buf = Marshal.AllocHGlobal(size);
-                writer.Write(obj, buf);
-                var result = reader.Read<TTo>(buf, size);
-                Marshal.FreeHGlobal(buf);
+                try
+                {
+                    writer.Write(obj, buf);
+                    result = reader.Read<TTo>(buf, size);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(buf);
+                }
                 return result;
             }
         }
