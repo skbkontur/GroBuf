@@ -17,7 +17,7 @@ namespace GroBuf.Tests
         public void Test()
         {
             var o = new A {Bool = true, Ints = new[] {10, 2, 4}, B = new B {S = "zzz", Long = 123456789123456789}};
-            var data = serializer.Serialize(o);
+            byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual(true, oo.Bool);
             Assert.IsNotNull(oo.Ints);
@@ -28,6 +28,15 @@ namespace GroBuf.Tests
             Assert.IsNotNull(oo.B);
             Assert.AreEqual("zzz", oo.B.S);
             Assert.AreEqual(123456789123456789, oo.B.Long);
+        }
+
+        [Test]
+        public void TestReadonlyField()
+        {
+            var o = new C("zzz");
+            byte[] data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<C>(data);
+            Assert.AreEqual("zzz", oo.S);
         }
 
         public class A
@@ -41,6 +50,20 @@ namespace GroBuf.Tests
         {
             public string S;
             public long? Long;
+        }
+
+        public class C
+        {
+            public C(string s)
+            {
+                S = s;
+            }
+
+            public C()
+            {
+            }
+
+            public readonly string S;
         }
 
         private Serializer serializer;
