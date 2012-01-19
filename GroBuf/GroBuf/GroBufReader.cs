@@ -69,6 +69,18 @@ namespace GroBuf
             il.Emit(OpCodes.Ldarg_1); // stack: [data, ref index]
             il.Emit(OpCodes.Ldarg_2); // stack: [data, ref index, length]
             il.Emit(OpCodes.Call, readMethod); // reader(data, ref index, length); stack: [result]
+            var retLabel = il.DefineLabel();
+            if(type.IsClass)
+            {
+                il.Emit(OpCodes.Dup); // stack: [result, result]
+                il.Emit(OpCodes.Brtrue, retLabel); // if(result != null) goto ret; stack: [result]
+                il.Emit(OpCodes.Pop); // stack: []
+                var constructor = type.GetConstructor(Type.EmptyTypes);
+                if (constructor == null)
+                    throw new MissingConstructorException(type);
+                il.Emit(OpCodes.Newobj, constructor); // stack: [new type()]
+            }
+            il.MarkLabel(retLabel);
             il.Emit(OpCodes.Ret);
 
             return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));

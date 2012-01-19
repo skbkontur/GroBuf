@@ -63,6 +63,11 @@ namespace GroBuf
             }
         }
 
+        public T Copy<T>(T obj)
+        {
+            return ChangeType<T, T>(obj);
+        }
+
         private readonly GroBufWriter writer;
         private readonly GroBufReader reader;
     }

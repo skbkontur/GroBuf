@@ -108,6 +108,7 @@
     <Compile Include="TestData\Invoic\SpecialServicesIdentification.cs" />
     <Compile Include="TestEnum.cs" />
     <Compile Include="TestFields.cs" />
+    <Compile Include="TestNull.cs" />
     <Compile Include="TestPerformance.cs" />
     <Compile Include="TestPrimitives.cs" />
     <Compile Include="TestTools\ExtenderImpl.cs" />

@@ -7,5 +7,6 @@
         byte[] Serialize<T>(T obj);
         T Deserialize<T>(byte[] data);
         TTo ChangeType<TFrom, TTo>(TFrom obj);
+        T Copy<T>(T obj);
     }
 }
