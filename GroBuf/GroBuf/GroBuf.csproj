@@ -98,6 +98,7 @@
     <Compile Include="Readers\ReaderCollection.cs" />
     <Compile Include="Readers\ReaderTypeBuilder.cs" />
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
+    <Compile Include="SerializerImpl.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\DateTimeSizeCounterBuilder.cs" />

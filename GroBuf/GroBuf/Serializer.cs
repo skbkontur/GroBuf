@@ -1,74 +1,44 @@
-﻿using System.Runtime.InteropServices;
-
-using GroBuf.DataMembersExtracters;
+﻿using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {
     public class Serializer : ISerializer
     {
-        public Serializer()
-            : this(new PropertiesExtracter())
-        {
-        }
+        private readonly SerializerImpl impl;
 
-        public Serializer(IDataMembersExtracter dataMembersExtracter)
+        public Serializer()
         {
-            writer = new GroBufWriter(dataMembersExtracter);
-            reader = new GroBufReader(dataMembersExtracter);
+            impl = new SerializerImpl(new PropertiesExtracter());
         }
 
         public int GetSize<T>(T obj)
         {
-            return writer.GetSize(obj);
+            return impl.GetSize(obj);
         }
 
         public void Serialize<T>(T obj, byte[] result, int index)
         {
-            writer.Write(obj, result, index);
+            impl.Serialize(obj, result, index);
         }
 
         public byte[] Serialize<T>(T obj)
         {
-            return writer.Write(obj);
+            return impl.Serialize(obj);
         }
 
         public T Deserialize<T>(byte[] data)
         {
-            return reader.Read<T>(data);
+            return impl.Deserialize<T>(data);
         }
 
         public TTo ChangeType<TFrom, TTo>(TFrom obj)
         {
-            var size = writer.GetSize(obj);
-            if(size <= 768)
-            {
-                var buf = new byte[size];
-                writer.Write(obj, buf, 0);
-                return reader.Read<TTo>(buf);
-            }
-            else
-            {
-                TTo result;
-                var buf = Marshal.AllocHGlobal(size);
-                try
-                {
-                    writer.Write(obj, buf);
-                    result = reader.Read<TTo>(buf, size);
-                }
-                finally
-                {
-                    Marshal.FreeHGlobal(buf);
-                }
-                return result;
-            }
+            return impl.ChangeType<TFrom, TTo>(obj);
         }
 
         public T Copy<T>(T obj)
         {
-            return ChangeType<T, T>(obj);
+            return impl.Copy(obj);
         }
-
-        private readonly GroBufWriter writer;
-        private readonly GroBufReader reader;
     }
 }
