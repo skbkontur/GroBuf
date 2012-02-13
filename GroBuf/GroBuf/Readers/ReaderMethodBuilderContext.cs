@@ -11,7 +11,6 @@ namespace GroBuf.Readers
             Il = il;
             TypeCode = il.DeclareLocal(typeof(int));
             Length = il.DeclareLocal(typeof(uint));
-            Result = il.DeclareLocal(typeof(T));
         }
 
         /// <summary>
@@ -45,6 +44,23 @@ namespace GroBuf.Readers
         public void LoadDataLength()
         {
             Il.Emit(OpCodes.Ldarg_2);
+        }
+
+        /// <summary>
+        /// Loads <c>ref result</c> onto the evaluation stack
+        /// </summary>
+        public void LoadResultByRef()
+        {
+            Il.Emit(OpCodes.Ldarg_3);
+        }
+
+        /// <summary>
+        /// Loads <c>result</c> onto the evaluation stack
+        /// </summary>
+        public void LoadResult()
+        {
+            Il.Emit(OpCodes.Ldarg_3);
+            Il.Emit(OpCodes.Ldind_Ref);
         }
 
         /// <summary>
@@ -137,17 +153,6 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Returns default(<typeparamref name="T"/>)
-        /// </summary>
-        public void ReturnDefaultValue()
-        {
-            Il.Emit(OpCodes.Ldloca, Result); // stack: [&result]
-            Il.Emit(OpCodes.Initobj, typeof(T)); // result = default(T)
-            Il.Emit(OpCodes.Ldloc, Result); // stack: [result]
-            Il.Emit(OpCodes.Ret);
-        }
-
-        /// <summary>
         /// Checks TypeCode and throws Exception if it is invalid
         /// </summary>
         public void CheckTypeCode()
@@ -206,7 +211,7 @@ namespace GroBuf.Readers
             Il.Emit(OpCodes.Beq, label);
 
             SkipValue();
-            ReturnDefaultValue();
+            Il.Emit(OpCodes.Ret);
 
             Il.MarkLabel(label);
         }
@@ -216,6 +221,5 @@ namespace GroBuf.Readers
 
         public LocalBuilder TypeCode { get; private set; }
         public LocalBuilder Length { get; private set; }
-        public LocalBuilder Result { get; private set; }
     }
 }

@@ -22,20 +22,22 @@ namespace GroBuf.Readers
 
             context.AssertLength();
 
-            context.GoToCurrentLocation(); // stack: [&data[index]]
-            context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [&data[index], 0]
-            context.Il.Emit(OpCodes.Ldloc, length); // stack: [&data[index], 0, length]
-            context.Il.Emit(OpCodes.Ldc_I4_1); // stack: [&data[index], 0, length, 1]
-            context.Il.Emit(OpCodes.Shr_Un); // stack: [&data[index], 0, length >> 1]
+            context.LoadResultByRef(); // stack: [ref result]
+            context.GoToCurrentLocation(); // stack: [ref result, &data[index]]
+            context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [ref result, &data[index], 0]
+            context.Il.Emit(OpCodes.Ldloc, length); // stack: [ref result, &data[index], 0, length]
+            context.Il.Emit(OpCodes.Ldc_I4_1); // stack: [ref result, &data[index], 0, length, 1]
+            context.Il.Emit(OpCodes.Shr_Un); // stack: [ref result, &data[index], 0, length >> 1]
             var constructor = Type.GetConstructor(new[] {typeof(char*), typeof(int), typeof(int)});
             if(constructor == null)
                 throw new MissingConstructorException(Type, typeof(char*), typeof(int), typeof(int));
-            context.Il.Emit(OpCodes.Newobj, constructor); // stack: [new string(&data[index], 0, length >> 1)]
-            context.LoadIndexByRef(); // stack: [new string(&data[index], 0, length >> 1), ref index]
-            context.LoadIndex(); // stack: [new string(&data[index], 0, length >> 1), ref index, index]
-            context.Il.Emit(OpCodes.Ldloc, length); // stack: [new string(&data[index], 0, length >> 1), ref index, index, length]
-            context.Il.Emit(OpCodes.Add); // stack: [new string(&data[index], 0, length >> 1), ref index, index + length]
-            context.Il.Emit(OpCodes.Stind_I4); // index = index + length; stack: [new string(&data[index], 0, length >> 1)]
+            context.Il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new string(&data[index], 0, length >> 1)]
+            context.Il.Emit(OpCodes.Stind_Ref); // result = new string(&data[index], 0, length >> 1); stack: []
+            context.LoadIndexByRef(); // stack: [ref index]
+            context.LoadIndex(); // stack: [ref index, index]
+            context.Il.Emit(OpCodes.Ldloc, length); // stack: [ref index, index, length]
+            context.Il.Emit(OpCodes.Add); // stack: [ref index, index + length]
+            context.Il.Emit(OpCodes.Stind_I4); // index = index + length; stack: []
         }
     }
 }

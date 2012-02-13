@@ -78,6 +78,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestMerge.cs" />
+    <Compile Include="TestProperties.cs" />
     <Compile Include="DataSchemeChangedTest.cs" />
     <Compile Include="TestCycle.cs" />
     <Compile Include="TestData\Invoic\AdditionalInformation.cs" />

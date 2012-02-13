@@ -32,6 +32,11 @@ namespace GroBuf
             return reader.Read<T>(data);
         }
 
+        public void Merge<T>(byte[] data, ref T result)
+        {
+            reader.Read(data, ref result);
+        }
+
         public TTo ChangeType<TFrom, TTo>(TFrom obj)
         {
             var size = writer.GetSize(obj);

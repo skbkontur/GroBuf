@@ -8,6 +8,7 @@ using GroBuf.Readers;
 
 namespace GroBuf
 {
+    // TODO: decimal
     internal class GroBufReader
     {
         public GroBufReader(IDataMembersExtracter dataMembersExtracter)
@@ -17,27 +18,38 @@ namespace GroBuf
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
 
-        public T Read<T>(IntPtr data, int length)
+        public void Read<T>(IntPtr data, int length, ref T result)
         {
             int index = 0;
-            var result = Read<T>(data, ref index, length);
+            Read(data, ref index, length, ref result);
             if(index < length)
                 throw new DataCorruptedException("Encountered extra data");
+        }
+
+        public T Read<T>(IntPtr data, int length)
+        {
+            T result = default(T);
+            Read(data, length, ref result);
             return result;
         }
 
-        // TODO: decimal
+        public unsafe void Read<T>(byte[] data, ref T result)
+        {
+            fixed(byte* d = &data[0])
+                Read((IntPtr)d, data.Length, ref result);
+        }
+
         public unsafe T Read<T>(byte[] data)
         {
             fixed(byte* d = &data[0])
                 return Read<T>((IntPtr)d, data.Length);
         }
 
-        private delegate T ReaderDelegate<out T>(IntPtr data, ref int index, int length);
+        private delegate void ReaderDelegate<T>(IntPtr data, ref int index, int length, ref T result);
 
-        private T Read<T>(IntPtr data, ref int index, int length)
+        private void Read<T>(IntPtr data, ref int index, int length, ref T result)
         {
-            return GetReader<T>()(data, ref index, length);
+            GetReader<T>()(data, ref index, length, ref result);
         }
 
         private ReaderDelegate<T> GetReader<T>()
@@ -63,24 +75,37 @@ namespace GroBuf
         {
             var type = typeof(T);
             var readMethod = new ReaderTypeBuilder(module, readerCollection, dataMembersExtracter).BuildReader<T>();
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), type, new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}, GetType(), true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}, GetType(), true);
             var il = dynamicMethod.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0); // stack: [data]
             il.Emit(OpCodes.Ldarg_1); // stack: [data, ref index]
             il.Emit(OpCodes.Ldarg_2); // stack: [data, ref index, length]
-            il.Emit(OpCodes.Call, readMethod); // reader(data, ref index, length); stack: [result]
-            var retLabel = il.DefineLabel();
+            il.Emit(OpCodes.Ldarg_3); // stack: [data, ref index, length, ref result]
+
             if(type.IsClass)
             {
-                il.Emit(OpCodes.Dup); // stack: [result, result]
-                il.Emit(OpCodes.Brtrue, retLabel); // if(result != null) goto ret; stack: [result]
-                il.Emit(OpCodes.Pop); // stack: []
-                var constructor = type.GetConstructor(Type.EmptyTypes);
-                if (constructor == null)
-                    throw new MissingConstructorException(type);
-                il.Emit(OpCodes.Newobj, constructor); // stack: [new type()]
+                il.Emit(OpCodes.Dup); // stack: [data, ref index, length, ref result, ref result]
+                il.Emit(OpCodes.Ldind_Ref); // stack: [data, ref index, length, ref result, result]
+                var notNullLabel = il.DefineLabel();
+                il.Emit(OpCodes.Brtrue, notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, length, ref result]
+                il.Emit(OpCodes.Dup); // stack: [data, ref index, length, ref result, ref result]
+                if (type.IsArray)
+                {
+                    il.Emit(OpCodes.Ldc_I4_0); // stack: [data, ref index, length, ref result, ref result, 0]
+                    il.Emit(OpCodes.Newarr, type.GetElementType()); // stack: [data, ref index, length, ref result, ref result, new elementType[0]]
+                }
+                else
+                {
+                    var constructor = type.GetConstructor(Type.EmptyTypes);
+                    if(constructor == null)
+                        throw new MissingConstructorException(type);
+                    il.Emit(OpCodes.Newobj, constructor); // stack: [data, ref index, length, ref result, ref result, new type()]
+                }
+                il.Emit(OpCodes.Stind_Ref); // result = new type(); stack: [data, ref index, length, ref result]
+                il.MarkLabel(notNullLabel);
             }
-            il.MarkLabel(retLabel);
+
+            il.Emit(OpCodes.Call, readMethod); // reader(data, ref index, length, ref result); stack: []
             il.Emit(OpCodes.Ret);
 
             return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));

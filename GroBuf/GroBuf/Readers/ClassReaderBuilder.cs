@@ -16,7 +16,6 @@ namespace GroBuf.Readers
 
             var il = context.Il;
             var end = context.Length;
-            var result = context.Result;
             var typeCode = context.TypeCode;
 
             var setters = dataMembers.Select(member => member == null ? null : GetMemberSetter(context.Context, member)).ToArray();
@@ -30,30 +29,17 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Ldc_I4_4);
             context.AssertLength();
 
-            context.GoToCurrentLocation(); // stack: [&result[index]]
-            il.Emit(OpCodes.Ldind_U4); // stack: [(uint)result[index]]
-            context.IncreaseIndexBy4(); // index = index + 4; stack: [(uint)result[index]]
+            context.GoToCurrentLocation(); // stack: [&data[index]]
+            il.Emit(OpCodes.Ldind_U4); // stack: [(uint)data[index]]
+            context.IncreaseIndexBy4(); // index = index + 4; stack: [(uint)data[index]]
 
-            il.Emit(OpCodes.Dup); // stack: [(uint)result[index], (uint)result[index]]
-            context.AssertLength(); // stack: [(uint)result[index]]
+            il.Emit(OpCodes.Dup); // stack: [(uint)data[index], (uint)data[index]]
+            context.AssertLength(); // stack: [(uint)data[index]]
 
-            context.LoadIndex(); // stack: [(uint)result[index], index]
-            il.Emit(OpCodes.Add); // stack: [(uint)result[index] + index]
-            il.Emit(OpCodes.Stloc, end); // end = (uint)result[index] + index
+            context.LoadIndex(); // stack: [(uint)data[index], index]
+            il.Emit(OpCodes.Add); // stack: [(uint)data[index] + index]
+            il.Emit(OpCodes.Stloc, end); // end = (uint)data[index] + index
 
-            if(Type.IsClass)
-            {
-                var constructor = Type.GetConstructor(Type.EmptyTypes);
-                if(constructor == null)
-                    throw new MissingConstructorException(Type);
-                il.Emit(OpCodes.Newobj, constructor); // stack: [new type()]
-                il.Emit(OpCodes.Stloc, result); // result = new type(); stack: []
-            }
-            else
-            {
-                il.Emit(OpCodes.Ldloca, result); // stack: [ref result]
-                il.Emit(OpCodes.Initobj, Type); // result = default(type)
-            }
             var cycleStartLabel = il.DefineLabel();
             il.MarkLabel(cycleStartLabel);
 
@@ -79,16 +65,16 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Bne_Un, skipDataLabel); // if(hashCode != hashCodes[idx]) goto skipData; stack: []
 
             // Read data
-            il.Emit(Type.IsClass ? OpCodes.Ldloc : OpCodes.Ldloca, result); // stack: [{result}]
-            context.LoadData(); // stack: [{result}, pinnedData]
-            context.LoadIndexByRef(); // stack: [{result}, pinnedData, ref index]
-            context.LoadDataLength(); // stack: [{result}, pinnedData, ref index, dataLength]
+            context.LoadData(); // stack: [pinnedData]
+            context.LoadIndexByRef(); // stack: [pinnedData, ref index]
+            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
+            context.LoadResultByRef(); // stack: [pinnedData, ref index, dataLength, ref result]
 
-            context.LoadField(settersField); // stack: [{result}, pinnedData, ref index, dataLength, setters]
-            context.Il.Emit(OpCodes.Ldloc, idx); // stack: [{result}, pinnedData, ref index, dataLength, setters, idx]
-            context.Il.Emit(OpCodes.Ldelem_I); // stack: [{result}, pinnedData, ref index, dataLength, setters[idx]]
-            var parameterTypes = new[] {Type.IsClass ? Type : Type.MakeByRefType(), typeof(byte*), typeof(int).MakeByRefType(), typeof(int)};
-            context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // setters[idx]({result, pinnedData, ref index, dataLength}); stack: []
+            context.LoadField(settersField); // stack: [pinnedData, ref index, dataLength, ref result, setters]
+            context.Il.Emit(OpCodes.Ldloc, idx); // stack: [pinnedData, ref index, dataLength, ref result, setters, idx]
+            context.Il.Emit(OpCodes.Ldelem_I); // stack: [pinnedData, ref index, dataLength, ref result, setters[idx]]
+            var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()};
+            context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // setters[idx](pinnedData, ref index, dataLength, ref result); stack: []
 
             var checkIndexLabel = il.DefineLabel();
             il.Emit(OpCodes.Br, checkIndexLabel); // goto checkIndex
@@ -107,7 +93,6 @@ namespace GroBuf.Readers
             context.LoadIndex(); // stack: [index]
             il.Emit(OpCodes.Ldloc, end); // stack: [index, end]
             il.Emit(OpCodes.Blt_Un, cycleStartLabel); // if(index < end) goto cycleStart; stack: []
-            il.Emit(OpCodes.Ldloc, result); // stack: [result]
         }
 
         private static Action BuildSettersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] setters)
@@ -171,28 +156,54 @@ namespace GroBuf.Readers
             var method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
                                                           new[]
                                                               {
-                                                                  Type.IsClass ? Type : Type.MakeByRefType(),
-                                                                  typeof(byte*), typeof(int).MakeByRefType(), typeof(int)
+                                                                  typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
                                                               });
             var il = method.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0); // stack: [{obj}]
-            il.Emit(OpCodes.Ldarg_1); // stack: [{obj}, pinnedData]
-            il.Emit(OpCodes.Ldarg_2); // stack: [{obj}, pinnedData, ref index]
-            il.Emit(OpCodes.Ldarg_3); // stack: [{obj}, pinnedData, ref index, dataLength]
+
+            if(Type.IsClass)
+            {
+                il.Emit(OpCodes.Ldarg_3); // stack: [ref result]
+                il.Emit(OpCodes.Ldind_Ref); // stack: [result]
+                var notNullLabel = il.DefineLabel();
+                il.Emit(OpCodes.Brtrue, notNullLabel); // if(result != null) goto notNull; stack: []
+                il.Emit(OpCodes.Ldarg_3); // stack: [ref result]
+                var constructor = Type.GetConstructor(Type.EmptyTypes);
+                if(constructor == null)
+                    throw new MissingConstructorException(Type);
+                il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new type()]
+                il.Emit(OpCodes.Stind_Ref); // result = new type(); stack: []
+                il.MarkLabel(notNullLabel);
+            }
+
+            il.Emit(OpCodes.Ldarg_0); // stack: [data]
+            il.Emit(OpCodes.Ldarg_1); // stack: [data, ref index]
+            il.Emit(OpCodes.Ldarg_2); // stack: [data, ref index, dataLength]
+            il.Emit(OpCodes.Ldarg_3); // stack: [data, ref index, dataLength, ref result]
+            il.Emit(OpCodes.Ldind_Ref); // stack: [data, ref index, dataLength, result]
             switch(member.MemberType)
             {
+            case MemberTypes.Field:
+                var field = (FieldInfo)member;
+                il.Emit(OpCodes.Ldflda, field); // stack: [data, ref index, dataLength, ref result.field]
+                il.Emit(OpCodes.Call, context.GetReader(field.FieldType)); // reader(data, ref index, dataLength, ref result.field); stack: []
+                break;
             case MemberTypes.Property:
                 var property = (PropertyInfo)member;
-                il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
+                var propertyValue = il.DeclareLocal(property.PropertyType);
+                var getter = property.GetGetMethod();
+                if(getter == null)
+                    throw new MissingMethodException(Type.Name, property.Name + "_get");
+                il.Emit(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter); // stack: [ data, ref index, dataLength, result.property]
+                il.Emit(OpCodes.Stloc, propertyValue); // propertyValue = result.property; stack: [data, ref index, dataLength]
+                il.Emit(OpCodes.Ldloca, propertyValue); // stack: [data, ref index, dataLength, ref propertyValue]
+                il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // reader(data, ref index, dataLength, ref propertyValue); stack: []
+                il.Emit(OpCodes.Ldarg_3); // stack: [ref result]
+                il.Emit(OpCodes.Ldind_Ref); // stack: [result]
+                il.Emit(OpCodes.Ldloc, propertyValue); // stack: [result, propertyValue]
                 var setter = property.GetSetMethod();
                 if(setter == null)
                     throw new MissingMethodException(Type.Name, property.Name + "_set");
-                il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // obj.Property = reader(pinnedData, ref index)
-                break;
-            case MemberTypes.Field:
-                var field = (FieldInfo)member;
-                il.Emit(OpCodes.Call, context.GetReader(field.FieldType)); // stack: [{obj}, reader(pinnedData, ref index, dataLength)]
-                il.Emit(OpCodes.Stfld, field); // obj.Field = reader(pinnedData, ref index)
+                il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // result.property = propertyValue
                 break;
             default:
                 throw new NotSupportedException("Data member of type '" + member.MemberType + "' is not supported");

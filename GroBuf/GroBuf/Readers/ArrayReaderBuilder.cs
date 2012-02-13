@@ -1,4 +1,6 @@
 using System;
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Reflection.Emit;
 
 namespace GroBuf.Readers
@@ -35,77 +37,56 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Emit(OpCodes.Stloc, length); // length = array length; stack: []
 
-            il.Emit(OpCodes.Ldloc, length); // stack: [length]
             var elementType = Type.GetElementType();
-            il.Emit(OpCodes.Newarr, elementType); // stack: [new type[length] = result]
-            il.Emit(OpCodes.Ldloc, length); // stack: [result, length]
+            var createArrayLabel = il.DefineLabel();
+            context.LoadResult(); // stack: [result]
+            il.Emit(OpCodes.Brfalse, createArrayLabel); // if(result == null) goto createArray;
+            context.LoadResult(); // stack: [result]
+            il.Emit(OpCodes.Ldlen); // stack: [result.Length]
+            il.Emit(OpCodes.Ldloc, length); // stack: [result.Length, length]
+            var arrayCreatedLabel = il.DefineLabel();
+            il.Emit(OpCodes.Bge, arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
+            
+            context.LoadResultByRef(); // stack: [ref result]
+            il.Emit(OpCodes.Ldloc, length); // stack: [ref result, length]
+            il.Emit(OpCodes.Call, resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, length)
+            il.Emit(OpCodes.Br, arrayCreatedLabel); // goto arrayCreated
+
+            il.MarkLabel(createArrayLabel);
+            context.LoadResultByRef(); // stack: [ref result]
+            il.Emit(OpCodes.Ldloc, length); // stack: [ref result, length]
+            il.Emit(OpCodes.Newarr, elementType); // stack: [ref result, new type[length]]
+            il.Emit(OpCodes.Stind_Ref); // result = new type[length]; stack: []
+
+            il.MarkLabel(arrayCreatedLabel);
+            il.Emit(OpCodes.Ldloc, length); // stack: [length]
             var allDoneLabel = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse, allDoneLabel); // if(length == 0) goto allDone; stack: [result]
+            il.Emit(OpCodes.Brfalse, allDoneLabel); // if(length == 0) goto allDone; stack: []
             var i = il.DeclareLocal(typeof(uint));
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [result, 0]
-            il.Emit(OpCodes.Stloc, i); // i = 0; stack: [result]
+            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
+            il.Emit(OpCodes.Stloc, i); // i = 0; stack: []
             var cycleStart = il.DefineLabel();
             il.MarkLabel(cycleStart);
-            il.Emit(OpCodes.Dup); // stack: [result, result]
-            il.Emit(OpCodes.Ldloc, i); // stack: [result, result, i]
 
-            if(elementType.IsValueType && !elementType.IsPrimitive) // struct
-                il.Emit(OpCodes.Ldelema, elementType);
+            context.LoadData(); // stack: [pinnedData]
+            context.LoadIndexByRef(); // stack: [pinnedData, ref index]
+            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
+            context.LoadResult(); // stack: [pinnedData, ref index, dataLength, result]
+            il.Emit(OpCodes.Ldloc, i); // stack: [pinnedData, ref index, dataLength, result, i]
 
-            context.LoadData(); // stack: [result, {result[i]}, pinnedData]
-            context.LoadIndexByRef(); // stack: [result, {result[i]}, pinnedData, ref index]
-            context.LoadDataLength(); // stack: [result, {result[i]}, pinnedData, ref index, dataLength]
-            il.Emit(OpCodes.Call, context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength); stack: [result, {result[i]}, item]
-            EmitArrayItemSetter(elementType, il); // result[i] = item; stack: [result]
-            il.Emit(OpCodes.Ldloc, i); // stack: [result, i]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [result, i, 1]
-            il.Emit(OpCodes.Add); // stack: [result, i + 1]
-            il.Emit(OpCodes.Dup); // stack: [result, i + 1, i + 1]
-            il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [result, i]
-            il.Emit(OpCodes.Ldloc, length); // stack: [result, i, length]
+            il.Emit(OpCodes.Ldelema, elementType); // stack: [pinnedData, ref index, dataLength, ref result[i]]
+
+            il.Emit(OpCodes.Call, context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
+            il.Emit(OpCodes.Ldloc, i); // stack: [i]
+            il.Emit(OpCodes.Ldc_I4_1); // stack: [i, 1]
+            il.Emit(OpCodes.Add); // stack: [i + 1]
+            il.Emit(OpCodes.Dup); // stack: [i + 1, i + 1]
+            il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [i]
+            il.Emit(OpCodes.Ldloc, length); // stack: [i, length]
             il.Emit(OpCodes.Blt_Un, cycleStart); // if(i < length) goto cycleStart
-            il.MarkLabel(allDoneLabel); // stack: [result]
+            il.MarkLabel(allDoneLabel); // stack: []
         }
 
-        private static void EmitArrayItemSetter(Type elementType, ILGenerator il)
-        {
-            if(elementType.IsClass) // class
-                il.Emit(OpCodes.Stelem_Ref);
-            else if(!elementType.IsPrimitive) // struct
-                il.Emit(OpCodes.Stobj, elementType);
-            else
-            {
-                // Primitive
-                switch(Type.GetTypeCode(elementType))
-                {
-                case TypeCode.Boolean:
-                case TypeCode.SByte:
-                case TypeCode.Byte:
-                    il.Emit(OpCodes.Stelem_I1);
-                    break;
-                case TypeCode.Int16:
-                case TypeCode.UInt16:
-                case TypeCode.Char:
-                    il.Emit(OpCodes.Stelem_I2);
-                    break;
-                case TypeCode.Int32:
-                case TypeCode.UInt32:
-                    il.Emit(OpCodes.Stelem_I4);
-                    break;
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    il.Emit(OpCodes.Stelem_I8);
-                    break;
-                case TypeCode.Single:
-                    il.Emit(OpCodes.Stelem_R4);
-                    break;
-                case TypeCode.Double:
-                    il.Emit(OpCodes.Stelem_R8);
-                    break;
-                default:
-                    throw new NotSupportedException("Type '" + elementType + "' is not supported");
-                }
-            }
-        }
+        private static readonly MethodInfo resizeMethod = ((MethodCallExpression)((Expression<Action<int[]>>)(arr => Array.Resize(ref arr, 0))).Body).Method.GetGenericMethodDefinition();
     }
 }

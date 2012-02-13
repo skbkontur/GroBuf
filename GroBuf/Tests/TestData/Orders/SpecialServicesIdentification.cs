@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.Serialization;
 
 using ProtoBuf;
@@ -23,5 +24,21 @@ namespace GroBuf.Tests.TestData.Orders
         [DataMember]
         [ProtoMember(4)]
         public bool?[] SpecialServiceDescription { get; set; }
+        
+        [DataMember]
+        [ProtoMember(5)]
+        public Guid Id { get; set; }
+
+        [DataMember]
+        [ProtoMember(6)]
+        public Guid[] ChildrenIds { get; set; }
+
+        [DataMember]
+        [ProtoMember(5)]
+        public Guid? ParentId { get; set; }
+
+        [DataMember]
+        [ProtoMember(6)]
+        public Guid?[] ParentChildrenIds { get; set; }
     }
 }

@@ -15,10 +15,10 @@ namespace GroBuf.Readers
         {
             var typeBuilder = readerTypeBuilderContext.TypeBuilder;
 
-            var method = typeBuilder.DefineMethod("Read_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, Type,
+            var method = typeBuilder.DefineMethod("Read_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
                                                   new[]
                                                       {
-                                                          typeof(byte*), typeof(int).MakeByRefType(), typeof(int)
+                                                          typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
                                                       });
             readerTypeBuilderContext.SetReader(Type, method);
             var il = method.GetILGenerator();
@@ -55,7 +55,7 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(typeCode != 0) goto notNull;
 
             context.IncreaseIndexBy1(); // index = index + 1
-            context.ReturnDefaultValue();
+            context.Il.Emit(OpCodes.Ret);
 
             il.MarkLabel(notEmptyLabel);
 

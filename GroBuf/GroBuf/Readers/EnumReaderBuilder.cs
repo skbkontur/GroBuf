@@ -18,41 +18,46 @@ namespace GroBuf.Readers
             BuildValuesTable(out values, out hashCodes);
             var valuesField = context.Context.BuildConstField("values_" + Type.Name + "_" + Guid.NewGuid(), values);
             var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
-            context.Il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [typeCode]
-            context.Il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Enum);
-            var readAsIntLabel = context.Il.DefineLabel();
-            context.Il.Emit(OpCodes.Bne_Un, readAsIntLabel);
+            var il = context.Il;
+            il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [typeCode]
+            il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Enum);
+            var readAsIntLabel = il.DefineLabel();
+            il.Emit(OpCodes.Bne_Un, readAsIntLabel);
             context.IncreaseIndexBy1();
-            context.Il.Emit(OpCodes.Ldc_I4_8); // stack: [8]
+            il.Emit(OpCodes.Ldc_I4_8); // stack: [8]
             context.AssertLength();
-            context.GoToCurrentLocation(); // stack: [&result[index]]
-            context.Il.Emit(OpCodes.Ldind_I8); // stack: [*(int64*)result[index] = hashCode]
-            context.IncreaseIndexBy8(); // index = index + 8 // stack: [hashCode]
+            context.LoadResultByRef(); // stack: [ref result]
+            context.GoToCurrentLocation(); // stack: [ref result, &result[index]]
+            il.Emit(OpCodes.Ldind_I8); // stack: [ref result, *(int64*)result[index] = hashCode]
+            context.IncreaseIndexBy8(); // index = index + 8; stack: [ref result, hashCode]
 
-            context.Il.Emit(OpCodes.Dup); // stack: [hashCode, hashCode]
-            context.Il.Emit(OpCodes.Ldc_I8, (long)hashCodes.Length); // stack: [hashCode, hashCode, (int64)hashCodes.Length]
-            context.Il.Emit(OpCodes.Rem_Un); // stack: [hashCode, hashCode % hashCodes.Length = idx]
-            context.Il.Emit(OpCodes.Conv_I4); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
+            il.Emit(OpCodes.Dup); // stack: [ref result, hashCode, hashCode]
+            il.Emit(OpCodes.Ldc_I8, (long)hashCodes.Length); // stack: [ref result, hashCode, hashCode, (int64)hashCodes.Length]
+            il.Emit(OpCodes.Rem_Un); // stack: [ref result, hashCode, hashCode % hashCodes.Length = idx]
+            il.Emit(OpCodes.Conv_I4); // stack: [ref result, hashCode, (int)(hashCode % hashCodes.Length)]
             var idx = context.Length;
-            context.Il.Emit(OpCodes.Stloc, idx); // idx = (int)(hashCode % hashCodes.Length); stack: [hashCode]
+            il.Emit(OpCodes.Stloc, idx); // idx = (int)(hashCode % hashCodes.Length); stack: [ref result, hashCode]
 
-            context.LoadField(hashCodesField); // stack: [hashCode, hashCodes]
-            context.Il.Emit(OpCodes.Ldloc, idx); // stack: [hashCode, hashCodes, idx]
-            context.Il.Emit(OpCodes.Ldelem_I8); // stack: [hashCode, hashCodes[idx]]
-            var returnDefaultLabel = context.Il.DefineLabel();
-            context.Il.Emit(OpCodes.Bne_Un, returnDefaultLabel); // if(hashCode != hashCodes[idx]) goto returnDefault;
-            context.LoadField(valuesField); // stack: [values]
-            context.Il.Emit(OpCodes.Ldloc, idx); // stack: [values, idx]
-            context.Il.Emit(OpCodes.Ldelem_I4); // stack: [values[idx]]
-            context.Il.Emit(OpCodes.Ret); // return values[idx]
-            context.Il.MarkLabel(returnDefaultLabel);
-            context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            context.Il.Emit(OpCodes.Ret); // return 0
-            context.Il.MarkLabel(readAsIntLabel);
+            context.LoadField(hashCodesField); // stack: [ref result, hashCode, hashCodes]
+            il.Emit(OpCodes.Ldloc, idx); // stack: [ref result, hashCode, hashCodes, idx]
+            il.Emit(OpCodes.Ldelem_I8); // stack: [ref result, hashCode, hashCodes[idx]]
+            var returnDefaultLabel = il.DefineLabel();
+            il.Emit(OpCodes.Bne_Un, returnDefaultLabel); // if(hashCode != hashCodes[idx]) goto returnDefault; stack: [ref result]
+            context.LoadField(valuesField); // stack: [ref result, values]
+            il.Emit(OpCodes.Ldloc, idx); // stack: [ref result, values, idx]
+            il.Emit(OpCodes.Ldelem_I4); // stack: [ref result, values[idx]]
+            il.Emit(OpCodes.Stind_I4); // result = values[idx]; stack: []
+            il.Emit(OpCodes.Ret);
+            il.MarkLabel(returnDefaultLabel);
+            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
+            il.Emit(OpCodes.Stind_I4); // result = 0
+            il.Emit(OpCodes.Ret);
+            il.MarkLabel(readAsIntLabel);
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            context.Il.Emit(OpCodes.Call, context.Context.GetReader(typeof(int))); // stack: [reader<int>(pinnedData, ref index, dataLength)]
+            context.LoadResultByRef(); // stack: [pinnedData, ref index, dataLength, ref result]
+            il.Emit(OpCodes.Call, context.Context.GetReader(typeof(int))); // reader<int>(pinnedData, ref index, dataLength, ref result)
         }
 
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)
