@@ -44,7 +44,7 @@ namespace GroBuf.Readers
 
         public void SetReader(Type type, MethodInfo reader)
         {
-            if (readers[type] != null)
+            if(readers[type] != null)
                 throw new InvalidOperationException();
             readers[type] = reader;
         }
@@ -53,19 +53,16 @@ namespace GroBuf.Readers
         {
             var type = typeof(T);
             var reader = (MethodInfo)readers[type];
-            if (reader == null)
+            if(reader == null)
             {
                 reader = readerCollection.GetReaderBuilder<T>().BuildReader(this);
-                if (readers[type] == null)
+                if(readers[type] == null)
                     readers[type] = reader;
-                else if ((MethodInfo)readers[type] != reader)
+                else if((MethodInfo)readers[type] != reader)
                     throw new InvalidOperationException();
             }
             return reader;
         }
-
-        public TypeBuilder TypeBuilder { get; private set; }
-        public FieldInfo Lengths { get; private set; }
 
         public MethodInfo GetReader(Type type)
         {
@@ -73,6 +70,9 @@ namespace GroBuf.Readers
                 getReaderMethod = ((MethodCallExpression)((Expression<Action<ReaderTypeBuilderContext>>)(context => context.GetReader<int>())).Body).Method.GetGenericMethodDefinition();
             return ((MethodInfo)getReaderMethod.MakeGenericMethod(new[] {type}).Invoke(this, new object[0]));
         }
+
+        public TypeBuilder TypeBuilder { get; private set; }
+        public FieldInfo Lengths { get; private set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {

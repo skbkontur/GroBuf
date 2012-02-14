@@ -42,6 +42,8 @@ namespace GroBuf.Readers
                 readerBuilder = new NullableReaderBuilder<T>();
             else if(type.IsArray)
                 readerBuilder = new ArrayReaderBuilder<T>();
+            else if(type == typeof(object))
+                readerBuilder = (IReaderBuilder<T>)new ObjectReaderBuilder();
             else
                 readerBuilder = new ClassReaderBuilder<T>();
             return readerBuilder;

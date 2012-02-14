@@ -11,7 +11,7 @@ namespace GroBuf.Readers
                 throw new InvalidOperationException("Expected nullable but was '" + Type + "'");
         }
 
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             var il = context.Il;
             context.LoadResultByRef(); // stack: [ref result]

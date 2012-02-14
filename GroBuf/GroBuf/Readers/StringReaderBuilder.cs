@@ -4,7 +4,7 @@ namespace GroBuf.Readers
 {
     internal class StringReaderBuilder : ReaderBuilderBase<string>
     {
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<string> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1(); // Skip typeCode
             context.AssertTypeCode(GroBufTypeCode.String); // Assert typeCode == TypeCode.String

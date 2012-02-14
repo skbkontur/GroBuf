@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace GroBuf
 {
-    internal static class GroBufHelpers
+    public static class GroBufHelpers
     {
         public static GroBufTypeCode GetTypeCode(Type type)
         {
             switch(Type.GetTypeCode(type))
             {
             case TypeCode.Boolean:
-                return GroBufTypeCode.UInt8;
+                return GroBufTypeCode.Boolean;
             case TypeCode.Char:
                 return GroBufTypeCode.UInt16;
             case TypeCode.SByte:

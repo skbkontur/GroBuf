@@ -42,6 +42,8 @@ namespace GroBuf.Writers
                 writerBuilder = new NullableWriterBuilder<T>();
             else if(type.IsArray)
                 writerBuilder = new ArrayWriterBuilder<T>();
+            else if(type == typeof(object))
+                writerBuilder = (IWriterBuilder<T>)new ObjectWriterBuilder();
             else
                 writerBuilder = new ClassWriterBuilder<T>();
             return writerBuilder;

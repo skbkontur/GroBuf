@@ -91,6 +91,7 @@
     <Compile Include="Readers\IReaderBuilder.cs" />
     <Compile Include="Readers\IReaderCollection.cs" />
     <Compile Include="Readers\NullableReaderBuilder.cs" />
+    <Compile Include="Readers\ObjectReaderBuilder.cs" />
     <Compile Include="Readers\PrimitivesReaderBuilder.cs" />
     <Compile Include="Readers\ReaderBuilderBase.cs" />
     <Compile Include="Readers\ReaderMethodBuilderContext.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="SizeCounters\ISizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ISizeCounterCollection.cs" />
     <Compile Include="SizeCounters\NullableSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\ObjectSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\SizeCounterBuilderBase.cs" />
     <Compile Include="SizeCounters\SizeCounterCollection.cs" />
@@ -123,6 +125,7 @@
     <Compile Include="Writers\IWriterBuilder.cs" />
     <Compile Include="Writers\IWriterCollection.cs" />
     <Compile Include="Writers\NullableWriterBuilder.cs" />
+    <Compile Include="Writers\ObjectWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesWriterBuilder.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="GroBufHelpers.cs" />

@@ -1,6 +1,6 @@
 ﻿namespace GroBuf
 {
-    internal enum GroBufTypeCode
+    public enum GroBufTypeCode
     {
         [DataLength(1)]
         Empty = 0,
@@ -51,6 +51,9 @@
         Guid = 15,
 
         [DataLength(8)]
-        Enum = 16
+        Enum = 16,
+
+        [DataLength(1)]
+        Boolean = 17
     }
 }

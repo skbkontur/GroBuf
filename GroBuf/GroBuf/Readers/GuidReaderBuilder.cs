@@ -5,7 +5,7 @@ namespace GroBuf.Readers
 {
     internal class GuidReaderBuilder : ReaderBuilderBase<Guid>
     {
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<Guid> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
             context.AssertTypeCode(GroBufTypeCode.Guid); // Assert typeCode == TypeCode.Guid

@@ -3,7 +3,7 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class ReaderMethodBuilderContext<T>
+    internal class ReaderMethodBuilderContext
     {
         public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, ILGenerator il)
         {

@@ -11,7 +11,7 @@ namespace GroBuf.Readers
             if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }
 
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
             var readers = BuildPrimitiveValueReaders(context.Context);
@@ -63,12 +63,14 @@ namespace GroBuf.Readers
                     GroBufTypeCode.Int16, GroBufTypeCode.UInt16,
                     GroBufTypeCode.Int32, GroBufTypeCode.UInt32,
                     GroBufTypeCode.Int64, GroBufTypeCode.UInt64,
-                    GroBufTypeCode.Single, GroBufTypeCode.Double
+                    GroBufTypeCode.Single, GroBufTypeCode.Double,
+                    GroBufTypeCode.Boolean,
                 })
                 result[(int)typeCode] = BuildPrimitiveValueReader(context, typeCode);
             return result;
         }
 
+        // todo: kill
         private MethodInfo BuildDefaultValueReader(ReaderTypeBuilderContext context)
         {
             var method = context.TypeBuilder.DefineMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
@@ -102,6 +104,7 @@ namespace GroBuf.Readers
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
+            case GroBufTypeCode.Boolean:
                 il.Emit(OpCodes.Stind_I1); // result = value
                 break;
             case GroBufTypeCode.Int16:
@@ -139,6 +142,7 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Conv_I1);
                 break;
             case GroBufTypeCode.UInt8:
+            case GroBufTypeCode.Boolean:
                 il.Emit(OpCodes.Conv_U1);
                 break;
             case GroBufTypeCode.Int16:
@@ -196,6 +200,7 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Ldind_I1);
                 break;
             case GroBufTypeCode.UInt8:
+            case GroBufTypeCode.Boolean:
                 il.Emit(OpCodes.Ldind_U1);
                 break;
             case GroBufTypeCode.Int16:

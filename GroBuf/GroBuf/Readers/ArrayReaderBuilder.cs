@@ -13,7 +13,7 @@ namespace GroBuf.Readers
             if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
         }
 
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
             context.AssertTypeCode(GroBufTypeCode.Array);
@@ -46,7 +46,7 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Ldloc, length); // stack: [result.Length, length]
             var arrayCreatedLabel = il.DefineLabel();
             il.Emit(OpCodes.Bge, arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
-            
+
             context.LoadResultByRef(); // stack: [ref result]
             il.Emit(OpCodes.Ldloc, length); // stack: [ref result, length]
             il.Emit(OpCodes.Call, resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, length)

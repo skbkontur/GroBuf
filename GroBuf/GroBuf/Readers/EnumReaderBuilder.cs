@@ -11,7 +11,7 @@ namespace GroBuf.Readers
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was '" + Type + "'");
         }
 
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             int[] values;
             ulong[] hashCodes;

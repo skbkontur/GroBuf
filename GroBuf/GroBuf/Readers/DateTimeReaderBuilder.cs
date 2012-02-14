@@ -5,7 +5,7 @@ namespace GroBuf.Readers
 {
     internal class DateTimeReaderBuilder : ReaderBuilderBase<DateTime>
     {
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<DateTime> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.AssertTypeCode(GroBufTypeCode.Int64); // Assert typeCode == TypeCode.Int64
 

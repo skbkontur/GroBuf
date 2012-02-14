@@ -8,7 +8,7 @@ namespace GroBuf.Readers
 {
     internal class ClassReaderBuilder<T> : ReaderBuilderBase<T>
     {
-        protected override void ReadNotEmpty(ReaderMethodBuilderContext<T> context)
+        protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             MemberInfo[] dataMembers;
             ulong[] hashCodes;

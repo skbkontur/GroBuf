@@ -22,7 +22,7 @@ namespace GroBuf.Readers
                                                       });
             readerTypeBuilderContext.SetReader(Type, method);
             var il = method.GetILGenerator();
-            var context = new ReaderMethodBuilderContext<T>(readerTypeBuilderContext, il);
+            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il);
 
             ReadTypeCodeAndCheck(context); // Read TypeCode and check
             ReadNotEmpty(context); // Read obj
@@ -30,7 +30,7 @@ namespace GroBuf.Readers
             return method;
         }
 
-        protected abstract void ReadNotEmpty(ReaderMethodBuilderContext<T> context);
+        protected abstract void ReadNotEmpty(ReaderMethodBuilderContext context);
 
         protected Type Type { get; private set; }
 
@@ -40,7 +40,7 @@ namespace GroBuf.Readers
         /// Returns default(<typeparamref name="T"/>) if TypeCode = Empty
         /// </summary>
         /// <param name="context">Current context</param>
-        private static void ReadTypeCodeAndCheck(ReaderMethodBuilderContext<T> context)
+        private static void ReadTypeCodeAndCheck(ReaderMethodBuilderContext context)
         {
             var il = context.Il;
             var notEmptyLabel = il.DefineLabel();

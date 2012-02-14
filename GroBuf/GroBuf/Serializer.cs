@@ -4,8 +4,6 @@ namespace GroBuf
 {
     public class Serializer : ISerializer
     {
-        private readonly SerializerImpl impl;
-
         public Serializer()
         {
             impl = new SerializerImpl(new PropertiesExtracter());
@@ -45,5 +43,7 @@ namespace GroBuf
         {
             return impl.Copy(obj);
         }
+
+        private readonly SerializerImpl impl;
     }
 }

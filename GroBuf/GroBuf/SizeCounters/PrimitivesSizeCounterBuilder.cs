@@ -17,6 +17,7 @@ namespace GroBuf.SizeCounters
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
+            case GroBufTypeCode.Boolean:
                 context.Il.Emit(OpCodes.Ldc_I4_2);
                 break;
             case GroBufTypeCode.Int16:

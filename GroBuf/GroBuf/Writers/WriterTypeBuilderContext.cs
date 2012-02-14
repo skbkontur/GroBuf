@@ -25,9 +25,14 @@ namespace GroBuf.Writers
 
         public FieldInfo BuildConstField<T>(string name, T value)
         {
+            return BuildConstField<T>(name, field => BuildFieldInitializer(field, value));
+        }
+
+        public FieldInfo BuildConstField<T>(string name, Func<FieldInfo, Action> fieldInitializer)
+        {
             var field = TypeBuilder.DefineField(name, typeof(T), FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.InitOnly);
             fields.Add(name, field);
-            initializers.Add(name, BuildFieldInitializer(field, value));
+            initializers.Add(name, fieldInitializer(field));
             return field;
         }
 

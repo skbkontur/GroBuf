@@ -42,6 +42,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new NullableSizeCounterBuilder<T>();
             else if(type.IsArray)
                 sizeCounterBuilder = new ArraySizeCounterBuilder<T>();
+            else if(type == typeof(object))
+                sizeCounterBuilder = (ISizeCounterBuilder<T>)new ObjectSizeCounterBuilder();
             else
                 sizeCounterBuilder = new ClassSizeCounterBuilder<T>();
             return sizeCounterBuilder;

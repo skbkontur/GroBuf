@@ -16,10 +16,11 @@ namespace GroBuf.Writers
             context.WriteTypeCode(typeCode);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
-            switch (typeCode)
+            switch(typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
+            case GroBufTypeCode.Boolean:
                 context.Il.Emit(OpCodes.Stind_I1); // result[index] = obj
                 context.IncreaseIndexBy1(); // index = index + 1
                 break;
