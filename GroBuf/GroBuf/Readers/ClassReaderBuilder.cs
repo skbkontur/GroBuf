@@ -179,7 +179,8 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Ldarg_1); // stack: [data, ref index]
             il.Emit(OpCodes.Ldarg_2); // stack: [data, ref index, dataLength]
             il.Emit(OpCodes.Ldarg_3); // stack: [data, ref index, dataLength, ref result]
-            il.Emit(OpCodes.Ldind_Ref); // stack: [data, ref index, dataLength, result]
+            if(Type.IsClass)
+                il.Emit(OpCodes.Ldind_Ref); // stack: [data, ref index, dataLength, result]
             switch(member.MemberType)
             {
             case MemberTypes.Field:
@@ -198,7 +199,8 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Ldloca, propertyValue); // stack: [data, ref index, dataLength, ref propertyValue]
                 il.Emit(OpCodes.Call, context.GetReader(property.PropertyType)); // reader(data, ref index, dataLength, ref propertyValue); stack: []
                 il.Emit(OpCodes.Ldarg_3); // stack: [ref result]
-                il.Emit(OpCodes.Ldind_Ref); // stack: [result]
+                if(Type.IsClass)
+                    il.Emit(OpCodes.Ldind_Ref); // stack: [result]
                 il.Emit(OpCodes.Ldloc, propertyValue); // stack: [result, propertyValue]
                 var setter = property.GetSetMethod();
                 if(setter == null)

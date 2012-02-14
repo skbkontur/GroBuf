@@ -6,7 +6,7 @@
         void Serialize<T>(T obj, byte[] result, int index);
         byte[] Serialize<T>(T obj);
         T Deserialize<T>(byte[] data);
-        void Merge<T>(byte[] data, ref T result);
+        void Merge<T>(T from, ref T to);
         TTo ChangeType<TFrom, TTo>(TFrom obj);
         T Copy<T>(T obj);
     }

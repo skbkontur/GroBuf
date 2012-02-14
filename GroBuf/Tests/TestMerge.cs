@@ -18,15 +18,13 @@ namespace GroBuf.Tests
         public void TestArray()
         {
             var first = new int?[] {1, null};
-            byte[] data = serializer.Serialize(first);
             var second = new int?[] {2, 3, 5};
-            serializer.Merge(data, ref second);
+            serializer.Merge(first, ref second);
             second.AssertEqualsTo(new int?[] {1, 3, 5});
 
             first = new int?[] {1, null, 3, 4};
-            data = serializer.Serialize(first);
             second = new int?[] {5, 6, 7};
-            serializer.Merge(data, ref second);
+            serializer.Merge(first, ref second);
             second.AssertEqualsTo(new int?[] {1, 6, 3, 4});
         }
 
@@ -34,16 +32,28 @@ namespace GroBuf.Tests
         public void TestClass()
         {
             var first = new A {Bool = true};
-            byte[] data = serializer.Serialize(first);
             var second = new A {Bool = false, B = new B {S = "zzz"}};
-            serializer.Merge(data, ref second);
+            serializer.Merge(first, ref second);
             second.AssertEqualsTo(new A {Bool = true, B = new B {S = "zzz"}});
 
             first = new A {Bool = true, B = new B {S = "qxx"}, Bs = new[] {null, new B {S = "qzz"}}};
-            data = serializer.Serialize(first);
             second = new A {B = new B {S = "zzz", Long = 12341234}, Bs = new[] {new B {S = "xxx"}, new B {S = "qqq", Long = 1287346}}};
-            serializer.Merge(data, ref second);
+            serializer.Merge(first, ref second);
             second.AssertEqualsTo(new A {Bool = true, B = new B {S = "qxx", Long = 12341234}, Bs = new[] {new B {S = "xxx"}, new B {S = "qzz", Long = 1287346}}});
+        }
+
+        [Test]
+        public void TestStruct()
+        {
+            var first = new As { Bool = true };
+            var second = new As { Bool = false, B = new Bs { S = "zzz" } };
+            serializer.Merge(first, ref second);
+            second.AssertEqualsTo(new As { Bool = true, B = new Bs { S = "zzz" } });
+
+            first = new As { Bool = true, B = new Bs { S = "qxx" }, Bs = new[] { new Bs(), new Bs { S = "qzz" } } };
+            second = new As { B = new Bs { S = "zzz", Long = 12341234 }, Bs = new[] { new Bs { S = "xxx" }, new Bs { S = "qqq", Long = 1287346 } } };
+            serializer.Merge(first, ref second);
+            second.AssertEqualsTo(new As { Bool = true, B = new Bs { S = "qxx", Long = 12341234 }, Bs = new[] { new Bs { S = "xxx" }, new Bs { S = "qzz", Long = 1287346 } } });
         }
 
         public class A
@@ -54,6 +64,19 @@ namespace GroBuf.Tests
         }
 
         public class B
+        {
+            public string S { get; set; }
+            public long? Long { get; set; }
+        }
+
+        public struct As
+        {
+            public Bs[] Bs { get; set; }
+            public bool? Bool { get; set; }
+            public Bs B { get; set; }
+        }
+
+        public struct Bs
         {
             public string S { get; set; }
             public long? Long { get; set; }

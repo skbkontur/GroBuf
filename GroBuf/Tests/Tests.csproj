@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestStruct.cs" />
     <Compile Include="TestMerge.cs" />
     <Compile Include="TestProperties.cs" />
     <Compile Include="DataSchemeChangedTest.cs" />

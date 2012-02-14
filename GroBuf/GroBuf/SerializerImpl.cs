@@ -32,40 +32,45 @@ namespace GroBuf
             return reader.Read<T>(data);
         }
 
-        public void Merge<T>(byte[] data, ref T result)
+        public void Merge<T>(T from, ref T to)
         {
-            reader.Read(data, ref result);
+            ChangeType(from, ref to);
         }
 
         public TTo ChangeType<TFrom, TTo>(TFrom obj)
+        {
+            TTo result = default(TTo);
+            ChangeType(obj, ref result);
+            return result;
+        }
+
+        public T Copy<T>(T obj)
+        {
+            return ChangeType<T, T>(obj);
+        }
+
+        private void ChangeType<TFrom, TTo>(TFrom obj, ref TTo result)
         {
             var size = writer.GetSize(obj);
             if(size <= 768)
             {
                 var buf = new byte[size];
                 writer.Write(obj, buf, 0);
-                return reader.Read<TTo>(buf);
+                reader.Read(buf, ref result);
             }
             else
             {
-                TTo result;
                 var buf = Marshal.AllocHGlobal(size);
                 try
                 {
                     writer.Write(obj, buf);
-                    result = reader.Read<TTo>(buf, size);
+                    reader.Read(buf, size, ref result);
                 }
                 finally
                 {
                     Marshal.FreeHGlobal(buf);
                 }
-                return result;
             }
-        }
-
-        public T Copy<T>(T obj)
-        {
-            return ChangeType<T, T>(obj);
         }
 
         private readonly GroBufWriter writer;

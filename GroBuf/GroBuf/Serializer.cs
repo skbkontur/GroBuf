@@ -31,9 +31,9 @@ namespace GroBuf
             return impl.Deserialize<T>(data);
         }
 
-        public void Merge<T>(byte[] data, ref T result)
+        public void Merge<T>(T from, ref T to)
         {
-            impl.Merge(data, ref result);
+            impl.Merge(from, ref to);
         }
 
         public TTo ChangeType<TFrom, TTo>(TFrom obj)
