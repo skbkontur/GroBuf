@@ -37,7 +37,7 @@ namespace GroBuf
             case TypeCode.Decimal:
                 return GroBufTypeCode.Decimal;
             case TypeCode.DateTime:
-                return GroBufTypeCode.Int64;
+                return GroBufTypeCode.DateTime;
             case TypeCode.String:
                 return GroBufTypeCode.String;
             default:

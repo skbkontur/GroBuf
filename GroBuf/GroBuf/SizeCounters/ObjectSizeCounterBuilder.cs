@@ -55,7 +55,7 @@ namespace GroBuf.SizeCounters
             var dict = new[]
                 {
                     typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid)
+                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime)
                 }.ToDictionary(GroBufHelpers.GetTypeCode, type => GetCounter(context, type));
             int max = dict.Keys.Cast<int>().Max();
             var result = new MethodInfo[max + 1];
@@ -73,7 +73,13 @@ namespace GroBuf.SizeCounters
                                                               });
             var il = method.GetILGenerator();
             il.Emit(OpCodes.Ldarg_0); // stack: [obj]
-            il.Emit(type.IsClass ? OpCodes.Castclass : OpCodes.Unbox, type); // stack: [(type)obj]
+            if(type.IsClass)
+                il.Emit(OpCodes.Castclass, type); // stack: [(type)obj]
+            else
+            {
+                il.Emit(OpCodes.Unbox, type);
+                il.Emit(OpCodes.Ldobj, type); // stack: [(type)obj]
+            }
             il.Emit(OpCodes.Ldarg_1); // stack: [(type)obj, writeEmpty]
             il.Emit(OpCodes.Call, context.GetCounter(type)); // stack: [count<type>((type)obj, writeEmpty)]
             il.Emit(OpCodes.Ret);

@@ -61,8 +61,8 @@ namespace GroBuf.Readers
             var result = new MethodInfo[256];
             foreach(var type in new[]
                 {
-                    typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid)
+                    typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
+                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime)
                 })
                 result[(int)GroBufHelpers.GetTypeCode(type)] = GetReader(context, type);
             return result;

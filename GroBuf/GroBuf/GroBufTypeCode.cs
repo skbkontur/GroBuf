@@ -54,6 +54,9 @@
         Enum = 16,
 
         [DataLength(1)]
-        Boolean = 17
+        Boolean = 17,
+
+        [DataLength(8)]
+        DateTime = 18
     }
 }

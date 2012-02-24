@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System;
+
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
@@ -16,7 +18,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            var o = new A {Bool = true, Ints = new[] {10, 2, 4}, B = new B {S = "zzz", Long = 123456789123456789}};
+            var o = new A {Bool = true, Ints = new[] {10, 2, 4}, B = new B {S = "zzz", Long = 123456789123456789, DateTime = new DateTime(1234567890123)}};
             byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual(true, oo.Bool);
@@ -28,6 +30,7 @@ namespace GroBuf.Tests
             Assert.IsNotNull(oo.B);
             Assert.AreEqual("zzz", oo.B.S);
             Assert.AreEqual(123456789123456789, oo.B.Long);
+            Assert.AreEqual(1234567890123, oo.B.DateTime.Ticks);
         }
 
         public class A
@@ -41,6 +44,7 @@ namespace GroBuf.Tests
         {
             public string S { get; set; }
             public long? Long { get; set; }
+            public DateTime DateTime { get; set; }
         }
 
         private SerializerImpl serializer;

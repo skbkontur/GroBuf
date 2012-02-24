@@ -8,12 +8,12 @@ namespace GroBuf.Writers
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
-            context.LoadObjByRef(); // stack: [&obj]
-            il.Emit(OpCodes.Call, Type.GetProperty("Ticks").GetGetMethod()); // stack: [obj.Ticks]
-            context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
-            context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
-            context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
-            il.Emit(OpCodes.Call, context.Context.GetWriter(typeof(long))); // writer(obj.Ticks, writeEmpty, result, ref index)
+            context.WriteTypeCode(GroBufTypeCode.DateTime);
+            context.GoToCurrentLocation(); // stack: [&result[index]]
+            context.LoadObjByRef(); // stack: [&result[index], &obj]
+            il.Emit(OpCodes.Call, Type.GetProperty("Ticks").GetGetMethod()); // stack: [&result[index], obj.Ticks]
+            il.Emit(OpCodes.Stind_I8); // (long)&result[index] = ticks
+            context.IncreaseIndexBy8(); // index = index + 8
         }
     }
 }

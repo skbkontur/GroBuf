@@ -10,7 +10,6 @@ namespace GroBuf.Writers
             Context = context;
             Il = il;
             LocalInt = il.DeclareLocal(typeof(int));
-            pinnedBuf = il.DeclareLocal(typeof(byte).MakeByRefType(), true);
         }
 
         /// <summary>
@@ -158,6 +157,5 @@ namespace GroBuf.Writers
         public WriterTypeBuilderContext Context { get; private set; }
         public ILGenerator Il { get; private set; }
         public LocalBuilder LocalInt { get; private set; }
-        private readonly LocalBuilder pinnedBuf;
     }
 }

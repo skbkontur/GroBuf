@@ -64,7 +64,7 @@ namespace GroBuf.Readers
                     GroBufTypeCode.Int32, GroBufTypeCode.UInt32,
                     GroBufTypeCode.Int64, GroBufTypeCode.UInt64,
                     GroBufTypeCode.Single, GroBufTypeCode.Double,
-                    GroBufTypeCode.Boolean,
+                    GroBufTypeCode.Boolean, GroBufTypeCode.DateTime
                 })
                 result[(int)typeCode] = BuildPrimitiveValueReader(context, typeCode);
             return result;
@@ -152,11 +152,11 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Conv_U2);
                 break;
             case GroBufTypeCode.Int32:
-                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single)
+                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTime)
                     il.Emit(OpCodes.Conv_I4);
                 break;
             case GroBufTypeCode.UInt32:
-                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single)
+                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTime)
                     il.Emit(OpCodes.Conv_U4);
                 break;
             case GroBufTypeCode.Int64:
@@ -169,7 +169,7 @@ namespace GroBuf.Readers
                 }
                 break;
             case GroBufTypeCode.UInt64:
-                if(typeCode != GroBufTypeCode.Int64)
+                if(typeCode != GroBufTypeCode.Int64 && typeCode != GroBufTypeCode.DateTime)
                 {
                     if(typeCode == GroBufTypeCode.Int8 || typeCode == GroBufTypeCode.Int16 || typeCode == GroBufTypeCode.Int32)
                         il.Emit(OpCodes.Conv_I8);
@@ -216,6 +216,7 @@ namespace GroBuf.Readers
                 il.Emit(OpCodes.Ldind_U4);
                 break;
             case GroBufTypeCode.Int64:
+            case GroBufTypeCode.DateTime:
                 il.Emit(OpCodes.Ldind_I8);
                 break;
             case GroBufTypeCode.UInt64:
