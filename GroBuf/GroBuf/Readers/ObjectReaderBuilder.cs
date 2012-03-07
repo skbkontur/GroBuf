@@ -26,8 +26,12 @@ namespace GroBuf.Readers
             var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), typeof(int), typeof(object).MakeByRefType()};
             context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // readers[typeCode](data, ref index, dataLength, ref result); stack: []
             il.Emit(OpCodes.Ret);
-
             il.MarkLabel(skipValueLabel);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
             context.IncreaseIndexBy1();
             context.SkipValue();
         }

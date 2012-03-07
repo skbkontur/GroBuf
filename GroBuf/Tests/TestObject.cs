@@ -35,15 +35,55 @@ namespace GroBuf.Tests
             Assert.AreEqual(new DateTime(182374682), oo.B.S);
         }
 
+        [Test]
+        public void TestBad1()
+        {
+            var o = new A {S = "zzz", B = new B {S = new A {S = "qxx"}}, Z = "qxx"};
+            byte[] data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<A>(data);
+            Assert.AreEqual("zzz", oo.S);
+            Assert.AreEqual(null, oo.B.S);
+            Assert.AreEqual("qxx", oo.Z);
+        }
+
+        [Test]
+        public void TestBad2()
+        {
+            var o = new Az { S = "zzz", B = new Bz { S = new Cz { S = 100 } }, Z = "qxx" };
+            byte[] data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<A>(data);
+            Assert.AreEqual("zzz", oo.S);
+            Assert.AreEqual(null, oo.B.S);
+            Assert.AreEqual("qxx", oo.Z);
+        }
+
         public class A
         {
             public object S { get; set; }
             public B B { get; set; }
+            public object Z { get; set; }
         }
 
         public struct B
         {
             public object S { get; set; }
+        }
+
+        public class Az
+        {
+            public object S { get; set; }
+            public Bz B { get; set; }
+            public string Z { get; set; }
+        }
+
+        public struct Bz
+        {
+            public Cz S { get; set; }
+        }
+
+        public class Cz
+        {
+            public byte S { get; set; }
         }
 
         private SerializerImpl serializer;

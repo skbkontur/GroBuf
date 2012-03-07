@@ -24,8 +24,19 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Callvirt, getTypeMethod); // stack: [obj, writeEmpty, result, ref index, writers, obj.GetType()]
             il.Emit(OpCodes.Call, getTypeCodeMethod); // stack: [obj, writeEmpty, result, ref index, writers, GroBufHelpers.GetTypeCode(obj.GetType())]
             il.Emit(OpCodes.Ldelem_I); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            il.Emit(OpCodes.Dup); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())], writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            var writeNullLabel = il.DefineLabel();
+            il.Emit(OpCodes.Brfalse, writeNullLabel); // if(writers[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto writeNull;
             var parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType()};
-            context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index); stack: []
+            il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index); stack: []
+            il.Emit(OpCodes.Ret);
+            il.MarkLabel(writeNullLabel);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            context.WriteNull();
         }
 
         private static Action BuildWritersFieldInitializer(WriterTypeBuilderContext context, FieldInfo field, MethodInfo[] writers)
@@ -59,6 +70,9 @@ namespace GroBuf.Writers
                     typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
                     typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime)
                 }.ToDictionary(GroBufHelpers.GetTypeCode, type => GetWriter(context, type));
+            foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
+                if(!dict.ContainsKey(value))
+                    dict.Add(value, null);
             int max = dict.Keys.Cast<int>().Max();
             var result = new MethodInfo[max + 1];
             foreach(var entry in dict)

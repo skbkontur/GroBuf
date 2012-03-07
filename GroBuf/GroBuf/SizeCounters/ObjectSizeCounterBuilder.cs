@@ -22,8 +22,17 @@ namespace GroBuf.SizeCounters
             il.Emit(OpCodes.Callvirt, getTypeMethod); // stack: [obj, writeEmpty, counters, obj.GetType()]
             il.Emit(OpCodes.Call, getTypeCodeMethod); // stack: [obj, writeEmpty, counters, GroBufHelpers.GetTypeCode(obj.GetType())]
             il.Emit(OpCodes.Ldelem_I); // stack: [obj, writeEmpty, counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            var parameterTypes = new[] {typeof(object), typeof(bool)};
-            context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(int), parameterTypes, null); // stack: [counters[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty)]
+            il.Emit(OpCodes.Dup); // stack: [obj, writeEmpty, counters[GroBufHelpers.GetTypeCode(obj.GetType())], counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            var returnForNullLabel = il.DefineLabel();
+            il.Emit(OpCodes.Brfalse, returnForNullLabel); // if(counters[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto returnForNull;
+            var parameterTypes = new[] { typeof(object), typeof(bool) };
+            il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(int), parameterTypes, null); // stack: [counters[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty)]
+            il.Emit(OpCodes.Ret);
+            il.MarkLabel(returnForNullLabel);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            il.Emit(OpCodes.Pop);
+            context.ReturnForNull();
         }
 
         private static Action BuildCountersFieldInitializer(SizeCounterTypeBuilderContext context, FieldInfo field, MethodInfo[] counters)
@@ -57,6 +66,9 @@ namespace GroBuf.SizeCounters
                     typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
                     typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime)
                 }.ToDictionary(GroBufHelpers.GetTypeCode, type => GetCounter(context, type));
+            foreach (GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
+                if (!dict.ContainsKey(value))
+                    dict.Add(value, null);
             int max = dict.Keys.Cast<int>().Max();
             var result = new MethodInfo[max + 1];
             foreach(var entry in dict)
