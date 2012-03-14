@@ -68,7 +68,7 @@ namespace GroBuf.Writers
             var dict = new[]
                 {
                     typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime)
+                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
                 }.ToDictionary(GroBufHelpers.GetTypeCode, type => GetWriter(context, type));
             foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
                 if(!dict.ContainsKey(value))

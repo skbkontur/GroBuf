@@ -45,7 +45,7 @@ namespace GroBuf
                     return GroBufTypeCode.Guid;
                 if(type.IsEnum)
                     return GroBufTypeCode.Enum;
-                if(type.IsArray)
+                if(type.IsArray || type == typeof(Array))
                     return GroBufTypeCode.Array;
                 return GroBufTypeCode.Object;
             }

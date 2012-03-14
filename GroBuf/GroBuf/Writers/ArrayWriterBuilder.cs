@@ -7,8 +7,11 @@ namespace GroBuf.Writers
     {
         public ArrayWriterBuilder()
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
-            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            if (Type != typeof(Array))
+            {
+                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
+                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            }
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
@@ -48,7 +51,7 @@ namespace GroBuf.Writers
             il.MarkLabel(cycleStart);
             context.LoadObj(); // stack: [obj]
             il.Emit(OpCodes.Ldloc, i); // stack: [obj, i]
-            var elementType = Type.GetElementType();
+            var elementType = Type.GetElementType() ?? typeof(object);
             LoadArrayElement(elementType, il); // stack: [obj[i]]
             il.Emit(OpCodes.Ldc_I4_1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]

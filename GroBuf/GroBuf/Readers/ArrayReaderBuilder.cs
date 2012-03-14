@@ -9,8 +9,11 @@ namespace GroBuf.Readers
     {
         public ArrayReaderBuilder()
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            if (Type != typeof(Array))
+            {
+                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            }
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
@@ -37,7 +40,7 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Emit(OpCodes.Stloc, length); // length = array length; stack: []
 
-            var elementType = Type.GetElementType();
+            var elementType = Type.GetElementType() ?? typeof(object);
             var createArrayLabel = il.DefineLabel();
             context.LoadResult(); // stack: [result]
             il.Emit(OpCodes.Brfalse, createArrayLabel); // if(result == null) goto createArray;

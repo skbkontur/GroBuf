@@ -40,7 +40,7 @@ namespace GroBuf.Writers
                 writerBuilder = new PrimitivesWriterBuilder<T>();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 writerBuilder = new NullableWriterBuilder<T>();
-            else if(type.IsArray)
+            else if(type.IsArray || type == typeof(Array))
                 writerBuilder = new ArrayWriterBuilder<T>();
             else if(type == typeof(object))
                 writerBuilder = (IWriterBuilder<T>)new ObjectWriterBuilder();

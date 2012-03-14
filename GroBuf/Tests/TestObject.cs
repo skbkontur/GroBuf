@@ -36,6 +36,20 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestArray()
+        {
+            var o = new A { S = "zzz", B = new B { S = new object[] {(byte)100, "qxx"} } };
+            byte[] data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<A>(data);
+            Assert.AreEqual("zzz", oo.S);
+            var array = (Array)oo.B.S;
+            Assert.NotNull(array);
+            Assert.AreEqual(2, array.Length);
+            Assert.AreEqual(100, array.GetValue(0));
+            Assert.AreEqual("qxx", array.GetValue(1));
+        }
+
+        [Test]
         public void TestBad1()
         {
             var o = new A {S = "zzz", B = new B {S = new A {S = "qxx"}}, Z = "qxx"};
