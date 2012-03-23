@@ -89,7 +89,9 @@ namespace GroBuf
                 var notNullLabel = il.DefineLabel();
                 il.Emit(OpCodes.Brtrue, notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, length, ref result]
                 il.Emit(OpCodes.Dup); // stack: [data, ref index, length, ref result, ref result]
-                if(type.IsArray)
+                if(type == typeof(string))
+                    il.Emit(OpCodes.Ldstr, "");
+                else if(type.IsArray)
                 {
                     il.Emit(OpCodes.Ldc_I4_0); // stack: [data, ref index, length, ref result, ref result, 0]
                     il.Emit(OpCodes.Newarr, type.GetElementType()); // stack: [data, ref index, length, ref result, ref result, new elementType[0]]

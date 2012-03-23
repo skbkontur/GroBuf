@@ -141,19 +141,19 @@ namespace GroBuf.Tests
             Console.WriteLine("GroBuf.ChangeType big data: all types");
             DoTestChangeTypeBig<Orders, Orders>(10, obj => groBuf.ChangeType<Orders, Orders>(obj));
             Console.WriteLine();
-            Console.WriteLine("GroBuf.GetSize big data: strings");
+            Console.WriteLine("GroBuf.ChangeType big data: strings");
             DoTestChangeTypeBig<Invoic, Invoic>(10, obj => groBuf.ChangeType<Invoic, Invoic>(obj));
             Console.WriteLine();
             Console.WriteLine("GroBuf.ChangeType small data: all types");
             DoTestChangeTypeSmall<Orders, Orders>(100, obj => groBuf.ChangeType<Orders, Orders>(obj));
             Console.WriteLine();
-            Console.WriteLine("GroBuf.GetSize small data: strings");
+            Console.WriteLine("GroBuf.ChangeType small data: strings");
             DoTestChangeTypeSmall<Invoic, Invoic>(100, obj => groBuf.ChangeType<Invoic, Invoic>(obj));
             Console.WriteLine();
             Console.WriteLine("GroBuf.ChangeType tiny data: all types");
             DoTestChangeTypeTiny<Orders, Orders>(1000, obj => groBuf.ChangeType<Orders, Orders>(obj));
             Console.WriteLine();
-            Console.WriteLine("GroBuf.GetSize tiny data: strings");
+            Console.WriteLine("GroBuf.ChangeType tiny data: strings");
             DoTestChangeTypeTiny<Invoic, Invoic>(1000, obj => groBuf.ChangeType<Invoic, Invoic>(obj));
         }
 
