@@ -68,7 +68,7 @@ namespace GroBuf.Readers
                     typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
                     typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
                 })
-                result[(int)GroBufHelpers.GetTypeCode(type)] = GetReader(context, type);
+                result[(int)GroBufTypeCodeMap.GetTypeCode(type)] = GetReader(context, type);
             return result;
         }
 

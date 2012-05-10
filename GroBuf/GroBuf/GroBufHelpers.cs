@@ -6,51 +6,6 @@ namespace GroBuf
 {
     public static class GroBufHelpers
     {
-        public static GroBufTypeCode GetTypeCode(Type type)
-        {
-            switch(Type.GetTypeCode(type))
-            {
-            case TypeCode.Boolean:
-                return GroBufTypeCode.Boolean;
-            case TypeCode.Char:
-                return GroBufTypeCode.UInt16;
-            case TypeCode.SByte:
-                return GroBufTypeCode.Int8;
-            case TypeCode.Byte:
-                return GroBufTypeCode.UInt8;
-            case TypeCode.Int16:
-                return GroBufTypeCode.Int16;
-            case TypeCode.UInt16:
-                return GroBufTypeCode.UInt16;
-            case TypeCode.Int32:
-                return GroBufTypeCode.Int32;
-            case TypeCode.UInt32:
-                return GroBufTypeCode.UInt32;
-            case TypeCode.Int64:
-                return GroBufTypeCode.Int64;
-            case TypeCode.UInt64:
-                return GroBufTypeCode.UInt64;
-            case TypeCode.Single:
-                return GroBufTypeCode.Single;
-            case TypeCode.Double:
-                return GroBufTypeCode.Double;
-            case TypeCode.Decimal:
-                return GroBufTypeCode.Decimal;
-            case TypeCode.DateTime:
-                return GroBufTypeCode.DateTime;
-            case TypeCode.String:
-                return GroBufTypeCode.String;
-            default:
-                if(type == typeof(Guid))
-                    return GroBufTypeCode.Guid;
-                if(type.IsEnum)
-                    return GroBufTypeCode.Enum;
-                if(type.IsArray || type == typeof(Array))
-                    return GroBufTypeCode.Array;
-                return GroBufTypeCode.Object;
-            }
-        }
-
         public static ulong[] CalcHashAndCheck(IEnumerable<string> strings)
         {
             var dict = new Dictionary<ulong, string>();

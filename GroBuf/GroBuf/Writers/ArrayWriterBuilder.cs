@@ -7,11 +7,13 @@ namespace GroBuf.Writers
     {
         public ArrayWriterBuilder()
         {
-            if (Type != typeof(Array))
+            if(Type != typeof(Array))
             {
-                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was " + Type);
+                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
                 if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+                elementType = Type.GetElementType();
             }
+            else elementType = typeof(object);
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
@@ -29,12 +31,12 @@ namespace GroBuf.Writers
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
+            context.WriteTypeCode(GroBufTypeCode.Array);
             var allDoneLabel = il.DefineLabel();
             var length = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [obj]
             il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
             il.Emit(OpCodes.Stloc, length); // length = obj.Length
-            context.WriteTypeCode(GroBufTypeCode.Array);
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Emit(OpCodes.Stloc, start); // start = index
@@ -51,7 +53,6 @@ namespace GroBuf.Writers
             il.MarkLabel(cycleStart);
             context.LoadObj(); // stack: [obj]
             il.Emit(OpCodes.Ldloc, i); // stack: [obj, i]
-            var elementType = Type.GetElementType() ?? typeof(object);
             LoadArrayElement(elementType, il); // stack: [obj[i]]
             il.Emit(OpCodes.Ldc_I4_1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]
@@ -128,5 +129,7 @@ namespace GroBuf.Writers
                 }
             }
         }
+
+        private readonly Type elementType;
     }
 }

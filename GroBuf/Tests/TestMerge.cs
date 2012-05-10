@@ -15,7 +15,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestArray()
+        public void TestArray1()
         {
             var first = new int?[] {1, null};
             var second = new int?[] {2, 3, 5};
@@ -26,6 +26,20 @@ namespace GroBuf.Tests
             second = new int?[] {5, 6, 7};
             serializer.Merge(first, ref second);
             second.AssertEqualsTo(new int?[] {1, 6, 3, 4});
+        }
+
+        [Test]
+        public void TestArray2()
+        {
+            var first = new[] {1, 2};
+            var second = new[] {2, 3, 5};
+            serializer.Merge(first, ref second);
+            second.AssertEqualsTo(new[] {1, 2, 5});
+
+            first = new[] {1, 2, 3, 4};
+            second = new[] {5, 6, 7};
+            serializer.Merge(first, ref second);
+            second.AssertEqualsTo(new[] {1, 2, 3, 4});
         }
 
         [Test]
@@ -45,15 +59,15 @@ namespace GroBuf.Tests
         [Test]
         public void TestStruct()
         {
-            var first = new As { Bool = true };
-            var second = new As { Bool = false, B = new Bs { S = "zzz" } };
+            var first = new As {Bool = true};
+            var second = new As {Bool = false, B = new Bs {S = "zzz"}};
             serializer.Merge(first, ref second);
-            second.AssertEqualsTo(new As { Bool = true, B = new Bs { S = "zzz" } });
+            second.AssertEqualsTo(new As {Bool = true, B = new Bs {S = "zzz"}});
 
-            first = new As { Bool = true, B = new Bs { S = "qxx" }, Bs = new[] { new Bs(), new Bs { S = "qzz" } } };
-            second = new As { B = new Bs { S = "zzz", Long = 12341234 }, Bs = new[] { new Bs { S = "xxx" }, new Bs { S = "qqq", Long = 1287346 } } };
+            first = new As {Bool = true, B = new Bs {S = "qxx"}, Bs = new[] {new Bs(), new Bs {S = "qzz"}}};
+            second = new As {B = new Bs {S = "zzz", Long = 12341234}, Bs = new[] {new Bs {S = "xxx"}, new Bs {S = "qqq", Long = 1287346}}};
             serializer.Merge(first, ref second);
-            second.AssertEqualsTo(new As { Bool = true, B = new Bs { S = "qxx", Long = 12341234 }, Bs = new[] { new Bs { S = "xxx" }, new Bs { S = "qzz", Long = 1287346 } } });
+            second.AssertEqualsTo(new As {Bool = true, B = new Bs {S = "qxx", Long = 12341234}, Bs = new[] {new Bs {S = "xxx"}, new Bs {S = "qzz", Long = 1287346}}});
         }
 
         public class A

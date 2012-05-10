@@ -87,7 +87,7 @@ namespace GroBuf.Readers
             var method = context.TypeBuilder.DefineMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
                                                           typeof(void), new[] {typeof(byte*), Type.MakeByRefType()});
             var il = method.GetILGenerator();
-            var expectedTypeCode = GroBufHelpers.GetTypeCode(Type);
+            var expectedTypeCode = GroBufTypeCodeMap.GetTypeCode(Type);
             il.Emit(OpCodes.Ldarg_1); // stack: [ref result]
             il.Emit(OpCodes.Ldarg_0); // stack: [ref result, address]
             EmitReadPrimitiveValue(il, typeCode); // stack: [ref result, value]

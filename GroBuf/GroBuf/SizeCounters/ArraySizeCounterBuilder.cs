@@ -7,11 +7,13 @@ namespace GroBuf.SizeCounters
     {
         public ArraySizeCounterBuilder()
         {
-            if (Type != typeof(Array))
+            if(Type != typeof(Array))
             {
                 if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
                 if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+                elementType = Type.GetElementType();
             }
+            else elementType = typeof(object);
         }
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
@@ -29,20 +31,19 @@ namespace GroBuf.SizeCounters
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
-            var length = il.DeclareLocal(typeof(int));
-            context.LoadObj(); // stack: [obj]
-            il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
-            il.Emit(OpCodes.Stloc, length); // length = obj.Length
-            il.Emit(OpCodes.Ldc_I4, 9); // stack: [9 = size]
+            il.Emit(OpCodes.Ldc_I4, 9); // stack: [9 = size] 9 = type code + data length + array length
 
+            var length = il.DeclareLocal(typeof(int));
+            context.LoadObj(); // stack: [9, obj]
+            il.Emit(OpCodes.Ldlen); // stack: [9, obj.Length]
+            il.Emit(OpCodes.Stloc, length); // length = obj.Length; stack: [9]
             var i = il.DeclareLocal(typeof(int));
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [size, 0]
-            il.Emit(OpCodes.Stloc, i); // i = 0; stack: [size]
+            il.Emit(OpCodes.Ldc_I4_0); // stack: [9, 0]
+            il.Emit(OpCodes.Stloc, i); // i = 0; stack: [9]
             var cycleStart = il.DefineLabel();
             il.MarkLabel(cycleStart);
             context.LoadObj(); // stack: [size, obj]
             il.Emit(OpCodes.Ldloc, i); // stack: [size, obj, i]
-            var elementType = Type.GetElementType() ?? typeof(object);
             LoadArrayElement(elementType, il); // stack: [size, obj[i]]
             il.Emit(OpCodes.Ldc_I4_1); // stack: [size, obj[i], true]
             il.Emit(OpCodes.Call, context.Context.GetCounter(elementType)); // stack: [size, writer(obj[i], true) = itemSize]
@@ -106,5 +107,7 @@ namespace GroBuf.SizeCounters
                 }
             }
         }
+
+        private readonly Type elementType;
     }
 }

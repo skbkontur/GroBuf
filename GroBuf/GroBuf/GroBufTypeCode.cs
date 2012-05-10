@@ -57,6 +57,40 @@
         Boolean = 17,
 
         [DataLength(8)]
-        DateTime = 18
+        DateTime = 18,
+
+        [DataLength(-1)]
+        Int8Array = 19,
+
+        [DataLength(-1)]
+        UInt8Array = 20,
+
+        [DataLength(-1)]
+        Int16Array = 21,
+
+        [DataLength(-1)]
+        UInt16Array = 22,
+
+        [DataLength(-1)]
+        Int32Array = 23,
+
+        [DataLength(-1)]
+        UInt32Array = 24,
+
+        [DataLength(-1)]
+        Int64Array = 25,
+
+        [DataLength(-1)]
+        UInt64Array = 26,
+
+        [DataLength(-1)]
+        SingleArray = 27,
+
+        [DataLength(-1)]
+        DoubleArray = 28,
+
+        [DataLength(-1)]
+        BooleanArray = 29,
+
     }
 }

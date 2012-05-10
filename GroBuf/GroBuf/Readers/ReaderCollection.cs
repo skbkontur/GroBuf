@@ -40,9 +40,11 @@ namespace GroBuf.Readers
                 readerBuilder = new PrimitivesReaderBuilder<T>();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 readerBuilder = new NullableReaderBuilder<T>();
-            else if(type.IsArray || type == typeof(Array))
+            else if (type.IsArray)
+                readerBuilder = type.GetElementType().IsPrimitive ? (IReaderBuilder<T>)new PrimitivesArrayReaderBuilder<T>() : new ArrayReaderBuilder<T>();
+            else if (type == typeof(Array))
                 readerBuilder = new ArrayReaderBuilder<T>();
-            else if(type == typeof(object))
+            else if (type == typeof(object))
                 readerBuilder = (IReaderBuilder<T>)new ObjectReaderBuilder();
             else
                 readerBuilder = new ClassReaderBuilder<T>();

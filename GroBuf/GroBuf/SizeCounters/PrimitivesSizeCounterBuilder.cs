@@ -12,7 +12,7 @@ namespace GroBuf.SizeCounters
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
-            var typeCode = GroBufHelpers.GetTypeCode(Type);
+            var typeCode = GroBufTypeCodeMap.GetTypeCode(Type);
             switch(typeCode)
             {
             case GroBufTypeCode.Int8:

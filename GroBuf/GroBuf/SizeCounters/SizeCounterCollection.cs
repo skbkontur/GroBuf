@@ -40,7 +40,9 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new PrimitivesSizeCounterBuilder<T>();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 sizeCounterBuilder = new NullableSizeCounterBuilder<T>();
-            else if(type.IsArray || type == typeof(Array))
+            else if(type.IsArray)
+                sizeCounterBuilder = type.GetElementType().IsPrimitive ? (ISizeCounterBuilder<T>)new PrimitivesArraySizeCounterBuilder<T>() : new ArraySizeCounterBuilder<T>();
+            else if(type == typeof(Array))
                 sizeCounterBuilder = new ArraySizeCounterBuilder<T>();
             else if(type == typeof(object))
                 sizeCounterBuilder = (ISizeCounterBuilder<T>)new ObjectSizeCounterBuilder();

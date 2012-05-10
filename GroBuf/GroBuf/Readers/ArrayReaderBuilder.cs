@@ -9,11 +9,13 @@ namespace GroBuf.Readers
     {
         public ArrayReaderBuilder()
         {
-            if (Type != typeof(Array))
+            if(Type != typeof(Array))
             {
                 if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
                 if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+                elementType = Type.GetElementType();
             }
+            else elementType = typeof(object);
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
@@ -40,7 +42,6 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Emit(OpCodes.Stloc, length); // length = array length; stack: []
 
-            var elementType = Type.GetElementType() ?? typeof(object);
             var createArrayLabel = il.DefineLabel();
             context.LoadResult(); // stack: [result]
             il.Emit(OpCodes.Brfalse, createArrayLabel); // if(result == null) goto createArray;
@@ -91,5 +92,6 @@ namespace GroBuf.Readers
         }
 
         private static readonly MethodInfo resizeMethod = ((MethodCallExpression)((Expression<Action<int[]>>)(arr => Array.Resize(ref arr, 0))).Body).Method.GetGenericMethodDefinition();
+        private readonly Type elementType;
     }
 }

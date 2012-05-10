@@ -69,7 +69,7 @@ namespace GroBuf.Writers
                 {
                     typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
                     typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
-                }.ToDictionary(GroBufHelpers.GetTypeCode, type => GetWriter(context, type));
+                }.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));
             foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
                 if(!dict.ContainsKey(value))
                     dict.Add(value, null);
@@ -105,6 +105,6 @@ namespace GroBuf.Writers
         }
 
         private static readonly MethodInfo getTypeMethod = ((MethodCallExpression)((Expression<Func<object, Type>>)(obj => obj.GetType())).Body).Method;
-        private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufHelpers.GetTypeCode(type))).Body).Method;
+        private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufTypeCodeMap.GetTypeCode(type))).Body).Method;
     }
 }

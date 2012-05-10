@@ -12,7 +12,7 @@ namespace GroBuf.Writers
 
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
-            var typeCode = GroBufHelpers.GetTypeCode(Type);
+            var typeCode = GroBufTypeCodeMap.GetTypeCode(Type);
             context.WriteTypeCode(typeCode);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]

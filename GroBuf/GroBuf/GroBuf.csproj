@@ -80,11 +80,13 @@
     <Compile Include="GroBufRandom.cs" />
     <Compile Include="GroBufReader.cs" />
     <Compile Include="DataLengthAttribute.cs" />
+    <Compile Include="GroBufTypeCodeMap.cs" />
     <Compile Include="GroBufWriter.cs" />
     <Compile Include="DataMembersExtracters\IDataMembersExtracter.cs" />
     <Compile Include="MissingConstructorException.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
+    <Compile Include="Readers\PrimitivesArrayReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeReaderBuilder.cs" />
     <Compile Include="Readers\EnumReaderBuilder.cs" />
     <Compile Include="Readers\GuidReaderBuilder.cs" />
@@ -102,6 +104,7 @@
     <Compile Include="SerializerImpl.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\PrimitivesArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\DateTimeSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\EnumSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\GuidSizeCounterBuilder.cs" />
@@ -118,6 +121,7 @@
     <Compile Include="SizeCounters\StringSizeCounterBuilder.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
+    <Compile Include="Writers\PrimitivesArrayWriterBuilder.cs" />
     <Compile Include="Writers\DateTimeWriterBuilder.cs" />
     <Compile Include="DataCorruptedException.cs" />
     <Compile Include="Writers\EnumWriterBuilder.cs" />
