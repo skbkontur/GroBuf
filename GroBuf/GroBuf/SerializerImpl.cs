@@ -17,9 +17,9 @@ namespace GroBuf
             return writer.GetSize(obj);
         }
 
-        public void Serialize<T>(T obj, byte[] result, int index)
+        public void Serialize<T>(T obj, byte[] result, ref int index)
         {
-            writer.Write(obj, result, index);
+            writer.Write(obj, result, ref index);
         }
 
         public byte[] Serialize<T>(T obj)
@@ -30,6 +30,11 @@ namespace GroBuf
         public T Deserialize<T>(byte[] data)
         {
             return reader.Read<T>(data);
+        }
+
+        public T Deserialize<T>(byte[] data, ref int index)
+        {
+            return reader.Read<T>(data, ref index);
         }
 
         public void Merge<T>(T from, ref T to)
@@ -55,7 +60,8 @@ namespace GroBuf
             if(size <= 768)
             {
                 var buf = new byte[size];
-                writer.Write(obj, buf, 0);
+                int index = 0;
+                writer.Write(obj, buf, ref index);
                 reader.Read(buf, ref result);
             }
             else
@@ -64,7 +70,8 @@ namespace GroBuf
                 try
                 {
                     writer.Write(obj, buf);
-                    reader.Read(buf, size, ref result);
+                    int index = 0;
+                    reader.Read(buf, ref index, size, ref result);
                 }
                 finally
                 {

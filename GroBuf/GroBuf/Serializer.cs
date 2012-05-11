@@ -14,9 +14,9 @@ namespace GroBuf
             return impl.GetSize(obj);
         }
 
-        public void Serialize<T>(T obj, byte[] result, int index)
+        public void Serialize<T>(T obj, byte[] result, ref int index)
         {
-            impl.Serialize(obj, result, index);
+            impl.Serialize(obj, result, ref index);
         }
 
         public byte[] Serialize<T>(T obj)
@@ -27,6 +27,11 @@ namespace GroBuf
         public T Deserialize<T>(byte[] data)
         {
             return impl.Deserialize<T>(data);
+        }
+
+        public T Deserialize<T>(byte[] data, ref int index)
+        {
+            return impl.Deserialize<T>(data, ref index);
         }
 
         public void Merge<T>(T from, ref T to)

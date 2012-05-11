@@ -18,39 +18,38 @@ namespace GroBuf
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
 
-        public void Read<T>(IntPtr data, int length, ref T result)
-        {
-            int index = 0;
-            Read(data, ref index, length, ref result);
-            if(index < length)
-                throw new DataCorruptedException("Encountered extra data");
-        }
-
-        public T Read<T>(IntPtr data, int length)
-        {
-            T result = default(T);
-            Read(data, length, ref result);
-            return result;
-        }
-
         public unsafe void Read<T>(byte[] data, ref T result)
         {
             fixed(byte* d = &data[0])
-                Read((IntPtr)d, data.Length, ref result);
+            {
+                int index = 0;
+                Read((IntPtr)d, ref index, data.Length, ref result);
+                if(index < data.Length)
+                    throw new DataCorruptedException("Encountered extra data");
+            }
         }
 
-        public unsafe T Read<T>(byte[] data)
+        public unsafe T Read<T>(byte[] data, ref int index)
         {
+            T result = default(T);
             fixed(byte* d = &data[0])
-                return Read<T>((IntPtr)d, data.Length);
+                Read((IntPtr)d, ref index, data.Length, ref result);
+            return result;
         }
 
-        private delegate void ReaderDelegate<T>(IntPtr data, ref int index, int length, ref T result);
+        public T Read<T>(byte[] data)
+        {
+            T result = default(T);
+            Read(data, ref result);
+            return result;
+        }
 
-        private void Read<T>(IntPtr data, ref int index, int length, ref T result)
+        public void Read<T>(IntPtr data, ref int index, int length, ref T result)
         {
             GetReader<T>()(data, ref index, length, ref result);
         }
+
+        private delegate void ReaderDelegate<T>(IntPtr data, ref int index, int length, ref T result);
 
         private ReaderDelegate<T> GetReader<T>()
         {

@@ -29,7 +29,7 @@ namespace GroBuf
             GetWriterAndCounter<T>().Item1(obj, true, result, ref index);
         }
 
-        public unsafe void Write<T>(T obj, byte[] result, int index)
+        public unsafe void Write<T>(T obj, byte[] result, ref int index)
         {
             fixed(byte* r = &result[index])
                 GetWriterAndCounter<T>().Item1(obj, true, (IntPtr)r, ref index);
