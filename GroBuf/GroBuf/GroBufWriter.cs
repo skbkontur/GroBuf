@@ -31,7 +31,7 @@ namespace GroBuf
 
         public unsafe void Write<T>(T obj, byte[] result, ref int index)
         {
-            fixed(byte* r = &result[index])
+            fixed(byte* r = &result[0])
                 GetWriterAndCounter<T>().Item1(obj, true, (IntPtr)r, ref index);
         }
 
@@ -42,7 +42,7 @@ namespace GroBuf
             var size = writerAndCounter.Item2(obj, true);
             var result = new byte[size];
             int index = 0;
-            fixed(byte* r = &result[index])
+            fixed(byte* r = &result[0])
                 writerAndCounter.Item1(obj, true, (IntPtr)r, ref index);
             return result;
         }

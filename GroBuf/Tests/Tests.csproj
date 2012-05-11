@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestMultipleReadWrite.cs" />
     <Compile Include="TestObject.cs" />
     <Compile Include="TestStruct.cs" />
     <Compile Include="TestMerge.cs" />
