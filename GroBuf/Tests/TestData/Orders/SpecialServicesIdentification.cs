@@ -34,11 +34,11 @@ namespace GroBuf.Tests.TestData.Orders
         public Guid[] ChildrenIds { get; set; }
 
         [DataMember]
-        [ProtoMember(5)]
+        [ProtoMember(7)]
         public Guid? ParentId { get; set; }
 
         [DataMember]
-        [ProtoMember(6)]
+        [ProtoMember(8)]
         public Guid?[] ParentChildrenIds { get; set; }
     }
 }
