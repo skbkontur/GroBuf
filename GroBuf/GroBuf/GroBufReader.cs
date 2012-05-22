@@ -20,6 +20,10 @@ namespace GroBuf
 
         public unsafe void Read<T>(byte[] data, ref T result)
         {
+            if(data == null)
+                throw new ArgumentNullException("data");
+            if(data.Length == 0)
+                throw new ArgumentException("Cannot read data from empty array");
             fixed(byte* d = &data[0])
             {
                 int index = 0;
@@ -31,6 +35,10 @@ namespace GroBuf
 
         public unsafe T Read<T>(byte[] data, ref int index)
         {
+            if (data == null)
+                throw new ArgumentNullException("data");
+            if (data.Length == 0)
+                throw new ArgumentException("Cannot read data from empty array");
             T result = default(T);
             fixed(byte* d = &data[0])
                 Read((IntPtr)d, ref index, data.Length, ref result);

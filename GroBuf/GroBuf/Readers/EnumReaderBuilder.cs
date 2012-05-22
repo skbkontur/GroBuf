@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 
 namespace GroBuf.Readers
@@ -21,8 +22,8 @@ namespace GroBuf.Readers
             var il = context.Il;
             il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [typeCode]
             il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.Enum);
-            var readAsIntLabel = il.DefineLabel();
-            il.Emit(OpCodes.Bne_Un, readAsIntLabel);
+            var tryParseLabel = il.DefineLabel();
+            il.Emit(OpCodes.Bne_Un, tryParseLabel); // if(typeCode != GroBufTypeCode.Enum) goto tryParse;
             context.IncreaseIndexBy1();
             il.Emit(OpCodes.Ldc_I4_8); // stack: [8]
             context.AssertLength();
@@ -30,6 +31,9 @@ namespace GroBuf.Readers
             context.GoToCurrentLocation(); // stack: [ref result, &result[index]]
             il.Emit(OpCodes.Ldind_I8); // stack: [ref result, *(int64*)result[index] = hashCode]
             context.IncreaseIndexBy8(); // index = index + 8; stack: [ref result, hashCode]
+
+            var parseByHashCodeLabel = il.DefineLabel();
+            il.MarkLabel(parseByHashCodeLabel);
 
             il.Emit(OpCodes.Dup); // stack: [ref result, hashCode, hashCode]
             il.Emit(OpCodes.Ldc_I8, (long)hashCodes.Length); // stack: [ref result, hashCode, hashCode, (int64)hashCodes.Length]
@@ -52,6 +56,23 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
             il.Emit(OpCodes.Stind_I4); // result = 0
             il.Emit(OpCodes.Ret);
+
+            il.MarkLabel(tryParseLabel);
+            il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [typeCode]
+            il.Emit(OpCodes.Ldc_I4, (int)GroBufTypeCode.String); // stack: [typeCode, GroBufTypeCode.String]
+            var readAsIntLabel = il.DefineLabel();
+            il.Emit(OpCodes.Bne_Un, readAsIntLabel); // if(typeCode != GroBufTypeCode.String) goto readAsInt;
+            var str = il.DeclareLocal(typeof(string));
+            context.LoadData(); // stack: [pinnedData]
+            context.LoadIndexByRef(); // stack: [pinnedData, ref index]
+            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
+            il.Emit(OpCodes.Ldloca, str); // stack: [pinnedData, ref index, dataLength, ref str]
+            il.Emit(OpCodes.Call, context.Context.GetReader(typeof(string))); // reader<string>(pinnedData, ref index, dataLength, ref str); stack: []
+            context.LoadResultByRef(); // stack: [ref result]
+            il.Emit(OpCodes.Ldloc, str); // stack: [ref result, str]
+            il.Emit(OpCodes.Call, typeof(GroBufHelpers).GetMethod("CalcHash", BindingFlags.Public | BindingFlags.Static)); // stack: [ref result, GroBufHelpers.CalcHash(str)]
+            il.Emit(OpCodes.Br, parseByHashCodeLabel);
+
             il.MarkLabel(readAsIntLabel);
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]

@@ -44,6 +44,19 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestDeserializeStringAsEnum()
+        {
+            var o = Enum1.Thousand.ToString();
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<Enum1>(data);
+            Assert.AreEqual(Enum1.Thousand, oo);
+            o = "zzz";
+            data = serializer.Serialize(o);
+            oo = serializer.Deserialize<Enum1>(data);
+            Assert.AreEqual((Enum1)0, oo);
+        }
+
+        [Test]
         public void EnumItemAdded()
         {
             var o = Enum2_Old.Seven;
