@@ -86,6 +86,7 @@
     <Compile Include="MissingConstructorException.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
+    <Compile Include="Readers\ObjectConstructionHelper.cs" />
     <Compile Include="Readers\PrimitivesArrayReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeReaderBuilder.cs" />
     <Compile Include="Readers\EnumReaderBuilder.cs" />

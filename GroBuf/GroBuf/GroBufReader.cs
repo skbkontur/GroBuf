@@ -105,10 +105,11 @@ namespace GroBuf
                 }
                 else
                 {
-                    var constructor = type.GetConstructor(Type.EmptyTypes);
-                    if(constructor == null)
-                        throw new MissingConstructorException(type);
-                    il.Emit(OpCodes.Newobj, constructor); // stack: [data, ref index, length, ref result, ref result, new type()]
+                    ObjectConstructionHelper.EmitConstructionOfType(type, il);// stack: [data, ref index, length, ref result, ref result, new type()]
+                    //var constructor = type.GetConstructor(Type.EmptyTypes);
+                    //if(constructor == null)
+                    //    throw new MissingConstructorException(type);
+                    //il.Emit(OpCodes.Newobj, constructor); // stack: [data, ref index, length, ref result, ref result, new type()]
                 }
                 il.Emit(OpCodes.Stind_Ref); // result = new type(); stack: [data, ref index, length, ref result]
                 il.MarkLabel(notNullLabel);

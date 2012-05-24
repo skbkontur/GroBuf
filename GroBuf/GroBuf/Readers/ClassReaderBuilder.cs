@@ -3,25 +3,36 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Serialization;
 
 namespace GroBuf.Readers
 {
     internal class ClassReaderBuilder<T> : ReaderBuilderBase<T>
     {
+        public void Qxx()
+        {
+            var x = (int)FormatterServices.GetUninitializedObject(typeof(int));
+        }
+
+        public void Qzz()
+        {
+            var x = (string)FormatterServices.GetUninitializedObject(typeof(string));
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             MemberInfo[] dataMembers;
             ulong[] hashCodes;
             BuildMembersTable(context.Context, out hashCodes, out dataMembers);
 
-            var il = context.Il;
-            var end = context.Length;
-            var typeCode = context.TypeCode;
+            ILGenerator il = context.Il;
+            LocalBuilder end = context.Length;
+            LocalBuilder typeCode = context.TypeCode;
 
-            var setters = dataMembers.Select(member => member == null ? null : GetMemberSetter(context.Context, member)).ToArray();
+            MethodInfo[] setters = dataMembers.Select(member => member == null ? null : GetMemberSetter(context.Context, member)).ToArray();
 
-            var settersField = context.Context.BuildConstField<IntPtr[]>("setters_" + Type.Name + "_" + Guid.NewGuid(), field => BuildSettersFieldInitializer(context.Context, field, setters));
-            var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
+            FieldInfo settersField = context.Context.BuildConstField<IntPtr[]>("setters_" + Type.Name + "_" + Guid.NewGuid(), field => BuildSettersFieldInitializer(context.Context, field, setters));
+            FieldInfo hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
 
             context.IncreaseIndexBy1(); // index = index + 1
             context.AssertTypeCode(GroBufTypeCode.Object);
@@ -40,7 +51,7 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Add); // stack: [(uint)data[index] + index]
             il.Emit(OpCodes.Stloc, end); // end = (uint)data[index] + index
 
-            var cycleStartLabel = il.DefineLabel();
+            Label cycleStartLabel = il.DefineLabel();
             il.MarkLabel(cycleStartLabel);
 
             il.Emit(OpCodes.Ldc_I4, 9);
@@ -54,14 +65,14 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Ldc_I8, (long)dataMembers.Length); // stack: [hashCode, hashCode, (int64)hashCodes.Length]
             il.Emit(OpCodes.Rem_Un); // stack: [hashCode, hashCode % hashCodes.Length]
             il.Emit(OpCodes.Conv_I4); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
-            var idx = il.DeclareLocal(typeof(int));
+            LocalBuilder idx = il.DeclareLocal(typeof(int));
             il.Emit(OpCodes.Stloc, idx); // idx = (int)(hashCode % hashCodes.Length); stack: [hashCode]
 
             context.LoadField(hashCodesField); // stack: [hashCode, hashCodes]
             il.Emit(OpCodes.Ldloc, idx); // stack: [hashCode, hashCodes, idx]
             il.Emit(OpCodes.Ldelem_I8); // stack: [hashCode, hashCodes[idx]]
 
-            var skipDataLabel = il.DefineLabel();
+            Label skipDataLabel = il.DefineLabel();
             il.Emit(OpCodes.Bne_Un, skipDataLabel); // if(hashCode != hashCodes[idx]) goto skipData; stack: []
 
             // Read data
@@ -76,7 +87,7 @@ namespace GroBuf.Readers
             var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()};
             context.Il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // setters[idx](pinnedData, ref index, dataLength, ref result); stack: []
 
-            var checkIndexLabel = il.DefineLabel();
+            Label checkIndexLabel = il.DefineLabel();
             il.Emit(OpCodes.Br, checkIndexLabel); // goto checkIndex
 
             il.MarkLabel(skipDataLabel);
@@ -97,9 +108,9 @@ namespace GroBuf.Readers
 
         private static Action BuildSettersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] setters)
         {
-            var typeBuilder = context.TypeBuilder;
-            var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = method.GetILGenerator();
+            TypeBuilder typeBuilder = context.TypeBuilder;
+            MethodBuilder method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
+            ILGenerator il = method.GetILGenerator();
             il.Emit(OpCodes.Ldnull); // stack: [null]
             il.Emit(OpCodes.Ldc_I4, setters.Length); // stack: [null, setters.Length]
             il.Emit(OpCodes.Newarr, typeof(IntPtr)); // stack: [null, new IntPtr[setters.Length]]
@@ -121,14 +132,14 @@ namespace GroBuf.Readers
 
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
-            var members = context.GetDataMembers(Type);
-            var hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
+            MemberInfo[] members = context.GetDataMembers(Type);
+            ulong[] hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
             var hashSet = new HashSet<uint>();
             for(var x = (uint)members.Length;; ++x)
             {
                 hashSet.Clear();
                 bool ok = true;
-                foreach(var hash in hashes)
+                foreach(ulong hash in hashes)
                 {
                     var item = (uint)(hash % x);
                     if(hashSet.Contains(item))
@@ -153,24 +164,26 @@ namespace GroBuf.Readers
 
         private MethodInfo GetMemberSetter(ReaderTypeBuilderContext context, MemberInfo member)
         {
-            var method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
-                                                          new[]
-                                                              {
-                                                                  typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
-                                                              });
-            var il = method.GetILGenerator();
+            MethodBuilder method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
+                                                                    new[]
+                                                                        {
+                                                                            typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
+                                                                        });
+            ILGenerator il = method.GetILGenerator();
 
             if(Type.IsClass)
             {
                 il.Emit(OpCodes.Ldarg_3); // stack: [ref result]
                 il.Emit(OpCodes.Ldind_Ref); // stack: [result]
-                var notNullLabel = il.DefineLabel();
+                Label notNullLabel = il.DefineLabel();
                 il.Emit(OpCodes.Brtrue, notNullLabel); // if(result != null) goto notNull; stack: []
                 il.Emit(OpCodes.Ldarg_3); // stack: [ref result]
-                var constructor = Type.GetConstructor(Type.EmptyTypes);
-                if(constructor == null)
-                    throw new MissingConstructorException(Type);
-                il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new type()]
+                ObjectConstructionHelper.EmitConstructionOfType(Type,  il);
+                //ConstructorInfo constructor = Type.GetConstructor(Type.EmptyTypes);
+                //if(constructor == null)
+                //    throw new MissingConstructorException(Type);
+
+                //il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new type()]
                 il.Emit(OpCodes.Stind_Ref); // result = new type(); stack: []
                 il.MarkLabel(notNullLabel);
             }
@@ -190,8 +203,8 @@ namespace GroBuf.Readers
                 break;
             case MemberTypes.Property:
                 var property = (PropertyInfo)member;
-                var propertyValue = il.DeclareLocal(property.PropertyType);
-                var getter = property.GetGetMethod();
+                LocalBuilder propertyValue = il.DeclareLocal(property.PropertyType);
+                MethodInfo getter = property.GetGetMethod();
                 if(getter == null)
                     throw new MissingMethodException(Type.Name, property.Name + "_get");
                 il.Emit(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter); // stack: [ data, ref index, dataLength, result.property]
@@ -202,7 +215,7 @@ namespace GroBuf.Readers
                 if(Type.IsClass)
                     il.Emit(OpCodes.Ldind_Ref); // stack: [result]
                 il.Emit(OpCodes.Ldloc, propertyValue); // stack: [result, propertyValue]
-                var setter = property.GetSetMethod();
+                MethodInfo setter = property.GetSetMethod();
                 if(setter == null)
                     throw new MissingMethodException(Type.Name, property.Name + "_set");
                 il.Emit(setter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, setter); // result.property = propertyValue

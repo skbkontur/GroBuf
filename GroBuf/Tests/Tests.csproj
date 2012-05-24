@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestMultipleReadWrite.cs" />
+    <Compile Include="TestNoConstructor.cs" />
     <Compile Include="TestNonPublicProperties.cs" />
     <Compile Include="TestObject.cs" />
     <Compile Include="TestStruct.cs" />
