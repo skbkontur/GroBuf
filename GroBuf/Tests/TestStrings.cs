@@ -34,7 +34,7 @@ namespace GroBuf.Tests
         {
             byte[] bytes = serializer.Serialize<string>(null);
             var deserialize = serializer.Deserialize<string>(bytes);
-            Assert.AreEqual(null, deserialize);
+            Assert.AreEqual("", deserialize);
         }
 
         [Test]
@@ -61,9 +61,30 @@ namespace GroBuf.Tests
             Assert.AreEqual("", deserialize.S);
         }
 
+        [Test]
+        public void TestStringEmptyInArrayProp()
+        {
+            byte[] bytes = serializer.Serialize(new WithS {Strings = new[] {"", null, "zzz"}});
+            var deserialize = serializer.Deserialize<WithS>(bytes);
+            Assert.IsNotNull(deserialize);
+            Assert.IsNotNull(deserialize.Strings);
+            CollectionAssert.AreEqual(new[] {"", null, "zzz"}, deserialize.Strings);
+        }
+
+        [Test]
+        public void TestStringEmptyInArray()
+        {
+            byte[] bytes = serializer.Serialize(new[] {"", null, "zzz"});
+            var deserialize = serializer.Deserialize<string[]>(bytes);
+            Assert.IsNotNull(deserialize);
+            CollectionAssert.AreEqual(new[] {"", null, "zzz"}, deserialize);
+        }
+
         public class WithS
         {
             public string S { get; set; }
+
+            public string[] Strings { get; set; }
         }
 
         private Serializer serializer;

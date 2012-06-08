@@ -16,18 +16,6 @@ namespace GroBuf.SizeCounters
             else elementType = typeof(object);
         }
 
-        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
-        {
-            var emptyLabel = context.Il.DefineLabel();
-            context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
-            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
-            return true;
-        }
-
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
@@ -36,7 +24,12 @@ namespace GroBuf.SizeCounters
             var length = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [9, obj]
             il.Emit(OpCodes.Ldlen); // stack: [9, obj.Length]
-            il.Emit(OpCodes.Stloc, length); // length = obj.Length; stack: [9]
+            il.Emit(OpCodes.Dup); // stack: [9, obj.Length, obj.Length]
+            il.Emit(OpCodes.Stloc, length); // length = obj.Length; stack: [9, length]
+
+            var allDoneLabel = il.DefineLabel();
+            il.Emit(OpCodes.Brfalse, allDoneLabel);
+
             var i = il.DeclareLocal(typeof(int));
             il.Emit(OpCodes.Ldc_I4_0); // stack: [9, 0]
             il.Emit(OpCodes.Stloc, i); // i = 0; stack: [9]
@@ -55,6 +48,8 @@ namespace GroBuf.SizeCounters
             il.Emit(OpCodes.Dup); // stack: [size, length, i + 1, i + 1]
             il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [size, length, i]
             il.Emit(OpCodes.Bgt, cycleStart); // if(length > i) goto cycleStart; stack: [size]
+
+            il.MarkLabel(allDoneLabel);
         }
 
         private static void LoadArrayElement(Type elementType, ILGenerator il)
