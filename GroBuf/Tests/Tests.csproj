@@ -79,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestArrayOfComplexTypes.cs" />
+    <Compile Include="TestObjectEmpty.cs" />
     <Compile Include="TestPrimitivesArray.cs" />
     <Compile Include="TestMultipleReadWrite.cs" />
     <Compile Include="TestNoConstructor.cs" />
