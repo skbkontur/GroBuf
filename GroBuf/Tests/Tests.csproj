@@ -82,6 +82,7 @@
     <Compile Include="TestNoConstructor.cs" />
     <Compile Include="TestNonPublicProperties.cs" />
     <Compile Include="TestObject.cs" />
+    <Compile Include="TestStrings.cs" />
     <Compile Include="TestStruct.cs" />
     <Compile Include="TestMerge.cs" />
     <Compile Include="TestProperties.cs" />
