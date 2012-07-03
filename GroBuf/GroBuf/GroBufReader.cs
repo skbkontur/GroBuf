@@ -89,16 +89,16 @@ namespace GroBuf
             il.Emit(OpCodes.Ldarg_2); // stack: [data, ref index, length]
             il.Emit(OpCodes.Ldarg_3); // stack: [data, ref index, length, ref result]
 
-            if(type.IsClass)
+            if(type.IsClass && type != typeof(string))
             {
                 il.Emit(OpCodes.Dup); // stack: [data, ref index, length, ref result, ref result]
                 il.Emit(OpCodes.Ldind_Ref); // stack: [data, ref index, length, ref result, result]
                 var notNullLabel = il.DefineLabel();
                 il.Emit(OpCodes.Brtrue, notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, length, ref result]
                 il.Emit(OpCodes.Dup); // stack: [data, ref index, length, ref result, ref result]
-                if(type == typeof(string))
+                /*if(type == typeof(string))
                     il.Emit(OpCodes.Ldstr, "");
-                else if(type.IsArray)
+                else*/ if(type.IsArray)
                 {
                     il.Emit(OpCodes.Ldc_I4_0); // stack: [data, ref index, length, ref result, ref result, 0]
                     il.Emit(OpCodes.Newarr, type.GetElementType()); // stack: [data, ref index, length, ref result, ref result, new elementType[0]]

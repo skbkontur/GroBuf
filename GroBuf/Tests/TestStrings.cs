@@ -34,7 +34,7 @@ namespace GroBuf.Tests
         {
             byte[] bytes = serializer.Serialize<string>(null);
             var deserialize = serializer.Deserialize<string>(bytes);
-            Assert.AreEqual(null, deserialize);
+            Assert.AreEqual("", deserialize);
         }
 
         [Test]
