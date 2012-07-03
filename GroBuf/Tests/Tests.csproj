@@ -78,9 +78,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="TestArrayOfComplexTypes.cs" />
-    <Compile Include="TestObjectEmpty.cs" />
-    <Compile Include="TestPrimitivesArray.cs" />
     <Compile Include="TestMultipleReadWrite.cs" />
     <Compile Include="TestNoConstructor.cs" />
     <Compile Include="TestNonPublicProperties.cs" />

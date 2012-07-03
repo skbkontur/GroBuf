@@ -16,10 +16,23 @@ namespace GroBuf.Writers
             else elementType = typeof(object);
         }
 
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
+        {
+            var emptyLabel = context.Il.DefineLabel();
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
+            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+            context.Il.MarkLabel(emptyLabel);
+            return true;
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.Array);
+            var allDoneLabel = il.DefineLabel();
             var length = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [obj]
             il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
@@ -32,10 +45,6 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Ldloc, length); // stack: [&result[index], length]
             il.Emit(OpCodes.Stind_I4); // *(int*)&result[index] = length; stack: []
             context.IncreaseIndexBy4(); // index = index + 4
-
-            var writeDataSizeLabel = il.DefineLabel();
-            il.Emit(OpCodes.Ldloc, length); // stack: [length]
-            il.Emit(OpCodes.Brfalse, writeDataSizeLabel);
 
             var i = il.DeclareLocal(typeof(int));
             il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
@@ -57,9 +66,6 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [length, i]
             il.Emit(OpCodes.Bgt, cycleStart); // if(length > i) goto cycleStart; stack: []
 
-
-            il.MarkLabel(writeDataSizeLabel);
-
             context.LoadResult(); // stack: [result]
             il.Emit(OpCodes.Ldloc, start); // stack: [result, start]
             il.Emit(OpCodes.Add); // stack: [result + start]
@@ -69,6 +75,8 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Ldc_I4_4); // stack: [result + start, index - start, 4]
             il.Emit(OpCodes.Sub); // stack: [result + start, index - start - 4]
             il.Emit(OpCodes.Stind_I4); // *(int*)(result + start) = index - start - 4
+
+            il.MarkLabel(allDoneLabel);
         }
 
         private static void LoadArrayElement(Type elementType, ILGenerator il)

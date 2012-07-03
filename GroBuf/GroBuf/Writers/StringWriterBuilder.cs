@@ -12,46 +12,58 @@ namespace GroBuf.Writers
         {
             var length = context.LocalInt;
             context.LoadObj(); // stack: [obj]
-            var il = context.Il;
-            il.Emit(OpCodes.Call, lengthPropertyGetter); // stack: [obj.Length]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [obj.Length, 1]
-            il.Emit(OpCodes.Shl); // stack: [obj.Length << 1]
-            il.Emit(OpCodes.Stloc, length); // length = obj.Length << 1
+            context.Il.Emit(OpCodes.Call, GetLengthPropertyGetter()); // stack: [obj.Length]
+            context.Il.Emit(OpCodes.Ldc_I4_1); // stack: [obj.Length, 1]
+            context.Il.Emit(OpCodes.Shl); // stack: [obj.Length << 1]
+            context.Il.Emit(OpCodes.Stloc, length); // length = obj.Length << 1
             context.WriteTypeCode(GroBufTypeCode.String);
             context.GoToCurrentLocation(); // stack: [&result[index]]
-            il.Emit(OpCodes.Ldloc, length); // stack: [&result[index], length]
-            il.Emit(OpCodes.Stind_I4); // result[index] = length
+            context.Il.Emit(OpCodes.Ldloc, length); // stack: [&result[index], length]
+            context.Il.Emit(OpCodes.Stind_I4); // result[index] = length
             context.IncreaseIndexBy4(); // index = index + 4
 
-            var allDoneLabel = il.DefineLabel();
-            il.Emit(OpCodes.Ldloc, length); // stack: [length]
-            il.Emit(OpCodes.Brfalse, allDoneLabel);
-
             context.GoToCurrentLocation(); // stack: [&result[index]]
-            var str = il.DeclareLocal(typeof(string), true);
+            var str = context.Il.DeclareLocal(typeof(string), true);
             context.LoadObj(); // stack: [&result[index], obj]
-            il.Emit(OpCodes.Stloc, str); // str = obj
-            il.Emit(OpCodes.Ldloc, str); // stack: [&result[index], str]
-            il.Emit(OpCodes.Conv_I); // stack: [&result[index], (int)str]
-            il.Emit(OpCodes.Ldc_I4, RuntimeHelpers.OffsetToStringData); // stack: [&result[index], (IntPtr)str, offset]
-            il.Emit(OpCodes.Add); // stack: [&result[index], (IntPtr)str + offset]
-            il.Emit(OpCodes.Ldloc, length); // stack: [&result[index], (IntPtr)str + offset, length]
+            context.Il.Emit(OpCodes.Stloc, str); // str = obj
+            context.Il.Emit(OpCodes.Ldloc, str); // stack: [&result[index], str]
+            context.Il.Emit(OpCodes.Conv_I); // stack: [&result[index], (int)str]
+            context.Il.Emit(OpCodes.Ldc_I4, RuntimeHelpers.OffsetToStringData); // stack: [&result[index], (IntPtr)str, offset]
+            context.Il.Emit(OpCodes.Add); // stack: [&result[index], (IntPtr)str + offset]
+            context.Il.Emit(OpCodes.Ldloc, length); // stack: [&result[index], (IntPtr)str + offset, length]
             if(sizeof(IntPtr) == 8)
-                il.Emit(OpCodes.Unaligned, 1L);
-            il.Emit(OpCodes.Cpblk); // &result[index] = str
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
-            il.Emit(OpCodes.Stloc, str); // str = (uint)0;
+                context.Il.Emit(OpCodes.Unaligned, 1L);
+            context.Il.Emit(OpCodes.Cpblk); // &result[index] = str
+            context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
+            context.Il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
+            context.Il.Emit(OpCodes.Stloc, str); // str = (uint)0;
 
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
-            il.Emit(OpCodes.Ldloc, length); // stack: [ref index, index, length]
-            il.Emit(OpCodes.Add); // stack: [ref index, index + length]
-            il.Emit(OpCodes.Stind_I4); // index = index + length
-
-            il.MarkLabel(allDoneLabel);
+            context.Il.Emit(OpCodes.Ldloc, length); // stack: [ref index, index, length]
+            context.Il.Emit(OpCodes.Add); // stack: [ref index, index + length]
+            context.Il.Emit(OpCodes.Stind_I4); // index = index + length
         }
 
-        private static readonly MethodInfo lengthPropertyGetter = ((PropertyInfo)((MemberExpression)((Expression<Func<string, int>>)(s => s.Length)).Body).Member).GetGetMethod();
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
+        {
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Call, GetIsNullOrEmptyMethod()); // stack: [string.isNullOrEmpty(obj)]
+            context.Il.Emit(OpCodes.Brfalse, notEmptyLabel); // if(!string.isNullOrEmpty(obj)) goto notEmpty;
+            return true;
+        }
+
+        private static MethodInfo GetIsNullOrEmptyMethod()
+        {
+            return isNullOrEmptyMethod ?? (isNullOrEmptyMethod = ((MethodCallExpression)((Expression<Func<string, bool>>)(s => string.IsNullOrEmpty(s))).Body).Method);
+        }
+
+        private static MethodInfo GetLengthPropertyGetter()
+        {
+            return lengthPropertyGetter ?? (lengthPropertyGetter = ((PropertyInfo)((MemberExpression)((Expression<Func<string, int>>)(s => s.Length)).Body).Member).GetGetMethod());
+        }
+
+        private static MethodInfo isNullOrEmptyMethod;
+        private static MethodInfo lengthPropertyGetter;
     }
 }

@@ -17,6 +17,18 @@ namespace GroBuf.SizeCounters
             else elementType = typeof(object);
         }
 
+        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
+        {
+            var emptyLabel = context.Il.DefineLabel();
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
+            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+            context.Il.MarkLabel(emptyLabel);
+            return true;
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;

@@ -17,6 +17,18 @@ namespace GroBuf.Writers
             else elementType = typeof(object);
         }
 
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
+        {
+            var emptyLabel = context.Il.DefineLabel();
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
+            context.LoadObj(); // stack: [obj]
+            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
+            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+            context.Il.MarkLabel(emptyLabel);
+            return true;
+        }
+
         protected override unsafe void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
@@ -31,11 +43,6 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Stloc, size); // size = obj size; stack: [&result[index], obj size]
             il.Emit(OpCodes.Stind_I4); // result[index] = size; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
-
-            var allDoneLabel = il.DefineLabel();
-            il.Emit(OpCodes.Ldloc, size); // stack: [size]
-            il.Emit(OpCodes.Brfalse, allDoneLabel);
-
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
             il.Emit(OpCodes.Ldc_I4_0); // stack: [&result[index], obj, 0]
@@ -55,8 +62,6 @@ namespace GroBuf.Writers
             il.Emit(OpCodes.Ldloc, size); // stack: [ref index, index, size]
             il.Emit(OpCodes.Add); // stack: [ref index, index + size]
             il.Emit(OpCodes.Stind_I4); // index = index + size
-            
-            il.MarkLabel(allDoneLabel);
         }
 
         private static void CountArraySize(Type elementType, ILGenerator il)
