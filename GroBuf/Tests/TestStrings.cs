@@ -21,6 +21,15 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestString1()
+        {
+            const string s = "zzz ароваро \u2376 \uDEAD";
+            byte[] bytes = serializer.Serialize(typeof(string), s);
+            var deserialize = serializer.Deserialize(typeof(string), bytes);
+            Assert.AreEqual("zzz ароваро \u2376 \uDEAD", deserialize);
+        }
+
+        [Test]
         public void TestStringInProp()
         {
             const string s = "zzz ароваро \u2376 \uDEAD";
