@@ -41,7 +41,7 @@
         [DataLength(8)]
         Double = 12,
 
-        [DataLength(-1)]
+        [DataLength(16)]
         Decimal = 13,
 
         [DataLength(-1)]

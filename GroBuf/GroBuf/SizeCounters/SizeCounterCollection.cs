@@ -39,7 +39,7 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new GuidSizeCounterBuilder();
             else if(type.IsEnum)
                 sizeCounterBuilder = new EnumSizeCounterBuilder(type);
-            else if(type.IsPrimitive)
+            else if(type.IsPrimitive || type == typeof(decimal))
                 sizeCounterBuilder = new PrimitivesSizeCounterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 sizeCounterBuilder = new NullableSizeCounterBuilder(type);

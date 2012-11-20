@@ -3,8 +3,6 @@ using System.Collections;
 using System.Linq;
 using System.Reflection;
 
-using GroBuf.SizeCounters;
-
 namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
@@ -31,9 +29,9 @@ namespace GroBuf.Writers
         {
             IWriterBuilder writerBuilder;
             MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufWriterAttribute), true).Any());
-            if (customSizeCounter != null)
+            if(customSizeCounter != null)
                 writerBuilder = new CustomWriterBuilder(type, customSizeCounter);
-            else if (type == typeof(string))
+            else if(type == typeof(string))
                 writerBuilder = new StringWriterBuilder();
             else if(type == typeof(DateTime))
                 writerBuilder = new DateTimeWriterBuilder();
@@ -41,7 +39,7 @@ namespace GroBuf.Writers
                 writerBuilder = new GuidWriterBuilder();
             else if(type.IsEnum)
                 writerBuilder = new EnumWriterBuilder(type);
-            else if(type.IsPrimitive)
+            else if(type.IsPrimitive || type == typeof(decimal))
                 writerBuilder = new PrimitivesWriterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 writerBuilder = new NullableWriterBuilder(type);

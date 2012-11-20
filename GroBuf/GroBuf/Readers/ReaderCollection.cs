@@ -39,7 +39,7 @@ namespace GroBuf.Readers
                 readerBuilder = new GuidReaderBuilder();
             else if(type.IsEnum)
                 readerBuilder = new EnumReaderBuilder(type);
-            else if(type.IsPrimitive)
+            else if(type.IsPrimitive || type == typeof(decimal))
                 readerBuilder = new PrimitivesReaderBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 readerBuilder = new NullableReaderBuilder(type);

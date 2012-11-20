@@ -24,6 +24,8 @@ namespace GroBuf.Tests
             Assert.AreEqual(1, SerializeDeserialize<bool, ulong>(true));
             Assert.AreEqual((float)1, SerializeDeserialize<bool, float>(true));
             Assert.AreEqual((double)1, SerializeDeserialize<bool, double>(true));
+            Assert.AreEqual(1.0m, SerializeDeserialize<bool, decimal>(true));
+
             Assert.IsTrue(SerializeDeserialize<int, bool>(int.MaxValue));
             Assert.IsTrue(SerializeDeserialize<long, bool>(1L << 32));
             Assert.IsTrue(SerializeDeserialize<long, bool>(1L << 48));
@@ -34,6 +36,9 @@ namespace GroBuf.Tests
             Assert.IsFalse(SerializeDeserialize<double, bool>(0));
             Assert.IsTrue(SerializeDeserialize<float, bool>(0.1f));
             Assert.IsTrue(SerializeDeserialize<double, bool>(0.1));
+            Assert.IsFalse(SerializeDeserialize<decimal, bool>(0));
+            Assert.IsTrue(SerializeDeserialize<decimal, bool>(0.1m));
+            Assert.IsTrue(SerializeDeserialize<decimal, bool>(10));
 
             Assert.AreEqual(0, SerializeDeserialize<bool, int>(false));
             Assert.AreEqual(0, SerializeDeserialize<bool, uint>(false));
@@ -45,6 +50,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(0, SerializeDeserialize<bool, ulong>(false));
             Assert.AreEqual((float)0, SerializeDeserialize<bool, float>(false));
             Assert.AreEqual((double)0, SerializeDeserialize<bool, double>(false));
+            Assert.AreEqual(0.0m, SerializeDeserialize<bool, decimal>(false));
             Assert.IsFalse(SerializeDeserialize<bool, bool>(false));
         }
 
@@ -63,6 +69,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(ulong.MaxValue - y, SerializeDeserialize<sbyte, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<sbyte, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<sbyte, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<sbyte, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<sbyte, bool>(x));
         }
 
@@ -80,6 +87,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(x, SerializeDeserialize<sbyte, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<sbyte, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<sbyte, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<sbyte, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<sbyte, bool>(x));
         }
 
@@ -98,6 +106,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(ulong.MaxValue - y, SerializeDeserialize<short, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<short, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<short, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<short, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<short, bool>(x));
         }
 
@@ -115,6 +124,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(x, SerializeDeserialize<short, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<short, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<short, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<short, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<short, bool>(x));
         }
 
@@ -133,6 +143,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(ulong.MaxValue - y, SerializeDeserialize<int, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<int, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<int, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<int, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<int, bool>(x));
         }
 
@@ -150,6 +161,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(x, SerializeDeserialize<int, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<int, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<int, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<int, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<int, bool>(x));
         }
 
@@ -167,6 +179,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(x, SerializeDeserialize<byte, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<byte, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<byte, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<byte, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<byte, bool>(x));
         }
 
@@ -184,6 +197,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(x, SerializeDeserialize<ushort, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<ushort, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<ushort, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<ushort, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<ushort, bool>(x));
         }
 
@@ -201,6 +215,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(x, SerializeDeserialize<uint, ulong>(x));
             Assert.AreEqual((float)x, SerializeDeserialize<uint, float>(x));
             Assert.AreEqual((double)x, SerializeDeserialize<uint, double>(x));
+            Assert.AreEqual(x, SerializeDeserialize<uint, decimal>(x));
             Assert.IsTrue(SerializeDeserialize<uint, bool>(x));
         }
 
@@ -220,6 +235,7 @@ namespace GroBuf.Tests
                 Assert.AreEqual(x, SerializeDeserialize<ulong, ulong>(x));
                 Assert.AreEqual((float)x, SerializeDeserialize<ulong, float>(x));
                 Assert.AreEqual((double)x, SerializeDeserialize<ulong, double>(x));
+                Assert.AreEqual(x, SerializeDeserialize<ulong, decimal>(x));
                 Assert.IsTrue(SerializeDeserialize<ulong, bool>(x));
             }
         }
@@ -240,6 +256,7 @@ namespace GroBuf.Tests
                 Assert.AreEqual(x, SerializeDeserialize<long, ulong>(x));
                 Assert.AreEqual((float)x, SerializeDeserialize<long, float>(x));
                 Assert.AreEqual((double)x, SerializeDeserialize<long, double>(x));
+                Assert.AreEqual(x, SerializeDeserialize<long, decimal>(x));
                 Assert.IsTrue(SerializeDeserialize<long, bool>(x));
             }
         }
@@ -261,6 +278,7 @@ namespace GroBuf.Tests
                 Assert.AreEqual(ulong.MaxValue - y, SerializeDeserialize<long, ulong>(x));
                 Assert.AreEqual((float)x, SerializeDeserialize<long, float>(x));
                 Assert.AreEqual((double)x, SerializeDeserialize<long, double>(x));
+                Assert.AreEqual(x, SerializeDeserialize<long, decimal>(x));
                 Assert.IsTrue(SerializeDeserialize<long, bool>(x));
             }
         }
@@ -280,6 +298,7 @@ namespace GroBuf.Tests
                 Assert.AreEqual(10000000000, SerializeDeserialize<float, ulong>(10000000000.73465f));
                 Assert.AreEqual(3.1415926f, SerializeDeserialize<float, float>(3.1415926f));
                 Assert.AreEqual((double)3.1415926f, SerializeDeserialize<float, double>(3.1415926f));
+                Assert.AreEqual((decimal)3.1415926f, SerializeDeserialize<float, decimal>(3.1415926f));
                 Assert.IsTrue(SerializeDeserialize<float, bool>(3.1415926f));
             }
         }
@@ -299,7 +318,28 @@ namespace GroBuf.Tests
                 Assert.AreEqual(12345678912345678, SerializeDeserialize<double, ulong>(12345678912345678.73465));
                 Assert.AreEqual((float)3.1415926, SerializeDeserialize<double, float>(3.1415926));
                 Assert.AreEqual(3.1415926, SerializeDeserialize<double, double>(3.1415926));
-                Assert.IsTrue(SerializeDeserialize<double, bool>(3.1415926f));
+                Assert.AreEqual((decimal)3.1415926, SerializeDeserialize<double, decimal>(3.1415926));
+                Assert.IsTrue(SerializeDeserialize<double, bool>(3.1415926));
+            }
+        }
+
+        [Test]
+        public void TestDecimal()
+        {
+            unchecked
+            {
+                Assert.AreEqual(13, SerializeDeserialize<decimal, sbyte>(13.123m));
+                Assert.AreEqual(13, SerializeDeserialize<decimal, byte>(13.123m));
+                Assert.AreEqual(1000, SerializeDeserialize<decimal, short>(1000.382456m));
+                Assert.AreEqual(1000, SerializeDeserialize<decimal, ushort>(1000.382456m));
+                Assert.AreEqual(1000000000, SerializeDeserialize<decimal, int>(1000000000.73465m));
+                Assert.AreEqual(1000000000, SerializeDeserialize<decimal, uint>(1000000000.73465m));
+                Assert.AreEqual(12345678912345678, SerializeDeserialize<decimal, long>(12345678912345678.73465m));
+                Assert.AreEqual(12345678912345678, SerializeDeserialize<decimal, ulong>(12345678912345678.73465m));
+                Assert.AreEqual((float)3.1415926, SerializeDeserialize<decimal, float>(3.1415926m));
+                Assert.AreEqual(3.1415926, SerializeDeserialize<decimal, double>(3.1415926m));
+                Assert.AreEqual(3.1415926m, SerializeDeserialize<decimal, decimal>(3.1415926m));
+                Assert.IsTrue(SerializeDeserialize<decimal, bool>(3.1415926m));
             }
         }
 
