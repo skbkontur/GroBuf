@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class PrimitivesArrayWriterBuilder<T> : WriterBuilderBase<T>
+    internal class PrimitivesArrayWriterBuilder : WriterBuilderBase
     {
-        public PrimitivesArrayWriterBuilder()
+        public PrimitivesArrayWriterBuilder(Type type)
+            : base(type)
         {
             if(Type != typeof(Array))
             {

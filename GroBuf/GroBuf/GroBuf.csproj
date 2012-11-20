@@ -75,17 +75,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DataMembersExtracters\FieldsExtracter.cs" />
-    <Compile Include="DataMembersExtracters\PropertiesExtracter.cs" />
+    <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />
+    <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
     <Compile Include="GroBufRandom.cs" />
     <Compile Include="GroBufReader.cs" />
     <Compile Include="DataLengthAttribute.cs" />
+    <Compile Include="GroBufReaderAttribute.cs" />
+    <Compile Include="GroBufSizeCounterAttribute.cs" />
     <Compile Include="GroBufTypeCodeMap.cs" />
     <Compile Include="GroBufWriter.cs" />
-    <Compile Include="DataMembersExtracters\IDataMembersExtracter.cs" />
+    <Compile Include="DataMembersExtracters\IDataMembersExtractor.cs" />
+    <Compile Include="GroBufWriterAttribute.cs" />
     <Compile Include="MissingConstructorException.cs" />
+    <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
+    <Compile Include="Readers\CustomReaderBuilder.cs" />
     <Compile Include="Readers\ObjectConstructionHelper.cs" />
     <Compile Include="Readers\PrimitivesArrayReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeReaderBuilder.cs" />
@@ -104,8 +109,10 @@
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
     <Compile Include="SerializerExtensions.cs" />
     <Compile Include="SerializerImpl.cs" />
+    <Compile Include="SizeCounterDelegate.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\CustomSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\DateTimeSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\EnumSizeCounterBuilder.cs" />
@@ -121,8 +128,10 @@
     <Compile Include="SizeCounters\SizeCounterTypeBuilder.cs" />
     <Compile Include="SizeCounters\SizeCounterTypeBuilderContext.cs" />
     <Compile Include="SizeCounters\StringSizeCounterBuilder.cs" />
+    <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
+    <Compile Include="Writers\CustomWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesArrayWriterBuilder.cs" />
     <Compile Include="Writers\DateTimeWriterBuilder.cs" />
     <Compile Include="DataCorruptedException.cs" />

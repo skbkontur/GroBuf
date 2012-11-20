@@ -1,7 +1,9 @@
-﻿namespace GroBuf.SizeCounters
+﻿using System;
+
+namespace GroBuf.SizeCounters
 {
     internal interface ISizeCounterCollection
     {
-        ISizeCounterBuilder<T> GetSizeCounterBuilder<T>();
+        ISizeCounterBuilder GetSizeCounterBuilder(Type type);
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.InteropServices;
 
 using GroBuf.DataMembersExtracters;
@@ -6,10 +7,10 @@ namespace GroBuf
 {
     public class SerializerImpl
     {
-        public SerializerImpl(IDataMembersExtracter dataMembersExtracter)
+        public SerializerImpl(IDataMembersExtractor dataMembersExtractor)
         {
-            writer = new GroBufWriter(dataMembersExtracter);
-            reader = new GroBufReader(dataMembersExtracter);
+            writer = new GroBufWriter(dataMembersExtractor);
+            reader = new GroBufReader(dataMembersExtractor);
         }
 
         public int GetSize<T>(T obj)
@@ -35,6 +36,31 @@ namespace GroBuf
         public T Deserialize<T>(byte[] data, ref int index)
         {
             return reader.Read<T>(data, ref index);
+        }
+
+        public int GetSize(Type type, object obj)
+        {
+            return writer.GetSize(type, obj);
+        }
+
+        public void Serialize(Type type, object obj, byte[] result, ref int index)
+        {
+            writer.Write(type, obj, result, ref index);
+        }
+
+        public byte[] Serialize(Type type, object obj)
+        {
+            return writer.Write(type, obj);
+        }
+
+        public object Deserialize(Type type, byte[] data)
+        {
+            return reader.Read(type, data);
+        }
+
+        public object Deserialize(Type type, byte[] data, ref int index)
+        {
+            return reader.Read(type, data, ref index);
         }
 
         public void Merge<T>(T from, ref T to)

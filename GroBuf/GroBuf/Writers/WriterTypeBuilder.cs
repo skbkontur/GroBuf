@@ -8,26 +8,29 @@ namespace GroBuf.Writers
 {
     internal class WriterTypeBuilder
     {
-        public WriterTypeBuilder(ModuleBuilder module, IWriterCollection writerCollection, IDataMembersExtracter dataMembersExtracter)
+        public WriterTypeBuilder(GroBufWriter groBufWriter, ModuleBuilder module, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor)
         {
+            GroBufWriter = groBufWriter;
             this.module = module;
             this.writerCollection = writerCollection;
-            this.dataMembersExtracter = dataMembersExtracter;
+            this.dataMembersExtractor = dataMembersExtractor;
         }
 
-        public MethodInfo BuildWriter<T>()
+        public MethodInfo BuildWriter(Type type)
         {
-            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufWriter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new WriterTypeBuilderContext(typeBuilder, writerCollection, dataMembersExtracter);
-            var writeMethod = context.GetWriter<T>();
+            var typeBuilder = module.DefineType(type.Name + "_GroBufWriter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
+            var context = new WriterTypeBuilderContext(GroBufWriter, typeBuilder, writerCollection, dataMembersExtractor);
+            var writeMethod = context.GetWriter(type);
 
             var initializer = BuildInitializer(typeBuilder);
 
-            var type = typeBuilder.CreateType();
+            var dynamicType = typeBuilder.CreateType();
 
-            type.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
-            return type.GetMethod(writeMethod.Name);
+            dynamicType.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
+            return dynamicType.GetMethod(writeMethod.Name);
         }
+
+        public GroBufWriter GroBufWriter { get; private set; }
 
         private static MethodInfo BuildInitializer(TypeBuilder typeBuilder)
         {
@@ -61,6 +64,6 @@ namespace GroBuf.Writers
 
         private readonly ModuleBuilder module;
         private readonly IWriterCollection writerCollection;
-        private readonly IDataMembersExtracter dataMembersExtracter;
+        private readonly IDataMembersExtractor dataMembersExtractor;
     }
 }

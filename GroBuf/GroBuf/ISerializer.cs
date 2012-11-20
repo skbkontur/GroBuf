@@ -4,9 +4,6 @@ namespace GroBuf
 {
     public interface ISerializer
     {
-        object Deserialize(Type type, byte[] data);
-        byte[] Serialize(Type type, object o);
-
         int GetSize<T>(T obj);
         void Serialize<T>(T obj, byte[] result, ref int index);
         byte[] Serialize<T>(T obj);
@@ -15,5 +12,11 @@ namespace GroBuf
         void Merge<T>(T from, ref T to);
         TTo ChangeType<TFrom, TTo>(TFrom obj);
         T Copy<T>(T obj);
+
+        int GetSize(Type type, object obj);
+        void Serialize(Type type, object obj, byte[] result, ref int index);
+        byte[] Serialize(Type type, object obj);
+        object Deserialize(Type type, byte[] data);
+        object Deserialize(Type type, byte[] data, ref int index);
     }
 }

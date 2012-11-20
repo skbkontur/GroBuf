@@ -6,8 +6,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal class ObjectSizeCounterBuilder : SizeCounterBuilderBase<object>
+    internal class ObjectSizeCounterBuilder : SizeCounterBuilderBase
     {
+        public ObjectSizeCounterBuilder()
+            : base(typeof(object))
+        {
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;

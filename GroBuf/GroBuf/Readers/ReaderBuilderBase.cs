@@ -4,11 +4,11 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal abstract class ReaderBuilderBase<T> : IReaderBuilder<T>
+    internal abstract class ReaderBuilderBase : IReaderBuilder
     {
-        protected ReaderBuilderBase()
+        protected ReaderBuilderBase(Type type)
         {
-            Type = typeof(T);
+            Type = type;
         }
 
         public MethodInfo BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext)

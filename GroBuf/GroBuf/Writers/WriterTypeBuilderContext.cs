@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -11,16 +10,17 @@ namespace GroBuf.Writers
 {
     internal class WriterTypeBuilderContext
     {
-        public WriterTypeBuilderContext(TypeBuilder typeBuilder, IWriterCollection writerCollection, IDataMembersExtracter dataMembersExtracter)
+        public WriterTypeBuilderContext(GroBufWriter groBufWriter, TypeBuilder typeBuilder, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor)
         {
+            GroBufWriter = groBufWriter;
             TypeBuilder = typeBuilder;
             this.writerCollection = writerCollection;
-            this.dataMembersExtracter = dataMembersExtracter;
+            this.dataMembersExtractor = dataMembersExtractor;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
         {
-            return dataMembersExtracter.GetMembers(type);
+            return dataMembersExtractor.GetMembers(type);
         }
 
         public FieldInfo BuildConstField<T>(string name, T value)
@@ -48,13 +48,12 @@ namespace GroBuf.Writers
             writers[type] = writer;
         }
 
-        public MethodInfo GetWriter<T>()
+        public MethodInfo GetWriter(Type type)
         {
-            var type = typeof(T);
             var writer = (MethodInfo)writers[type];
             if(writer == null)
             {
-                writer = writerCollection.GetWriterBuilder<T>().BuildWriter(this);
+                writer = writerCollection.GetWriterBuilder(type).BuildWriter(this);
                 if(writers[type] == null)
                     writers[type] = writer;
                 else if((MethodInfo)writers[type] != writer)
@@ -63,13 +62,7 @@ namespace GroBuf.Writers
             return writer;
         }
 
-        public MethodInfo GetWriter(Type type)
-        {
-            if(getWriterMethod == null)
-                getWriterMethod = ((MethodCallExpression)((Expression<Action<WriterTypeBuilderContext>>)(context => context.GetWriter<int>())).Body).Method.GetGenericMethodDefinition();
-            return ((MethodInfo)getWriterMethod.MakeGenericMethod(new[] {type}).Invoke(this, new object[0]));
-        }
-
+        public GroBufWriter GroBufWriter { get; set; }
         public TypeBuilder TypeBuilder { get; private set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
@@ -83,9 +76,8 @@ namespace GroBuf.Writers
             return () => TypeBuilder.GetMethod(method.Name).Invoke(null, new object[] {value});
         }
 
-        private MethodInfo getWriterMethod;
         private readonly IWriterCollection writerCollection;
-        private readonly IDataMembersExtracter dataMembersExtracter;
+        private readonly IDataMembersExtractor dataMembersExtractor;
 
         private readonly Hashtable writers = new Hashtable();
         private readonly Hashtable fields = new Hashtable();

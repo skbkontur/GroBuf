@@ -1,7 +1,9 @@
-﻿namespace GroBuf.Writers
+﻿using System;
+
+namespace GroBuf.Writers
 {
     internal interface IWriterCollection
     {
-        IWriterBuilder<T> GetWriterBuilder<T>();
+        IWriterBuilder GetWriterBuilder(Type type);
     }
 }

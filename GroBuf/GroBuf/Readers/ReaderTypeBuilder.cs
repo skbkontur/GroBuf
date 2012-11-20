@@ -8,26 +8,29 @@ namespace GroBuf.Readers
 {
     internal class ReaderTypeBuilder
     {
-        public ReaderTypeBuilder(ModuleBuilder module, IReaderCollection readerCollection, IDataMembersExtracter dataMembersExtracter)
+        public ReaderTypeBuilder(GroBufReader groBufReader, ModuleBuilder module, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
         {
+            GroBufReader = groBufReader;
             this.module = module;
             this.readerCollection = readerCollection;
-            this.dataMembersExtracter = dataMembersExtracter;
+            this.dataMembersExtractor = dataMembersExtractor;
         }
 
-        public MethodInfo BuildReader<T>()
+        public MethodInfo BuildReader(Type type)
         {
-            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufReader_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new ReaderTypeBuilderContext(typeBuilder, readerCollection, dataMembersExtracter);
-            var readMethod = context.GetReader<T>();
+            var typeBuilder = module.DefineType(type.Name + "_GroBufReader_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
+            var context = new ReaderTypeBuilderContext(GroBufReader, typeBuilder, readerCollection, dataMembersExtractor);
+            var readMethod = context.GetReader(type);
 
             var initializer = BuildInitializer(typeBuilder);
 
-            var type = typeBuilder.CreateType();
+            var dynamicType = typeBuilder.CreateType();
 
-            type.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
-            return type.GetMethod(readMethod.Name);
+            dynamicType.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
+            return dynamicType.GetMethod(readMethod.Name);
         }
+
+        public GroBufReader GroBufReader { get; private set; }
 
         private static MethodInfo BuildInitializer(TypeBuilder typeBuilder)
         {
@@ -61,6 +64,6 @@ namespace GroBuf.Readers
 
         private readonly ModuleBuilder module;
         private readonly IReaderCollection readerCollection;
-        private readonly IDataMembersExtracter dataMembersExtracter;
+        private readonly IDataMembersExtractor dataMembersExtractor;
     }
 }

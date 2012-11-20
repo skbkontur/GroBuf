@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class NullableWriterBuilder<T> : WriterBuilderBase<T>
+    internal class NullableWriterBuilder : WriterBuilderBase
     {
-        public NullableWriterBuilder()
+        public NullableWriterBuilder(Type type)
+            : base(type)
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 throw new InvalidOperationException("Expected nullable but was " + Type);

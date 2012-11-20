@@ -12,7 +12,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtracter());
+            serializer = new SerializerImpl(new PropertiesExtractor());
         }
 
         [Test]

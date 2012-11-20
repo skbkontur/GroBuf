@@ -1,7 +1,9 @@
-﻿namespace GroBuf.Readers
+﻿using System;
+
+namespace GroBuf.Readers
 {
     internal interface IReaderCollection
     {
-        IReaderBuilder<T> GetReaderBuilder<T>();
+        IReaderBuilder GetReaderBuilder(Type type);
     }
 }

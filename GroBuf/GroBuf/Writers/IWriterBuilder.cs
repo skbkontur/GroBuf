@@ -2,7 +2,7 @@
 
 namespace GroBuf.Writers
 {
-    internal interface IWriterBuilder<T>
+    internal interface IWriterBuilder
     {
         MethodInfo BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext);
     }

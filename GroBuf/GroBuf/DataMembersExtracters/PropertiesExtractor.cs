@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace GroBuf.DataMembersExtracters
 {
-    public class PropertiesExtracter : IDataMembersExtracter
+    public class PropertiesExtractor : IDataMembersExtractor
     {
         public MemberInfo[] GetMembers(Type type)
         {

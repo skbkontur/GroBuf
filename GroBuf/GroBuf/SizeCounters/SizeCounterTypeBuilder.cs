@@ -8,26 +8,29 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterTypeBuilder
     {
-        public SizeCounterTypeBuilder(ModuleBuilder module, ISizeCounterCollection sizeCounterCollection, IDataMembersExtracter dataMembersExtracter)
+        public SizeCounterTypeBuilder(GroBufWriter groBufWriter, ModuleBuilder module, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
         {
+            GroBufWriter = groBufWriter;
             this.module = module;
             this.sizeCounterCollection = sizeCounterCollection;
-            this.dataMembersExtracter = dataMembersExtracter;
+            this.dataMembersExtractor = dataMembersExtractor;
         }
 
-        public MethodInfo BuildSizeCounter<T>()
+        public MethodInfo BuildSizeCounter(Type type)
         {
-            var typeBuilder = module.DefineType(typeof(T).Name + "_GroBufSizeCounter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
-            var context = new SizeCounterTypeBuilderContext(typeBuilder, sizeCounterCollection, dataMembersExtracter);
-            var writeMethod = context.GetCounter<T>();
+            var typeBuilder = module.DefineType(type.Name + "_GroBufSizeCounter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
+            var context = new SizeCounterTypeBuilderContext(GroBufWriter, typeBuilder, sizeCounterCollection, dataMembersExtractor);
+            var writeMethod = context.GetCounter(type);
 
             var initializer = BuildInitializer(typeBuilder);
 
-            var type = typeBuilder.CreateType();
+            var dynamicType = typeBuilder.CreateType();
 
-            type.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
-            return type.GetMethod(writeMethod.Name);
+            dynamicType.GetMethod(initializer.Name).Invoke(null, new object[] {context.GetFieldInitializers()});
+            return dynamicType.GetMethod(writeMethod.Name);
         }
+
+        public GroBufWriter GroBufWriter { get; private set; }
 
         private static MethodInfo BuildInitializer(TypeBuilder typeBuilder)
         {
@@ -61,6 +64,6 @@ namespace GroBuf.SizeCounters
 
         private readonly ModuleBuilder module;
         private readonly ISizeCounterCollection sizeCounterCollection;
-        private readonly IDataMembersExtracter dataMembersExtracter;
+        private readonly IDataMembersExtractor dataMembersExtractor;
     }
 }

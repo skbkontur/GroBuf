@@ -6,8 +6,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class ObjectWriterBuilder : WriterBuilderBase<object>
+    internal class ObjectWriterBuilder : WriterBuilderBase
     {
+        public ObjectWriterBuilder()
+            : base(typeof(object))
+        {
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;

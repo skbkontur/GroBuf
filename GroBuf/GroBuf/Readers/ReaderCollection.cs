@@ -1,22 +1,23 @@
 using System;
 using System.Collections;
+using System.Linq;
+using System.Reflection;
 
 namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
-        public IReaderBuilder<T> GetReaderBuilder<T>()
+        public IReaderBuilder GetReaderBuilder(Type type)
         {
-            var type = typeof(T);
-            var readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
+            var readerBuilder = (IReaderBuilder)readerBuilders[type];
             if(readerBuilder == null)
             {
                 lock(readerBuildersLock)
                 {
-                    readerBuilder = (IReaderBuilder<T>)readerBuilders[type];
+                    readerBuilder = (IReaderBuilder)readerBuilders[type];
                     if(readerBuilder == null)
                     {
-                        readerBuilder = GetReaderBuilderInternal<T>();
+                        readerBuilder = GetReaderBuilderInternal(type);
                         readerBuilders[type] = readerBuilder;
                     }
                 }
@@ -24,30 +25,32 @@ namespace GroBuf.Readers
             return readerBuilder;
         }
 
-        private static IReaderBuilder<T> GetReaderBuilderInternal<T>()
+        private static IReaderBuilder GetReaderBuilderInternal(Type type)
         {
-            var type = typeof(T);
-            IReaderBuilder<T> readerBuilder;
-            if(type == typeof(string))
-                readerBuilder = (IReaderBuilder<T>)new StringReaderBuilder();
+            IReaderBuilder readerBuilder;
+            MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufReaderAttribute), true).Any());
+            if (customSizeCounter != null)
+                readerBuilder = new CustomReaderBuilder(type, customSizeCounter);
+            else if(type == typeof(string))
+                readerBuilder = new StringReaderBuilder();
             else if(type == typeof(DateTime))
-                readerBuilder = (IReaderBuilder<T>)new DateTimeReaderBuilder();
+                readerBuilder = new DateTimeReaderBuilder();
             else if(type == typeof(Guid))
-                readerBuilder = (IReaderBuilder<T>)new GuidReaderBuilder();
+                readerBuilder = new GuidReaderBuilder();
             else if(type.IsEnum)
-                readerBuilder = new EnumReaderBuilder<T>();
+                readerBuilder = new EnumReaderBuilder(type);
             else if(type.IsPrimitive)
-                readerBuilder = new PrimitivesReaderBuilder<T>();
+                readerBuilder = new PrimitivesReaderBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                readerBuilder = new NullableReaderBuilder<T>();
-            else if (type.IsArray)
-                readerBuilder = type.GetElementType().IsPrimitive ? (IReaderBuilder<T>)new PrimitivesArrayReaderBuilder<T>() : new ArrayReaderBuilder<T>();
-            else if (type == typeof(Array))
-                readerBuilder = new ArrayReaderBuilder<T>();
-            else if (type == typeof(object))
-                readerBuilder = (IReaderBuilder<T>)new ObjectReaderBuilder();
+                readerBuilder = new NullableReaderBuilder(type);
+            else if(type.IsArray)
+                readerBuilder = type.GetElementType().IsPrimitive ? (IReaderBuilder)new PrimitivesArrayReaderBuilder(type) : new ArrayReaderBuilder(type);
+            else if(type == typeof(Array))
+                readerBuilder = new ArrayReaderBuilder(type);
+            else if(type == typeof(object))
+                readerBuilder = new ObjectReaderBuilder();
             else
-                readerBuilder = new ClassReaderBuilder<T>();
+                readerBuilder = new ClassReaderBuilder(type);
             return readerBuilder;
         }
 

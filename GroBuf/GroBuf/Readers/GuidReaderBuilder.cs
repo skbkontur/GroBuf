@@ -3,8 +3,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class GuidReaderBuilder : ReaderBuilderBase<Guid>
+    internal class GuidReaderBuilder : ReaderBuilderBase
     {
+        public GuidReaderBuilder()
+            : base(typeof(Guid))
+        {
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();

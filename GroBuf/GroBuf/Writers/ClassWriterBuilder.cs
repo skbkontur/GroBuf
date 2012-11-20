@@ -5,8 +5,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class ClassWriterBuilder<T> : WriterBuilderBase<T>
+    internal class ClassWriterBuilder : WriterBuilderBase
     {
+        public ClassWriterBuilder(Type type)
+            : base(type)
+        {
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;

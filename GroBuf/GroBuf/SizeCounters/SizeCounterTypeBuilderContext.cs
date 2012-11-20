@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -11,16 +10,17 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterTypeBuilderContext
     {
-        public SizeCounterTypeBuilderContext(TypeBuilder typeBuilder, ISizeCounterCollection sizeCounterCollection, IDataMembersExtracter dataMembersExtracter)
+        public SizeCounterTypeBuilderContext(GroBufWriter groBufWriter, TypeBuilder typeBuilder, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
         {
+            GroBufWriter = groBufWriter;
             TypeBuilder = typeBuilder;
             this.sizeCounterCollection = sizeCounterCollection;
-            this.dataMembersExtracter = dataMembersExtracter;
+            this.dataMembersExtractor = dataMembersExtractor;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
         {
-            return dataMembersExtracter.GetMembers(type);
+            return dataMembersExtractor.GetMembers(type);
         }
 
         public FieldInfo BuildConstField<T>(string name, T value)
@@ -48,13 +48,12 @@ namespace GroBuf.SizeCounters
             counters[type] = counter;
         }
 
-        public MethodInfo GetCounter<T>()
+        public MethodInfo GetCounter(Type type)
         {
-            var type = typeof(T);
             var counter = (MethodInfo)counters[type];
             if(counter == null)
             {
-                counter = sizeCounterCollection.GetSizeCounterBuilder<T>().BuildSizeCounter(this);
+                counter = sizeCounterCollection.GetSizeCounterBuilder(type).BuildSizeCounter(this);
                 if(counters[type] == null)
                     counters[type] = counter;
                 else if((MethodInfo)counters[type] != counter)
@@ -63,13 +62,7 @@ namespace GroBuf.SizeCounters
             return counter;
         }
 
-        public MethodInfo GetCounter(Type type)
-        {
-            if(getWriterMethod == null)
-                getWriterMethod = ((MethodCallExpression)((Expression<Action<SizeCounterTypeBuilderContext>>)(context => context.GetCounter<int>())).Body).Method.GetGenericMethodDefinition();
-            return ((MethodInfo)getWriterMethod.MakeGenericMethod(new[] {type}).Invoke(this, new object[0]));
-        }
-
+        public GroBufWriter GroBufWriter { get; private set; }
         public TypeBuilder TypeBuilder { get; private set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
@@ -83,9 +76,8 @@ namespace GroBuf.SizeCounters
             return () => TypeBuilder.GetMethod(method.Name).Invoke(null, new object[] {value});
         }
 
-        private MethodInfo getWriterMethod;
         private readonly ISizeCounterCollection sizeCounterCollection;
-        private readonly IDataMembersExtracter dataMembersExtracter;
+        private readonly IDataMembersExtractor dataMembersExtractor;
 
         private readonly Hashtable counters = new Hashtable();
         private readonly Hashtable fields = new Hashtable();

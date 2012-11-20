@@ -4,9 +4,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class PrimitivesReaderBuilder<T> : ReaderBuilderBase<T>
+    internal class PrimitivesReaderBuilder : ReaderBuilderBase
     {
-        public PrimitivesReaderBuilder()
+        public PrimitivesReaderBuilder(Type type)
+            : base(type)
         {
             if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }

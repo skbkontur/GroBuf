@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace GroBuf.DataMembersExtracters
 {
-    public class FieldsExtracter : IDataMembersExtracter
+    public class FieldsExtractor : IDataMembersExtractor
     {
         public MemberInfo[] GetMembers(Type type)
         {

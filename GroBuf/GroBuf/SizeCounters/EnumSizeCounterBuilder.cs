@@ -4,9 +4,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal class EnumSizeCounterBuilder<T> : SizeCounterBuilderBase<T>
+    internal class EnumSizeCounterBuilder : SizeCounterBuilderBase
     {
-        public EnumSizeCounterBuilder()
+        public EnumSizeCounterBuilder(Type type)
+            : base(type)
         {
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was '" + Type + "'");
         }

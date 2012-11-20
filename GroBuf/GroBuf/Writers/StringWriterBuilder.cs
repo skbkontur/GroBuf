@@ -6,8 +6,13 @@ using System.Runtime.CompilerServices;
 
 namespace GroBuf.Writers
 {
-    internal class StringWriterBuilder : WriterBuilderBase<string>
+    internal class StringWriterBuilder : WriterBuilderBase
     {
+        public StringWriterBuilder()
+            : base(typeof(string))
+        {
+        }
+
         protected override unsafe void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var length = context.LocalInt;

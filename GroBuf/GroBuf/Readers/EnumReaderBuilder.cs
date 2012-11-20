@@ -5,9 +5,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class EnumReaderBuilder<T> : ReaderBuilderBase<T>
+    internal class EnumReaderBuilder : ReaderBuilderBase
     {
-        public EnumReaderBuilder()
+        public EnumReaderBuilder(Type type)
+            : base(type)
         {
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was '" + Type + "'");
         }

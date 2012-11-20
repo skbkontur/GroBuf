@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal class NullableSizeCounterBuilder<T> : SizeCounterBuilderBase<T>
+    internal class NullableSizeCounterBuilder : SizeCounterBuilderBase
     {
-        public NullableSizeCounterBuilder()
+        public NullableSizeCounterBuilder(Type type)
+            : base(type)
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 throw new InvalidOperationException("Expected nullable but was '" + Type + "'");

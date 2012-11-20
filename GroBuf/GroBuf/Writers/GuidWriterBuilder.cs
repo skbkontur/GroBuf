@@ -3,8 +3,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class GuidWriterBuilder : WriterBuilderBase<Guid>
+    internal class GuidWriterBuilder : WriterBuilderBase
     {
+        public GuidWriterBuilder()
+            : base(typeof(Guid))
+        {
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;

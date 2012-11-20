@@ -4,8 +4,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class ObjectReaderBuilder : ReaderBuilderBase<object>
+    internal class ObjectReaderBuilder : ReaderBuilderBase
     {
+        public ObjectReaderBuilder()
+            : base(typeof(object))
+        {
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             var il = context.Il;

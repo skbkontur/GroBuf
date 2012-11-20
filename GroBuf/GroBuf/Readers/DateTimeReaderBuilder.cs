@@ -3,8 +3,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class DateTimeReaderBuilder : ReaderBuilderBase<DateTime>
+    internal class DateTimeReaderBuilder : ReaderBuilderBase
     {
+        public DateTimeReaderBuilder()
+            : base(typeof(DateTime))
+        {
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             var il = context.Il;

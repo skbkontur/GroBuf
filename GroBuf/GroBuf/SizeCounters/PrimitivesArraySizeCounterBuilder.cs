@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal class PrimitivesArraySizeCounterBuilder<T> : SizeCounterBuilderBase<T>
+    internal class PrimitivesArraySizeCounterBuilder : SizeCounterBuilderBase
     {
-        public PrimitivesArraySizeCounterBuilder()
+        public PrimitivesArraySizeCounterBuilder(Type type)
+            : base(type)
         {
             if(Type != typeof(Array))
             {

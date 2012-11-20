@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class PrimitivesWriterBuilder<T> : WriterBuilderBase<T>
+    internal class PrimitivesWriterBuilder : WriterBuilderBase
     {
-        public PrimitivesWriterBuilder()
+        public PrimitivesWriterBuilder(Type type)
+            : base(type)
         {
             if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was " + Type);
         }

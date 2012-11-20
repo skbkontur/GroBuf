@@ -5,9 +5,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class ArrayReaderBuilder<T> : ReaderBuilderBase<T>
+    internal class ArrayReaderBuilder : ReaderBuilderBase
     {
-        public ArrayReaderBuilder()
+        public ArrayReaderBuilder(Type type)
+            : base(type)
         {
             if(Type != typeof(Array))
             {

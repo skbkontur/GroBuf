@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class NullableReaderBuilder<T> : ReaderBuilderBase<T>
+    internal class NullableReaderBuilder : ReaderBuilderBase
     {
-        public NullableReaderBuilder()
+        public NullableReaderBuilder(Type type)
+            : base(type)
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 throw new InvalidOperationException("Expected nullable but was '" + Type + "'");

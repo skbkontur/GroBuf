@@ -1,22 +1,23 @@
 using System;
 using System.Collections;
+using System.Reflection;
+using System.Linq;
 
 namespace GroBuf.SizeCounters
 {
     internal class SizeCounterCollection : ISizeCounterCollection
     {
-        public ISizeCounterBuilder<T> GetSizeCounterBuilder<T>()
+        public ISizeCounterBuilder GetSizeCounterBuilder(Type type)
         {
-            var type = typeof(T);
-            var sizeCounterBuilder = (ISizeCounterBuilder<T>)sizeCounterBuilders[type];
+            var sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[type];
             if(sizeCounterBuilder == null)
             {
                 lock(sizeCounterBuildersLock)
                 {
-                    sizeCounterBuilder = (ISizeCounterBuilder<T>)sizeCounterBuilders[type];
+                    sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[type];
                     if(sizeCounterBuilder == null)
                     {
-                        sizeCounterBuilder = GetSizeCounterBuilderInternal<T>();
+                        sizeCounterBuilder = GetSizeCounterBuilderInternal(type);
                         sizeCounterBuilders[type] = sizeCounterBuilder;
                     }
                 }
@@ -24,30 +25,32 @@ namespace GroBuf.SizeCounters
             return sizeCounterBuilder;
         }
 
-        private static ISizeCounterBuilder<T> GetSizeCounterBuilderInternal<T>()
+        private static ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type)
         {
-            var type = typeof(T);
-            ISizeCounterBuilder<T> sizeCounterBuilder;
-            if(type == typeof(string))
-                sizeCounterBuilder = (ISizeCounterBuilder<T>)new StringSizeCounterBuilder();
+            ISizeCounterBuilder sizeCounterBuilder;
+            MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufSizeCounterAttribute), true).Any());
+            if (customSizeCounter != null)
+                sizeCounterBuilder = new CustomSizeCounterBuilder(type, customSizeCounter);
+            else if(type == typeof(string))
+                sizeCounterBuilder = new StringSizeCounterBuilder();
             else if(type == typeof(DateTime))
-                sizeCounterBuilder = (ISizeCounterBuilder<T>)new DateTimeSizeCounterBuilder();
+                sizeCounterBuilder = new DateTimeSizeCounterBuilder();
             else if(type == typeof(Guid))
-                sizeCounterBuilder = (ISizeCounterBuilder<T>)new GuidSizeCounterBuilder();
+                sizeCounterBuilder = new GuidSizeCounterBuilder();
             else if(type.IsEnum)
-                sizeCounterBuilder = new EnumSizeCounterBuilder<T>();
+                sizeCounterBuilder = new EnumSizeCounterBuilder(type);
             else if(type.IsPrimitive)
-                sizeCounterBuilder = new PrimitivesSizeCounterBuilder<T>();
+                sizeCounterBuilder = new PrimitivesSizeCounterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                sizeCounterBuilder = new NullableSizeCounterBuilder<T>();
+                sizeCounterBuilder = new NullableSizeCounterBuilder(type);
             else if(type.IsArray)
-                sizeCounterBuilder = type.GetElementType().IsPrimitive ? (ISizeCounterBuilder<T>)new PrimitivesArraySizeCounterBuilder<T>() : new ArraySizeCounterBuilder<T>();
+                sizeCounterBuilder = type.GetElementType().IsPrimitive ? (ISizeCounterBuilder)new PrimitivesArraySizeCounterBuilder(type) : new ArraySizeCounterBuilder(type);
             else if(type == typeof(Array))
-                sizeCounterBuilder = new ArraySizeCounterBuilder<T>();
+                sizeCounterBuilder = new ArraySizeCounterBuilder(type);
             else if(type == typeof(object))
-                sizeCounterBuilder = (ISizeCounterBuilder<T>)new ObjectSizeCounterBuilder();
+                sizeCounterBuilder = new ObjectSizeCounterBuilder();
             else
-                sizeCounterBuilder = new ClassSizeCounterBuilder<T>();
+                sizeCounterBuilder = new ClassSizeCounterBuilder(type);
             return sizeCounterBuilder;
         }
 

@@ -4,9 +4,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class EnumWriterBuilder<T> : WriterBuilderBase<T>
+    internal class EnumWriterBuilder : WriterBuilderBase
     {
-        public EnumWriterBuilder()
+        public EnumWriterBuilder(Type type)
+            : base(type)
         {
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was " + Type);
         }

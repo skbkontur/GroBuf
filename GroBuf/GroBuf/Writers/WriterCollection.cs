@@ -1,22 +1,25 @@
 using System;
 using System.Collections;
+using System.Linq;
+using System.Reflection;
+
+using GroBuf.SizeCounters;
 
 namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
-        public IWriterBuilder<T> GetWriterBuilder<T>()
+        public IWriterBuilder GetWriterBuilder(Type type)
         {
-            var type = typeof(T);
-            var writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
+            var writerBuilder = (IWriterBuilder)writerBuilders[type];
             if(writerBuilder == null)
             {
                 lock(writerBuildersLock)
                 {
-                    writerBuilder = (IWriterBuilder<T>)writerBuilders[type];
+                    writerBuilder = (IWriterBuilder)writerBuilders[type];
                     if(writerBuilder == null)
                     {
-                        writerBuilder = GetWriterBuilderInternal<T>();
+                        writerBuilder = GetWriterBuilderInternal(type);
                         writerBuilders[type] = writerBuilder;
                     }
                 }
@@ -24,30 +27,32 @@ namespace GroBuf.Writers
             return writerBuilder;
         }
 
-        private static IWriterBuilder<T> GetWriterBuilderInternal<T>()
+        private static IWriterBuilder GetWriterBuilderInternal(Type type)
         {
-            var type = typeof(T);
-            IWriterBuilder<T> writerBuilder;
-            if(type == typeof(string))
-                writerBuilder = (IWriterBuilder<T>)new StringWriterBuilder();
+            IWriterBuilder writerBuilder;
+            MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufWriterAttribute), true).Any());
+            if (customSizeCounter != null)
+                writerBuilder = new CustomWriterBuilder(type, customSizeCounter);
+            else if (type == typeof(string))
+                writerBuilder = new StringWriterBuilder();
             else if(type == typeof(DateTime))
-                writerBuilder = (IWriterBuilder<T>)new DateTimeWriterBuilder();
+                writerBuilder = new DateTimeWriterBuilder();
             else if(type == typeof(Guid))
-                writerBuilder = (IWriterBuilder<T>)new GuidWriterBuilder();
+                writerBuilder = new GuidWriterBuilder();
             else if(type.IsEnum)
-                writerBuilder = new EnumWriterBuilder<T>();
+                writerBuilder = new EnumWriterBuilder(type);
             else if(type.IsPrimitive)
-                writerBuilder = new PrimitivesWriterBuilder<T>();
+                writerBuilder = new PrimitivesWriterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                writerBuilder = new NullableWriterBuilder<T>();
-            else if (type.IsArray)
-                writerBuilder = type.GetElementType().IsPrimitive ? (IWriterBuilder<T>)new PrimitivesArrayWriterBuilder<T>() : new ArrayWriterBuilder<T>();
-            else if (type == typeof(Array))
-                writerBuilder = new ArrayWriterBuilder<T>();
-            else if (type == typeof(object))
-                writerBuilder = (IWriterBuilder<T>)new ObjectWriterBuilder();
+                writerBuilder = new NullableWriterBuilder(type);
+            else if(type.IsArray)
+                writerBuilder = type.GetElementType().IsPrimitive ? (IWriterBuilder)new PrimitivesArrayWriterBuilder(type) : new ArrayWriterBuilder(type);
+            else if(type == typeof(Array))
+                writerBuilder = new ArrayWriterBuilder(type);
+            else if(type == typeof(object))
+                writerBuilder = new ObjectWriterBuilder();
             else
-                writerBuilder = new ClassWriterBuilder<T>();
+                writerBuilder = new ClassWriterBuilder(type);
             return writerBuilder;
         }
 

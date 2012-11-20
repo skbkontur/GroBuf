@@ -92,5 +92,7 @@
         [DataLength(-1)]
         BooleanArray = 29,
 
+        [DataLength(-1)]
+        CustomData = 255
     }
 }

@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Reflection;
 
 using GroBuf.DataMembersExtracters;
 
@@ -12,7 +8,7 @@ namespace GroBuf
     {
         public Serializer()
         {
-            impl = new SerializerImpl(new PropertiesExtracter());
+            impl = new SerializerImpl(new PropertiesExtractor());
         }
 
         public int GetSize<T>(T obj)
@@ -55,75 +51,30 @@ namespace GroBuf
             return impl.Copy(obj);
         }
 
-        #region Чужь от Федора
+        public int GetSize(Type type, object obj)
+        {
+            return impl.GetSize(type, obj);
+        }
+
+        public void Serialize(Type type, object obj, byte[] result, ref int index)
+        {
+            impl.Serialize(type, obj, result, ref index);
+        }
+
+        public byte[] Serialize(Type type, object obj)
+        {
+            return impl.Serialize(type, obj);
+        }
 
         public object Deserialize(Type type, byte[] data)
         {
-            var deserialize = hashtableDeserializeFunction[type];
-            if(deserialize == null)
-            {
-                lock(lockObject)
-                {
-                    deserialize = hashtableDeserializeFunction[type];
-                    if(deserialize == null)
-                    {
-                        deserialize = MakeDeserializeFunction(type);
-                        hashtableDeserializeFunction[type] = deserialize;
-                    }
-                }
-            }
-            return ((Func<byte[], object>)deserialize)(data);
+            return impl.Deserialize(type, data);
         }
 
-        public byte[] Serialize(Type type, object o)
+        public object Deserialize(Type type, byte[] data, ref int index)
         {
-            var serialize = hashtableSerializeFunction[type];
-            if(serialize == null)
-            {
-                lock(lockObject)
-                {
-                    serialize = hashtableSerializeFunction[type];
-                    if(serialize == null)
-                    {
-                        serialize = MakeSerializeFunction(type);
-                        hashtableSerializeFunction[type] = serialize;
-                    }
-                }
-            }
-            return ((Func<object, byte[]>)serialize)(o);
+            return impl.Deserialize(type, data, ref index);
         }
-
-        private Func<object, byte[]> MakeSerializeFunction(Type type)
-        {
-            var methodInfos = typeof(ISerializer).GetMethods().Where(info => info.Name == "Serialize" && Check(info)).Single().MakeGenericMethod(type);
-            ParameterExpression parameter = Expression.Parameter(typeof(object), "obj");
-            var call = Expression.Call(Expression.Constant(this), methodInfos, new[] {Expression.Convert(parameter, type)});
-            var serializeFunc = Expression.Lambda<Func<object, byte[]>>(call, parameter).Compile();
-            return serializeFunc;
-        }
-
-        private Func<byte[], object> MakeDeserializeFunction(Type type)
-        {
-            var methodInfos = typeof(ISerializer).GetMethods().Where(info => info.Name == "Deserialize" && Check(info)).Single().MakeGenericMethod(type);
-            ParameterExpression parameter = Expression.Parameter(typeof(byte[]), "data");
-            var call = Expression.Call(Expression.Constant(this), methodInfos, new[] {parameter});
-            var deserializeFunc = Expression.Lambda<Func<byte[], object>>(call, parameter).Compile();
-            return deserializeFunc;
-        }
-
-        private bool Check(MethodInfo methodInfo)
-        {
-            if(!methodInfo.IsGenericMethod)
-                return false;
-            var genericMethodDefinition = methodInfo.GetGenericMethodDefinition();
-            return genericMethodDefinition.GetParameters().Length == 1;
-        }
-
-        private readonly object lockObject = new object();
-        private readonly Hashtable hashtableSerializeFunction = new Hashtable();
-        private readonly Hashtable hashtableDeserializeFunction = new Hashtable();
-
-        #endregion
 
         private readonly SerializerImpl impl;
     }

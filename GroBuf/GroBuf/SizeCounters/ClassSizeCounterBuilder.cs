@@ -4,8 +4,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal class ClassSizeCounterBuilder<T> : SizeCounterBuilderBase<T>
+    internal class ClassSizeCounterBuilder : SizeCounterBuilderBase
     {
+        public ClassSizeCounterBuilder(Type type)
+            : base(type)
+        {
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;

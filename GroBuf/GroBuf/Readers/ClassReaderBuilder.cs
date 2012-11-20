@@ -7,8 +7,13 @@ using System.Runtime.Serialization;
 
 namespace GroBuf.Readers
 {
-    internal class ClassReaderBuilder<T> : ReaderBuilderBase<T>
+    internal class ClassReaderBuilder : ReaderBuilderBase
     {
+        public ClassReaderBuilder(Type type)
+            : base(type)
+        {
+        }
+
         public void Qxx()
         {
             var x = (int)FormatterServices.GetUninitializedObject(typeof(int));

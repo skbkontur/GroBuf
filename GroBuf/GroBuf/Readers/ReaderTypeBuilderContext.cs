@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Reflection.Emit;
 
@@ -11,17 +10,18 @@ namespace GroBuf.Readers
 {
     internal class ReaderTypeBuilderContext
     {
-        public ReaderTypeBuilderContext(TypeBuilder typeBuilder, IReaderCollection readerCollection, IDataMembersExtracter dataMembersExtracter)
+        public ReaderTypeBuilderContext(GroBufReader groBufReader, TypeBuilder typeBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
         {
+            GroBufReader = groBufReader;
             TypeBuilder = typeBuilder;
             this.readerCollection = readerCollection;
-            this.dataMembersExtracter = dataMembersExtracter;
+            this.dataMembersExtractor = dataMembersExtractor;
             Lengths = BuildConstField("lengths", GroBufHelpers.Lengths);
         }
 
         public MemberInfo[] GetDataMembers(Type type)
         {
-            return dataMembersExtracter.GetMembers(type);
+            return dataMembersExtractor.GetMembers(type);
         }
 
         public FieldInfo BuildConstField<T>(string name, T value)
@@ -49,13 +49,12 @@ namespace GroBuf.Readers
             readers[type] = reader;
         }
 
-        public MethodInfo GetReader<T>()
+        public MethodInfo GetReader(Type type)
         {
-            var type = typeof(T);
             var reader = (MethodInfo)readers[type];
             if(reader == null)
             {
-                reader = readerCollection.GetReaderBuilder<T>().BuildReader(this);
+                reader = readerCollection.GetReaderBuilder(type).BuildReader(this);
                 if(readers[type] == null)
                     readers[type] = reader;
                 else if((MethodInfo)readers[type] != reader)
@@ -64,13 +63,7 @@ namespace GroBuf.Readers
             return reader;
         }
 
-        public MethodInfo GetReader(Type type)
-        {
-            if(getReaderMethod == null)
-                getReaderMethod = ((MethodCallExpression)((Expression<Action<ReaderTypeBuilderContext>>)(context => context.GetReader<int>())).Body).Method.GetGenericMethodDefinition();
-            return ((MethodInfo)getReaderMethod.MakeGenericMethod(new[] {type}).Invoke(this, new object[0]));
-        }
-
+        public GroBufReader GroBufReader { get; private set; }
         public TypeBuilder TypeBuilder { get; private set; }
         public FieldInfo Lengths { get; private set; }
 
@@ -85,10 +78,8 @@ namespace GroBuf.Readers
             return () => TypeBuilder.GetMethod(method.Name).Invoke(null, new object[] {value});
         }
 
-        private MethodInfo getReaderMethod;
-
         private readonly IReaderCollection readerCollection;
-        private readonly IDataMembersExtracter dataMembersExtracter;
+        private readonly IDataMembersExtractor dataMembersExtractor;
 
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable fields = new Hashtable();

@@ -3,9 +3,10 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal class PrimitivesSizeCounterBuilder<T> : SizeCounterBuilderBase<T>
+    internal class PrimitivesSizeCounterBuilder : SizeCounterBuilderBase
     {
-        public PrimitivesSizeCounterBuilder()
+        public PrimitivesSizeCounterBuilder(Type type)
+            : base(type)
         {
             if(!Type.IsPrimitive) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }

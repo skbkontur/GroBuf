@@ -4,11 +4,11 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal abstract class WriterBuilderBase<T> : IWriterBuilder<T>
+    internal abstract class WriterBuilderBase : IWriterBuilder
     {
-        protected WriterBuilderBase()
+        protected WriterBuilderBase(Type type)
         {
-            Type = typeof(T);
+            Type = type;
         }
 
         public MethodInfo BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext)

@@ -3,8 +3,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
-    internal class DateTimeWriterBuilder : WriterBuilderBase<DateTime>
+    internal class DateTimeWriterBuilder : WriterBuilderBase
     {
+        public DateTimeWriterBuilder()
+            : base(typeof(DateTime))
+        {
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;

@@ -4,11 +4,11 @@ using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
-    internal abstract class SizeCounterBuilderBase<T> : ISizeCounterBuilder<T>
+    internal abstract class SizeCounterBuilderBase : ISizeCounterBuilder
     {
-        protected SizeCounterBuilderBase()
+        protected SizeCounterBuilderBase(Type type)
         {
-            Type = typeof(T);
+            Type = type;
         }
 
         public MethodInfo BuildSizeCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext)

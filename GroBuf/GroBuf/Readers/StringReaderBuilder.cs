@@ -2,8 +2,13 @@ using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
-    internal class StringReaderBuilder : ReaderBuilderBase<string>
+    internal class StringReaderBuilder : ReaderBuilderBase
     {
+        public StringReaderBuilder()
+            : base(typeof(string))
+        {
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1(); // Skip typeCode
@@ -33,8 +38,8 @@ namespace GroBuf.Readers
             il.Emit(OpCodes.Ldloc, length); // stack: [ref result, &data[index], 0, length]
             il.Emit(OpCodes.Ldc_I4_1); // stack: [ref result, &data[index], 0, length, 1]
             il.Emit(OpCodes.Shr_Un); // stack: [ref result, &data[index], 0, length >> 1]
-            var constructor = Type.GetConstructor(new[] { typeof(char*), typeof(int), typeof(int) });
-            if (constructor == null)
+            var constructor = Type.GetConstructor(new[] {typeof(char*), typeof(int), typeof(int)});
+            if(constructor == null)
                 throw new MissingConstructorException(Type, typeof(char*), typeof(int), typeof(int));
             il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new string(&data[index], 0, length >> 1)]
             il.Emit(OpCodes.Stind_Ref); // result = new string(&data[index], 0, length >> 1); stack: []

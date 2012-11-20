@@ -2,7 +2,7 @@
 
 namespace GroBuf.Readers
 {
-    internal interface IReaderBuilder<out T>
+    internal interface IReaderBuilder
     {
         MethodInfo BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext);
     }

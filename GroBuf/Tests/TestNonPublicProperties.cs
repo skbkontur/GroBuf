@@ -14,7 +14,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new AllPropertiesExtracter());
+            serializer = new SerializerImpl(new AllPropertiesExtractor());
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(3434, result.GetB());
         }
 
-        public class AllPropertiesExtracter : IDataMembersExtracter
+        public class AllPropertiesExtractor : IDataMembersExtractor
         {
             public MemberInfo[] GetMembers(Type type)
             {
