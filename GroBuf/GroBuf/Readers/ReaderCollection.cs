@@ -28,9 +28,13 @@ namespace GroBuf.Readers
         private static IReaderBuilder GetReaderBuilderInternal(Type type)
         {
             IReaderBuilder readerBuilder;
-            MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufReaderAttribute), true).Any());
-            if (customSizeCounter != null)
-                readerBuilder = new CustomReaderBuilder(type, customSizeCounter);
+            if (type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            {
+                MethodInfo customReader = GroBufHelpers.GetMethod<GroBufReaderAttribute>(type);
+                if (customReader == null)
+                    throw new MissingMethodException("Missing grobuf custom reader for type '" + type + "'");
+                readerBuilder = new CustomReaderBuilder(type, customReader);
+            }
             else if(type == typeof(string))
                 readerBuilder = new StringReaderBuilder();
             else if(type == typeof(DateTime))

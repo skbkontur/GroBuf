@@ -1,11 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace GroBuf
 {
     public static class GroBufHelpers
     {
+        public static MethodInfo GetMethod<TAttribute>(Type type)
+        {
+            var result = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(TAttribute), true).Any());
+            if(result != null)
+                return result;
+            return type.BaseType == typeof(object) ? null : GetMethod<TAttribute>(type.BaseType);
+        }
+
         public static ulong[] CalcHashAndCheck(IEnumerable<string> strings)
         {
             var dict = new Dictionary<ulong, string>();

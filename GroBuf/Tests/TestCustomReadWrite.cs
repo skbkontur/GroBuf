@@ -37,7 +37,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestReaderC()
         {
-            var a = new A {B = new C {Z = "zzz"}, ArrB = new B[] {new C{Z = "qxx"}, new D{Z = 123}}};
+            var a = new A {B = new C {Z = "zzz"}, ArrB = new BB[] {new C{Z = "qxx"}, new D{Z = 123}}};
             var data = serializer.Serialize(a);
             var za = serializer.Deserialize<A>(data);
             za.AssertEqualsTo(a);
@@ -46,7 +46,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestReaderD()
         {
-            var a = new A { B = new D { Z = 146 }, ArrB = new B[] { new C { Z = "qxx" }, new D { Z = 123 } } };
+            var a = new A { B = new D { Z = 146 }, ArrB = new BB[] { new C { Z = "qxx" }, new D { Z = 123 } } };
             var data = serializer.Serialize(a);
             var za = serializer.Deserialize<A>(data);
             za.AssertEqualsTo(a);
@@ -63,11 +63,12 @@ namespace GroBuf.Tests
 
         public class A
         {
-            public B B { get; set; }
-            public B[] ArrB { get; set; }
+            public BB B { get; set; }
+            public BB[] ArrB { get; set; }
         }
 
-        public class B
+        [GroBufCustomSerialization]
+        public abstract class B
         {
             [GroBufSizeCounter]
             public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory)
@@ -107,12 +108,17 @@ namespace GroBuf.Tests
             }
         }
 
-        public class C : B
+        [GroBufCustomSerialization]
+        public abstract class BB : B
+        {
+        }
+
+        public class C : BB
         {
             public string Z { get; set; }
         }
 
-        public class D : B
+        public class D : BB
         {
             public int Z { get; set; }
         }

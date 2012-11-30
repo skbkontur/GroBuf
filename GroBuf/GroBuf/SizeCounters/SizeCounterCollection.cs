@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 
 namespace GroBuf.SizeCounters
 {
@@ -28,9 +28,13 @@ namespace GroBuf.SizeCounters
         private static ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type)
         {
             ISizeCounterBuilder sizeCounterBuilder;
-            MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufSizeCounterAttribute), true).Any());
-            if (customSizeCounter != null)
+            if(type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            {
+                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufSizeCounterAttribute>(type);
+                if(customSizeCounter == null)
+                    throw new MissingMethodException("Missing grobuf custom size counter for type '" + type + "'");
                 sizeCounterBuilder = new CustomSizeCounterBuilder(type, customSizeCounter);
+            }
             else if(type == typeof(string))
                 sizeCounterBuilder = new StringSizeCounterBuilder();
             else if(type == typeof(DateTime))

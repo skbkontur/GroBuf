@@ -28,9 +28,13 @@ namespace GroBuf.Writers
         private static IWriterBuilder GetWriterBuilderInternal(Type type)
         {
             IWriterBuilder writerBuilder;
-            MethodInfo customSizeCounter = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(GroBufWriterAttribute), true).Any());
-            if(customSizeCounter != null)
-                writerBuilder = new CustomWriterBuilder(type, customSizeCounter);
+            if (type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            {
+                MethodInfo customWriter = GroBufHelpers.GetMethod<GroBufWriterAttribute>(type);
+                if (customWriter == null)
+                    throw new MissingMethodException("Missing grobuf custom writer for type '" + type + "'");
+                writerBuilder = new CustomWriterBuilder(type, customWriter);
+            }
             else if(type == typeof(string))
                 writerBuilder = new StringWriterBuilder();
             else if(type == typeof(DateTime))
