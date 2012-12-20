@@ -80,6 +80,18 @@ namespace GroBuf
             return ChangeType<T, T>(obj);
         }
 
+        public object ChangeType(Type from, Type to, object obj)
+        {
+            object result = null;
+            ChangeType(from, to, obj, ref result);
+            return result;
+        }
+
+        public object Copy(Type type, object obj)
+        {
+            return ChangeType(type, type, obj);
+        }
+
         private void ChangeType<TFrom, TTo>(TFrom obj, ref TTo result)
         {
             var size = writer.GetSize(obj);
@@ -98,6 +110,32 @@ namespace GroBuf
                     writer.Write(obj, buf);
                     int index = 0;
                     reader.Read(buf, ref index, size, ref result);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(buf);
+                }
+            }
+        }
+
+        private void ChangeType(Type from, Type to, object obj, ref object result)
+        {
+            var size = writer.GetSize(from, obj);
+            if(size <= 768)
+            {
+                var buf = new byte[size];
+                int index = 0;
+                writer.Write(from, obj, buf, ref index);
+                reader.Read(to, buf, ref result);
+            }
+            else
+            {
+                var buf = Marshal.AllocHGlobal(size);
+                try
+                {
+                    writer.Write(from, obj, buf);
+                    int index = 0;
+                    reader.Read(to, buf, ref index, size, ref result);
                 }
                 finally
                 {

@@ -76,6 +76,16 @@ namespace GroBuf
             return impl.Deserialize(type, data, ref index);
         }
 
+        public object ChangeType(Type from, Type to, object obj)
+        {
+            return impl.ChangeType(from, to, obj);
+        }
+
+        public object Copy(Type type, object obj)
+        {
+            return impl.Copy(type, obj);
+        }
+
         private readonly SerializerImpl impl;
     }
 }

@@ -18,5 +18,7 @@ namespace GroBuf
         byte[] Serialize(Type type, object obj);
         object Deserialize(Type type, byte[] data);
         object Deserialize(Type type, byte[] data, ref int index);
+        object ChangeType(Type from, Type to, object obj);
+        object Copy(Type type, object obj);
     }
 }
