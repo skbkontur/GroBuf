@@ -28,6 +28,23 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestLong()
+        {
+            var o = 12735641765;
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<DateTime>(data);
+            Assert.AreEqual(DateTimeKind.Utc, oo.Kind);
+            Assert.AreEqual(12735641765, oo.Ticks);
+        }
+
+        [Test]
+        public void TestLong2()
+        {
+            var data = serializer.Serialize(long.MinValue);
+            Assert.Throws<DataCorruptedException>(() => serializer.Deserialize<DateTime>(data));
+        }
+
+        [Test]
         public void TestLocal()
         {
             var o = new DateTime(12735641765, DateTimeKind.Local);
