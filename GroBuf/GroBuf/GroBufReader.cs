@@ -8,7 +8,6 @@ using GroBuf.Readers;
 
 namespace GroBuf
 {
-    // TODO: decimal
     internal class GroBufReader
     {
         public GroBufReader(IDataMembersExtractor dataMembersExtractor)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using System.Linq;
 
 namespace GroBuf.SizeCounters
 {
@@ -33,13 +34,14 @@ namespace GroBuf.SizeCounters
         private ulong[] BuildHashCodesTable()
         {
             var values = (int[])Enum.GetValues(Type);
-            var hashes = GroBufHelpers.CalcHashAndCheck(Enum.GetNames(Type));
+            var uniqueValues = new HashSet<int>(values).ToArray();
+            var nameHashes = GroBufHelpers.CalcHashAndCheck(Enum.GetNames(Type));
             var hashSet = new HashSet<uint>();
             for(var x = (uint)values.Length;; ++x)
             {
                 hashSet.Clear();
                 bool ok = true;
-                foreach(var value in values)
+                foreach (var value in uniqueValues)
                 {
                     var item = (uint)(value % x);
                     if(hashSet.Contains(item))
@@ -55,7 +57,7 @@ namespace GroBuf.SizeCounters
                 {
                     var value = values[i];
                     var index = (int)(value % x);
-                    hashCodes[index] = hashes[i];
+                    hashCodes[index] = nameHashes[i];
                 }
                 return hashCodes;
             }
