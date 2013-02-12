@@ -18,7 +18,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            var o = new A {Bool = true, Ints = new[] {10, 2, 4}, B = new B {S = "zzz", Long = 123456789123456789, DateTime = new DateTime(1234567890123)}};
+            var o = new A {Bool = true, Ints = new[] {10, 2, 4}, B = new B {S = "zzz", Long = 123456789123456789, DateTime = new DateTime(1234567890123, DateTimeKind.Local)}};
             byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual(true, oo.Bool);

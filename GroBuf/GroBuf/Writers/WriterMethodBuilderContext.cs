@@ -149,7 +149,7 @@ namespace GroBuf.Writers
         public void WriteTypeCode(GroBufTypeCode typeCode)
         {
             GoToCurrentLocation(); // stack: [&result[index]]
-            Il.Emit(OpCodes.Ldc_I4, (int)typeCode); // stack: [&result[index], typeCode]
+            Il.Emit(OpCodes.Ldc_I4_S, (byte)typeCode); // stack: [&result[index], typeCode]
             Il.Emit(OpCodes.Stind_I1); // result[index] = typeCode
             IncreaseIndexBy1(); // index = index + 1
         }

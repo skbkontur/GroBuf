@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="TestChangeType.cs" />
     <Compile Include="TestCustomReadWrite.cs" />
+    <Compile Include="TestDateTime.cs" />
     <Compile Include="TestMultipleReadWrite.cs" />
     <Compile Include="TestNoConstructor.cs" />
     <Compile Include="TestNonPublicProperties.cs" />
