@@ -82,6 +82,7 @@
     <Compile Include="TestCustomReadWrite.cs" />
     <Compile Include="TestDateTime.cs" />
     <Compile Include="TestGetHashMultiThread.cs" />
+    <Compile Include="TestHashCompatibility.cs" />
     <Compile Include="TestMultipleReadWrite.cs" />
     <Compile Include="TestNoConstructor.cs" />
     <Compile Include="TestNonPublicProperties.cs" />

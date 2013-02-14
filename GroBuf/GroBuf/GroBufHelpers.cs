@@ -9,7 +9,7 @@ namespace GroBuf
     {
         public static MethodInfo GetMethod<TAttribute>(Type type)
         {
-            var result = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(TAttribute), true).Any());
+            MethodInfo result = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(TAttribute), true).Any());
             if(result != null)
                 return result;
             return type.BaseType == typeof(object) ? null : GetMethod<TAttribute>(type.BaseType);
@@ -18,9 +18,9 @@ namespace GroBuf
         public static ulong[] CalcHashAndCheck(IEnumerable<string> strings)
         {
             var dict = new Dictionary<ulong, string>();
-            foreach(var s in strings)
+            foreach(string s in strings)
             {
-                var hash = CalcHash(s);
+                ulong hash = CalcHash(s);
                 if(hash == 0)
                     throw new InvalidOperationException("Hash code of '" + s + "' equals to zero");
                 if(dict.ContainsKey(hash))
@@ -36,15 +36,7 @@ namespace GroBuf
 
         public static ulong CalcHash(string str)
         {
-            if(randTable.Count < str.Length * 2)
-                InitRandTable(str.Length * 2);
-            ulong result = 0;
-            for(int i = 0; i < str.Length; ++i)
-            {
-                result ^= randTable[2 * i][str[i] & 0xFF];
-                result ^= randTable[2 * i + 1][(str[i] >> 8) & 0xFF];
-            }
-            return result;
+            return hashCalculator.CalcHash(str);
         }
 
         public static readonly int[] Lengths = BuildLengths();
@@ -52,14 +44,14 @@ namespace GroBuf
         private static int[] BuildLengths()
         {
             var lengths = new int[256];
-            var type = typeof(GroBufTypeCode);
-            var fields = type.GetFields();
-            foreach(var field in fields)
+            Type type = typeof(GroBufTypeCode);
+            FieldInfo[] fields = type.GetFields();
+            foreach(FieldInfo field in fields)
             {
                 if(field.FieldType != type) continue;
                 var attribute = (DataLengthAttribute)field.GetCustomAttributes(typeof(DataLengthAttribute), false).SingleOrDefault();
                 if(attribute == null) throw new InvalidOperationException(string.Format("Data length of '{0}.{1}' must be specified", type, field));
-                var length = attribute.Length;
+                int length = attribute.Length;
                 if(length < 0 && length != -1)
                     throw new InvalidOperationException("Data length must be either -1 or greater 0");
                 lengths[(int)field.GetValue(dummy)] = length;
@@ -67,24 +59,8 @@ namespace GroBuf
             return lengths;
         }
 
-        private static void InitRandTable(int count)
-        {
-            lock(lockObject)
-            {
-                while(randTable.Count < count)
-                {
-                    var arr = new ulong[256];
-                    for(int i = 0; i < arr.Length; ++i)
-                        arr[i] = ((ulong)(random.Next() & 0xFFFFFF)) | (((ulong)(random.Next() & 0xFFFFFF)) << 24) | (((ulong)(random.Next() & 0xFFFFFF)) << 48);
-                    randTable.Add(arr);
-                }
-            }
-        }
+        private static readonly HashCalculator hashCalculator = new HashCalculator(1000);
 
         private static readonly object dummy = new object();
-
-        private static readonly GroBufRandom random = new GroBufRandom(314159265);
-        private static readonly List<ulong[]> randTable = new List<ulong[]>();
-        private static readonly object lockObject = new object();
     }
 }

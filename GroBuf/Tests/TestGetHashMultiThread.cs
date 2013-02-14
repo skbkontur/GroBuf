@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -11,24 +12,22 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            const int numberOfThreads = 2;
-            for(int i = 0; i < numberOfThreads - 1; ++i)
-                new Thread(Zzz).Start();
-            Zzz();
+            wasBug = false;
+            Parallel.Invoke(Zzz,Zzz,Zzz,Zzz,Zzz,Zzz,Zzz);
             Assert.IsFalse(wasBug);
         }
 
-        public void Zzz()
+        private void Zzz()
         {
             try
             {
-                for(int i = 0; i < 10000; ++i)
-                    GroBufHelpers.CalcHash(new string('z', i + 1));
+                for(int i = 1; i < 1000; ++i)
+                    GroBufHelpers.CalcHash(new string('z', i));
             }
-            catch(Exception)
+            catch(Exception e)
             {
+                Console.WriteLine(e.ToString());
                 wasBug = true;
-                return;
             }
         }
 

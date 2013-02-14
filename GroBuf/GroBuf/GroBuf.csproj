@@ -86,6 +86,7 @@
     <Compile Include="GroBufWriter.cs" />
     <Compile Include="DataMembersExtracters\IDataMembersExtractor.cs" />
     <Compile Include="GroBufWriterAttribute.cs" />
+    <Compile Include="HashCalculator.cs" />
     <Compile Include="MissingConstructorException.cs" />
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
