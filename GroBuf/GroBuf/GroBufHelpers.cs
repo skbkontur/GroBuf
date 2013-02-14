@@ -69,12 +69,15 @@ namespace GroBuf
 
         private static void InitRandTable(int count)
         {
-            while(randTable.Count < count)
+            lock(lockObject)
             {
-                var arr = new ulong[256];
-                for(int i = 0; i < arr.Length; ++i)
-                    arr[i] = ((ulong)(random.Next() & 0xFFFFFF)) | (((ulong)(random.Next() & 0xFFFFFF)) << 24) | (((ulong)(random.Next() & 0xFFFFFF)) << 48);
-                randTable.Add(arr);
+                while(randTable.Count < count)
+                {
+                    var arr = new ulong[256];
+                    for(int i = 0; i < arr.Length; ++i)
+                        arr[i] = ((ulong)(random.Next() & 0xFFFFFF)) | (((ulong)(random.Next() & 0xFFFFFF)) << 24) | (((ulong)(random.Next() & 0xFFFFFF)) << 48);
+                    randTable.Add(arr);
+                }
             }
         }
 
@@ -82,5 +85,6 @@ namespace GroBuf
 
         private static readonly GroBufRandom random = new GroBufRandom(314159265);
         private static readonly List<ulong[]> randTable = new List<ulong[]>();
+        private static readonly object lockObject = new object();
     }
 }
