@@ -176,13 +176,29 @@ namespace GroBuf.Readers
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
 
+            // todo: сделать switch
+            Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [ref index, index, TypeCode]
+            Il.Emit(OpCodes.Ldc_I4_S, (byte)GroBufTypeCode.DateTime); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTime]
+            var notDateTimeLabel = Il.DefineLabel();
+            Il.Emit(OpCodes.Bne_Un, notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTime) goto notDateTime; stack: [ref index, index]
+            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, 8]
+            AssertLength();
+            GoToCurrentLocation(); // stack: [ref index, index, &data[index]]
+            Il.Emit(OpCodes.Ldind_I8); // stack: [ref index, index, (long)(&data[index])]
+            Il.Emit(OpCodes.Ldc_I4, 63); // stack: [ref index, index, data[index], 63]
+            Il.Emit(OpCodes.Shr_Un); // stack: [ref index, index, data[index] >> 63]
+            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, data[index] >> 63, 8]
+            Il.Emit(OpCodes.Add); // stack: [ref index, index, data[index >> 63] + 8]
+            var increaseLabel = Il.DefineLabel();
+            Il.Emit(OpCodes.Br, increaseLabel);
+
+            Il.MarkLabel(notDateTimeLabel);
             LoadField(Context.Lengths);
 
             Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [ref index, index, lengths, typeCode]
             Il.Emit(OpCodes.Ldelem_I4); // stack: [ref index, index, lengths[typeCode]]
             Il.Emit(OpCodes.Dup); // stack: [ref index, index, lengths[typeCode], lengths[typeCode]]
             Il.Emit(OpCodes.Ldc_I4_M1); // stack: [ref index, index, lengths[typeCode], lengths[typeCode], -1]
-            var increaseLabel = Il.DefineLabel();
             Il.Emit(OpCodes.Bne_Un, increaseLabel); // if(lengths[typeCode] != -1) goto increase;
 
             Il.Emit(OpCodes.Ldc_I4_4);

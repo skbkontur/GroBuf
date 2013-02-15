@@ -56,7 +56,7 @@
         [DataLength(1)]
         Boolean = 17,
 
-        [DataLength(8)]
+        [DataLength(-2)]
         DateTime = 18,
 
         [DataLength(-1)]

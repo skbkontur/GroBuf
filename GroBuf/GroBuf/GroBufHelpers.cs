@@ -51,10 +51,7 @@ namespace GroBuf
                 if(field.FieldType != type) continue;
                 var attribute = (DataLengthAttribute)field.GetCustomAttributes(typeof(DataLengthAttribute), false).SingleOrDefault();
                 if(attribute == null) throw new InvalidOperationException(string.Format("Data length of '{0}.{1}' must be specified", type, field));
-                int length = attribute.Length;
-                if(length < 0 && length != -1)
-                    throw new InvalidOperationException("Data length must be either -1 or greater 0");
-                lengths[(int)field.GetValue(dummy)] = length;
+                lengths[(int)field.GetValue(dummy)] = attribute.Length;
             }
             return lengths;
         }
