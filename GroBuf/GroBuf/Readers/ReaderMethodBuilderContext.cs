@@ -69,8 +69,7 @@ namespace GroBuf.Readers
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
         {
-            Il.Emit(OpCodes.Ldnull);
-            Il.Emit(OpCodes.Ldfld, field);
+            Il.Emit(OpCodes.Ldsfld, field);
         }
 
         /// <summary>
@@ -184,11 +183,13 @@ namespace GroBuf.Readers
             Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, 8]
             AssertLength();
             GoToCurrentLocation(); // stack: [ref index, index, &data[index]]
-            Il.Emit(OpCodes.Ldind_I8); // stack: [ref index, index, (long)(&data[index])]
-            Il.Emit(OpCodes.Ldc_I4, 63); // stack: [ref index, index, data[index], 63]
-            Il.Emit(OpCodes.Shr_Un); // stack: [ref index, index, data[index] >> 63]
-            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, data[index] >> 63, 8]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index, data[index >> 63] + 8]
+            Il.Emit(OpCodes.Ldc_I4_4);
+            Il.Emit(OpCodes.Add);
+            Il.Emit(OpCodes.Ldind_I4); // stack: [ref index, index, (int)(&data[index])]
+            Il.Emit(OpCodes.Ldc_I4, 31); // stack: [ref index, index, (int)&data[index], 31]
+            Il.Emit(OpCodes.Shr_Un); // stack: [ref index, index, (int)&data[index] >> 31]
+            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, (int)&data[index] >> 31, 8]
+            Il.Emit(OpCodes.Add); // stack: [ref index, index, (int)&data[index] >> 31 + 8]
             var increaseLabel = Il.DefineLabel();
             Il.Emit(OpCodes.Br, increaseLabel);
 
