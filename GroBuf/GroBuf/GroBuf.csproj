@@ -77,6 +77,7 @@
   <ItemGroup>
     <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />
     <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
+    <Compile Include="GroBufCustomSerializationAttribute.cs" />
     <Compile Include="GroBufRandom.cs" />
     <Compile Include="GroBufReader.cs" />
     <Compile Include="DataLengthAttribute.cs" />
