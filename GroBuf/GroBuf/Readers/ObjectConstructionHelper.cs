@@ -1,7 +1,8 @@
 using System;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.Serialization;
+
+using GrEmit;
 
 namespace GroBuf.Readers
 {
@@ -17,19 +18,19 @@ namespace GroBuf.Readers
                 throw new MissingMethodException("GetUninitializedObject");
         }
 
-        public static void EmitConstructionOfType(Type type, ILGenerator il)
+        public static void EmitConstructionOfType(Type type, GroboIL il)
         {
             ConstructorInfo constructor = type.GetConstructor(Type.EmptyTypes);
-            if(constructor == null)
-            {
-                il.Emit(OpCodes.Ldtoken, type);
-                il.Emit(OpCodes.Call, getTypeFromHandle);
-                il.Emit(OpCodes.Call, getUninitializedObject);
-                OpCode castOpcode = type.IsValueType ? OpCodes.Unbox_Any : OpCodes.Castclass;
-                il.Emit(castOpcode, type);
-            }
+            if(constructor != null)
+                il.Newobj(constructor);
             else
-                il.Emit(OpCodes.Newobj, constructor);
+            {
+                il.Ldtoken(type);
+                il.Call(getTypeFromHandle);
+                il.Call(getUninitializedObject);
+                if(type.IsValueType)
+                    il.Unbox_Any(type);
+            }
         }
 
         private static readonly MethodInfo getTypeFromHandle;

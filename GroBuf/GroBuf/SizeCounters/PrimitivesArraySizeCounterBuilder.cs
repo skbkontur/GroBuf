@@ -1,5 +1,6 @@
 using System;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.SizeCounters
 {
@@ -18,14 +19,14 @@ namespace GroBuf.SizeCounters
             else elementType = typeof(object);
         }
 
-        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel();
+            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
+            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
-            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+            context.Il.Ldlen(); // stack: [obj.Length]
+            context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
             context.Il.MarkLabel(emptyLabel);
             return true;
         }
@@ -33,14 +34,14 @@ namespace GroBuf.SizeCounters
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
-            il.Emit(OpCodes.Ldc_I4, 5); // stack: [5 = size] 5 = type code + data length
+            il.Ldc_I4(5); // stack: [5 = size] 5 = type code + data length
             context.LoadObj(); // stack: [5, obj]
-            il.Emit(OpCodes.Ldlen); // stack: [5, obj.Length]
+            il.Ldlen(); // stack: [5, obj.Length]
             CountArraySize(elementType, il); // stack: [5, obj length]
-            il.Emit(OpCodes.Add); // stack: [5 + obj length]
+            il.Add(); // stack: [5 + obj length]
         }
 
-        private static void CountArraySize(Type elementType, ILGenerator il)
+        private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
             switch(typeCode)
@@ -51,26 +52,26 @@ namespace GroBuf.SizeCounters
                 break;
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
-                il.Emit(OpCodes.Ldc_I4_1);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(1);
+                il.Shl();
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
-                il.Emit(OpCodes.Ldc_I4_2);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(2);
+                il.Shl();
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
-                il.Emit(OpCodes.Ldc_I4_3);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(3);
+                il.Shl();
                 break;
             case GroBufTypeCode.Single:
-                il.Emit(OpCodes.Ldc_I4_2);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(2);
+                il.Shl();
                 break;
             case GroBufTypeCode.Double:
-                il.Emit(OpCodes.Ldc_I4_3);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(3);
+                il.Shl();
                 break;
             default:
                 throw new NotSupportedException("Type '" + elementType + "' is not supported");

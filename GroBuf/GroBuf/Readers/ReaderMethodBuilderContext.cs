@@ -1,11 +1,13 @@
+using System;
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.Readers
 {
     internal class ReaderMethodBuilderContext
     {
-        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, ILGenerator il)
+        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il)
         {
             Context = context;
             Il = il;
@@ -18,7 +20,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadData()
         {
-            Il.Emit(OpCodes.Ldarg_0);
+            Il.Ldarg(0);
         }
 
         /// <summary>
@@ -26,7 +28,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadIndexByRef()
         {
-            Il.Emit(OpCodes.Ldarg_1);
+            Il.Ldarg(1);
         }
 
         /// <summary>
@@ -34,8 +36,8 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadIndex()
         {
-            Il.Emit(OpCodes.Ldarg_1);
-            Il.Emit(OpCodes.Ldind_I4);
+            Il.Ldarg(1);
+            Il.Ldind(typeof(int));
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadDataLength()
         {
-            Il.Emit(OpCodes.Ldarg_2);
+            Il.Ldarg(2);
         }
 
         /// <summary>
@@ -51,16 +53,16 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadResultByRef()
         {
-            Il.Emit(OpCodes.Ldarg_3);
+            Il.Ldarg(3);
         }
 
         /// <summary>
         /// Loads <c>result</c> onto the evaluation stack
         /// </summary>
-        public void LoadResult()
+        public void LoadResult(Type resultType)
         {
-            Il.Emit(OpCodes.Ldarg_3);
-            Il.Emit(OpCodes.Ldind_Ref);
+            Il.Ldarg(3);
+            Il.Ldind(resultType);
         }
 
         /// <summary>
@@ -69,7 +71,7 @@ namespace GroBuf.Readers
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
         {
-            Il.Emit(OpCodes.Ldsfld, field);
+            Il.Ldfld(field);
         }
 
         /// <summary>
@@ -79,9 +81,9 @@ namespace GroBuf.Readers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_1); // stack: [ref index, index, 1]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 1]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 1
+            Il.Ldc_I4(1); // stack: [ref index, index, 1]
+            Il.Add(); // stack: [ref index, index + 1]
+            Il.Stind(typeof(int)); // index = index + 1
         }
 
         /// <summary>
@@ -91,9 +93,9 @@ namespace GroBuf.Readers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_2); // stack: [ref index, index, 2]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 2]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 2
+            Il.Ldc_I4(2); // stack: [ref index, index, 2]
+            Il.Add(); // stack: [ref index, index + 2]
+            Il.Stind(typeof(int)); // index = index + 2
         }
 
         /// <summary>
@@ -103,9 +105,9 @@ namespace GroBuf.Readers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_4); // stack: [ref index, index, 4]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 4]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 4
+            Il.Ldc_I4(4); // stack: [ref index, index, 4]
+            Il.Add(); // stack: [ref index, index + 4]
+            Il.Stind(typeof(int)); // index = index + 4
         }
 
         /// <summary>
@@ -115,9 +117,9 @@ namespace GroBuf.Readers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, 8]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 8]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 8
+            Il.Ldc_I4(8); // stack: [ref index, index, 8]
+            Il.Add(); // stack: [ref index, index + 8]
+            Il.Stind(typeof(int)); // index = index + 8
         }
 
         /// <summary>
@@ -127,7 +129,7 @@ namespace GroBuf.Readers
         {
             LoadData(); // stack: [pinnedData]
             LoadIndex(); // stack: [pinnedData, index]
-            Il.Emit(OpCodes.Add); // stack: [pinnedData + index]
+            Il.Add(); // stack: [pinnedData + index]
         }
 
         /// <summary>
@@ -138,17 +140,17 @@ namespace GroBuf.Readers
         public void AssertLength()
         {
             LoadIndex(); // stack: [length, index]
-            Il.Emit(OpCodes.Add); // stack: [length + index]
+            Il.Add(); // stack: [length + index]
             LoadDataLength(); // stack: [length + index, dataLength]
-            var label = Il.DefineLabel();
-            Il.Emit(OpCodes.Ble_Un, label);
-            Il.Emit(OpCodes.Ldstr, "Unexpected end of data");
+            var bigEnoughLabel = Il.DefineLabel("bigEnough");
+            Il.Ble(typeof(uint), bigEnoughLabel);
+            Il.Ldstr("Unexpected end of data");
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
             if(constructor == null)
                 throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));
-            Il.Emit(OpCodes.Newobj, constructor);
-            Il.Emit(OpCodes.Throw);
-            Il.MarkLabel(label);
+            Il.Newobj(constructor);
+            Il.Throw();
+            Il.MarkLabel(bigEnoughLabel);
         }
 
         /// <summary>
@@ -157,16 +159,16 @@ namespace GroBuf.Readers
         public void CheckTypeCode()
         {
             LoadField(Context.Lengths);
-            Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [lengths, typeCode]
-            Il.Emit(OpCodes.Ldelem_I4); // stack: [lengths[typeCode]]
-            var okLabel = Il.DefineLabel();
-            Il.Emit(OpCodes.Brtrue, okLabel); // if(lengths[typeCode] != 0) goto ok;
-            Il.Emit(OpCodes.Ldstr, "Unknown type code");
+            Il.Ldloc(TypeCode); // stack: [lengths, typeCode]
+            Il.Ldelem(typeof(int)); // stack: [lengths[typeCode]]
+            var okLabel = Il.DefineLabel("ok");
+            Il.Brtrue(okLabel); // if(lengths[typeCode] != 0) goto ok;
+            Il.Ldstr("Unknown type code");
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
             if(constructor == null)
                 throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));
-            Il.Emit(OpCodes.Newobj, constructor);
-            Il.Emit(OpCodes.Throw);
+            Il.Newobj(constructor);
+            Il.Throw();
             Il.MarkLabel(okLabel);
         }
 
@@ -176,67 +178,67 @@ namespace GroBuf.Readers
             LoadIndex(); // stack: [ref index, index]
 
             // todo: сделать switch
-            Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [ref index, index, TypeCode]
-            Il.Emit(OpCodes.Ldc_I4_S, (byte)GroBufTypeCode.DateTime); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTime]
-            var notDateTimeLabel = Il.DefineLabel();
-            Il.Emit(OpCodes.Bne_Un, notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTime) goto notDateTime; stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, 8]
+            Il.Ldloc(TypeCode); // stack: [ref index, index, TypeCode]
+            Il.Ldc_I4((int)GroBufTypeCode.DateTime); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTime]
+            var notDateTimeLabel = Il.DefineLabel("notDateTime");
+            Il.Bne(notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTime) goto notDateTime; stack: [ref index, index]
+            Il.Ldc_I4(8); // stack: [ref index, index, 8]
             AssertLength();
             GoToCurrentLocation(); // stack: [ref index, index, &data[index]]
-            Il.Emit(OpCodes.Ldc_I4_4);
-            Il.Emit(OpCodes.Add);
-            Il.Emit(OpCodes.Ldind_I4); // stack: [ref index, index, (int)(&data[index])]
-            Il.Emit(OpCodes.Ldc_I4, 31); // stack: [ref index, index, (int)&data[index], 31]
-            Il.Emit(OpCodes.Shr_Un); // stack: [ref index, index, (int)&data[index] >> 31]
-            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, (int)&data[index] >> 31, 8]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index, (int)&data[index] >> 31 + 8]
-            var increaseLabel = Il.DefineLabel();
-            Il.Emit(OpCodes.Br, increaseLabel);
+            Il.Ldc_I4(4);
+            Il.Add();
+            Il.Ldind(typeof(int)); // stack: [ref index, index, (int)(&data[index])]
+            Il.Ldc_I4(31); // stack: [ref index, index, (int)&data[index], 31]
+            Il.Shr(typeof(uint)); // stack: [ref index, index, (int)&data[index] >> 31]
+            Il.Ldc_I4(8); // stack: [ref index, index, (int)&data[index] >> 31, 8]
+            Il.Add(); // stack: [ref index, index, (int)&data[index] >> 31 + 8]
+            var increaseLabel = Il.DefineLabel("increase");
+            Il.Br(increaseLabel);
 
             Il.MarkLabel(notDateTimeLabel);
             LoadField(Context.Lengths);
 
-            Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [ref index, index, lengths, typeCode]
-            Il.Emit(OpCodes.Ldelem_I4); // stack: [ref index, index, lengths[typeCode]]
-            Il.Emit(OpCodes.Dup); // stack: [ref index, index, lengths[typeCode], lengths[typeCode]]
-            Il.Emit(OpCodes.Ldc_I4_M1); // stack: [ref index, index, lengths[typeCode], lengths[typeCode], -1]
-            Il.Emit(OpCodes.Bne_Un, increaseLabel); // if(lengths[typeCode] != -1) goto increase;
+            Il.Ldloc(TypeCode); // stack: [ref index, index, lengths, typeCode]
+            Il.Ldelem(typeof(int)); // stack: [ref index, index, lengths[typeCode]]
+            Il.Dup(); // stack: [ref index, index, lengths[typeCode], lengths[typeCode]]
+            Il.Ldc_I4(-1); // stack: [ref index, index, lengths[typeCode], lengths[typeCode], -1]
+            Il.Bne(increaseLabel); // if(lengths[typeCode] != -1) goto increase;
 
-            Il.Emit(OpCodes.Ldc_I4_4);
+            Il.Ldc_I4(4);
             AssertLength();
-            Il.Emit(OpCodes.Pop); // stack: [ref index, index]
-            Il.Emit(OpCodes.Dup); // stack: [ref index, index, index]
+            Il.Pop(); // stack: [ref index, index]
+            Il.Dup(); // stack: [ref index, index, index]
             LoadData(); // stack: [ref index, index, index, pinnedData]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index, index + pinnedData]
-            Il.Emit(OpCodes.Ldind_U4); // stack: [ref index, index, *(uint*)(pinnedData + index)]
-            Il.Emit(OpCodes.Ldc_I4_4); // stack: [ref index, index, *(uint*)(pinnedData + index), 4]
-            Il.Emit(OpCodes.Add); // stack: [ref index, *(uint*)(pinnedData + index) + 4]
+            Il.Add(); // stack: [ref index, index, index + pinnedData]
+            Il.Ldind(typeof(uint)); // stack: [ref index, index, *(uint*)(pinnedData + index)]
+            Il.Ldc_I4(4); // stack: [ref index, index, *(uint*)(pinnedData + index), 4]
+            Il.Add(); // stack: [ref index, *(uint*)(pinnedData + index) + 4]
 
             Il.MarkLabel(increaseLabel);
-            Il.Emit(OpCodes.Dup); // stack: [ref index, length, length]
+            Il.Dup(); // stack: [ref index, length, length]
             AssertLength(); // stack: [ref index, length]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + length]
-            Il.Emit(OpCodes.Stind_I4); // index = index + length
+            Il.Add(); // stack: [ref index, index + length]
+            Il.Stind(typeof(int)); // index = index + length
         }
 
         public void AssertTypeCode(GroBufTypeCode expectedTypeCode)
         {
-            Il.Emit(OpCodes.Ldloc, TypeCode); // stack: [typeCode]
-            Il.Emit(OpCodes.Ldc_I4, (int)expectedTypeCode); // stack: [typeCode, expectedTypeCode]
+            Il.Ldloc(TypeCode); // stack: [typeCode]
+            Il.Ldc_I4((int)expectedTypeCode); // stack: [typeCode, expectedTypeCode]
 
-            var label = Il.DefineLabel();
-            Il.Emit(OpCodes.Beq, label);
+            var okLabel = Il.DefineLabel("ok");
+            Il.Beq(okLabel);
 
             SkipValue();
-            Il.Emit(OpCodes.Ret);
+            Il.Ret();
 
-            Il.MarkLabel(label);
+            Il.MarkLabel(okLabel);
         }
 
         public ReaderTypeBuilderContext Context { get; private set; }
-        public ILGenerator Il { get; private set; }
+        public GroboIL Il { get; private set; }
 
-        public LocalBuilder TypeCode { get; private set; }
-        public LocalBuilder Length { get; private set; }
+        public GroboIL.Local TypeCode { get; private set; }
+        public GroboIL.Local Length { get; private set; }
     }
 }

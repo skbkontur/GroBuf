@@ -1,5 +1,6 @@
 using System;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.Writers
 {
@@ -18,15 +19,16 @@ namespace GroBuf.Writers
             else elementType = typeof(object);
         }
 
-        protected override bool CheckEmpty(WriterMethodBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel();
+            var il = context.Il;
+            var emptyLabel = il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
+            il.Brfalse(emptyLabel); // if(obj == null) goto empty;
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
-            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            il.Ldlen(); // stack: [obj.Length]
+            il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+            il.MarkLabel(emptyLabel);
             return true;
         }
 
@@ -38,34 +40,34 @@ namespace GroBuf.Writers
             var size = il.DeclareLocal(typeof(int));
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
-            il.Emit(OpCodes.Ldlen); // stack: [&result[index], obj.Length]
+            il.Ldlen(); // stack: [&result[index], obj.Length]
             CountArraySize(elementType, il); // stack: [&result[index], obj size]
-            il.Emit(OpCodes.Dup); // stack: [&result[index], obj size, obj size]
-            il.Emit(OpCodes.Stloc, size); // size = obj size; stack: [&result[index], obj size]
-            il.Emit(OpCodes.Stind_I4); // result[index] = size; stack: []
+            il.Dup(); // stack: [&result[index], obj size, obj size]
+            il.Stloc(size); // size = obj size; stack: [&result[index], obj size]
+            il.Stind(typeof(int)); // result[index] = size; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [&result[index], obj, 0]
-            il.Emit(OpCodes.Ldelema, elementType); // stack: [&result[index], &obj[0]]
+            il.Ldc_I4(0); // stack: [&result[index], obj, 0]
+            il.Ldelema(elementType); // stack: [&result[index], &obj[0]]
             var arr = il.DeclareLocal(elementType.MakeByRefType(), true);
-            il.Emit(OpCodes.Stloc, arr); // arr = &obj[0]; stack: [&result[index]]
-            il.Emit(OpCodes.Ldloc, arr); // stack: [&result[index], arr]
-            il.Emit(OpCodes.Ldloc, size); // stack: [&result[index], arr, size]
+            il.Stloc(arr); // arr = &obj[0]; stack: [&result[index]]
+            il.Ldloc(arr); // stack: [&result[index], arr]
+            il.Ldloc(size); // stack: [&result[index], arr, size]
             if(sizeof(IntPtr) == 8)
-                context.Il.Emit(OpCodes.Unaligned, 1L);
-            context.Il.Emit(OpCodes.Cpblk); // &result[index] = arr
-            context.Il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            context.Il.Emit(OpCodes.Conv_U); // stack: [(uint)0]
-            context.Il.Emit(OpCodes.Stloc, arr); // arr = (uint)0;
+                context.Il.Unaligned(1L);
+            context.Il.Cpblk(); // &result[index] = arr
+            context.Il.Ldc_I4(0); // stack: [0]
+            context.Il.Conv_U(); // stack: [(uint)0]
+            context.Il.Stloc(arr); // arr = (uint)0;
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
-            il.Emit(OpCodes.Ldloc, size); // stack: [ref index, index, size]
-            il.Emit(OpCodes.Add); // stack: [ref index, index + size]
-            il.Emit(OpCodes.Stind_I4); // index = index + size
+            il.Ldloc(size); // stack: [ref index, index, size]
+            il.Add(); // stack: [ref index, index + size]
+            il.Stind(typeof(int)); // index = index + size
         }
 
-        private static void CountArraySize(Type elementType, ILGenerator il)
+        private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
             switch(typeCode)
@@ -76,26 +78,26 @@ namespace GroBuf.Writers
                 break;
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
-                il.Emit(OpCodes.Ldc_I4_1);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(1);
+                il.Shl();
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
-                il.Emit(OpCodes.Ldc_I4_2);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(2);
+                il.Shl();
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
-                il.Emit(OpCodes.Ldc_I4_3);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(3);
+                il.Shl();
                 break;
             case GroBufTypeCode.Single:
-                il.Emit(OpCodes.Ldc_I4_2);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(2);
+                il.Shl();
                 break;
             case GroBufTypeCode.Double:
-                il.Emit(OpCodes.Ldc_I4_3);
-                il.Emit(OpCodes.Shl);
+                il.Ldc_I4(3);
+                il.Shl();
                 break;
             default:
                 throw new NotSupportedException("Type '" + elementType + "' is not supported");

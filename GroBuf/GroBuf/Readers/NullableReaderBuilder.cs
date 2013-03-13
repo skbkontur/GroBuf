@@ -1,5 +1,4 @@
 using System;
-using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
@@ -21,14 +20,14 @@ namespace GroBuf.Readers
             context.LoadDataLength(); // stack: [ref result, data, ref index, dataLength]
             var elementType = Type.GetGenericArguments()[0];
             var value = il.DeclareLocal(elementType);
-            il.Emit(OpCodes.Ldloca, value); // stack: [ref result, data, ref index, dataLength, ref value]
-            il.Emit(OpCodes.Call, context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref value); stack: [ref result]
-            il.Emit(OpCodes.Ldloc, value); // stack: [ref result, value]
+            il.Ldloca(value); // stack: [ref result, data, ref index, dataLength, ref value]
+            il.Call(context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref value); stack: [ref result]
+            il.Ldloc(value); // stack: [ref result, value]
             var constructor = Type.GetConstructor(new[] {elementType});
             if(constructor == null)
                 throw new MissingConstructorException(Type, elementType);
-            il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new elementType?(value)]
-            il.Emit(OpCodes.Stobj, Type); // result = new elementType?(value)
+            il.Newobj(constructor); // stack: [ref result, new elementType?(value)]
+            il.Stobj(Type); // result = new elementType?(value)
         }
     }
 }

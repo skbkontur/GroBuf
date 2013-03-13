@@ -1,7 +1,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
@@ -27,69 +26,69 @@ namespace GroBuf.Readers
             var il = context.Il;
             var length = context.Length;
 
-            il.Emit(OpCodes.Ldc_I4_4);
+            il.Ldc_I4(4);
             context.AssertLength();
 
             context.GoToCurrentLocation(); // stack: [&data[index]]
-            il.Emit(OpCodes.Ldind_U4); // stack: [data length]
+            il.Ldind(typeof(uint)); // stack: [data length]
             context.IncreaseIndexBy4(); // index = index + 4; stack: [data length]
 
             context.AssertLength();
-            il.Emit(OpCodes.Ldc_I4_4);
+            il.Ldc_I4(4);
             context.AssertLength();
 
             context.GoToCurrentLocation(); // stack: [&data[index]]
-            il.Emit(OpCodes.Ldind_U4); // stack: [array length]
+            il.Ldind(typeof(uint)); // stack: [array length]
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
-            il.Emit(OpCodes.Stloc, length); // length = array length; stack: []
+            il.Stloc(length); // length = array length; stack: []
 
-            var createArrayLabel = il.DefineLabel();
-            context.LoadResult(); // stack: [result]
-            il.Emit(OpCodes.Brfalse, createArrayLabel); // if(result == null) goto createArray;
-            context.LoadResult(); // stack: [result]
-            il.Emit(OpCodes.Ldlen); // stack: [result.Length]
-            il.Emit(OpCodes.Ldloc, length); // stack: [result.Length, length]
-            var arrayCreatedLabel = il.DefineLabel();
-            il.Emit(OpCodes.Bge, arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
+            var createArrayLabel = il.DefineLabel("createArray");
+            context.LoadResult(Type); // stack: [result]
+            il.Brfalse(createArrayLabel); // if(result == null) goto createArray;
+            context.LoadResult(Type); // stack: [result]
+            il.Ldlen(); // stack: [result.Length]
+            il.Ldloc(length); // stack: [result.Length, length]
+            var arrayCreatedLabel = il.DefineLabel("arrayCreated");
+            il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
 
             context.LoadResultByRef(); // stack: [ref result]
-            il.Emit(OpCodes.Ldloc, length); // stack: [ref result, length]
-            il.Emit(OpCodes.Call, resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, length)
-            il.Emit(OpCodes.Br, arrayCreatedLabel); // goto arrayCreated
+            il.Ldloc(length); // stack: [ref result, length]
+            il.Call(resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, length)
+            il.Br(arrayCreatedLabel); // goto arrayCreated
 
             il.MarkLabel(createArrayLabel);
             context.LoadResultByRef(); // stack: [ref result]
-            il.Emit(OpCodes.Ldloc, length); // stack: [ref result, length]
-            il.Emit(OpCodes.Newarr, elementType); // stack: [ref result, new type[length]]
-            il.Emit(OpCodes.Stind_Ref); // result = new type[length]; stack: []
+            il.Ldloc(length); // stack: [ref result, length]
+            il.Newarr(elementType); // stack: [ref result, new type[length]]
+            il.Stind(typeof(object)); // result = new type[length]; stack: []
 
             il.MarkLabel(arrayCreatedLabel);
-            il.Emit(OpCodes.Ldloc, length); // stack: [length]
-            var allDoneLabel = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse, allDoneLabel); // if(length == 0) goto allDone; stack: []
+            il.Ldloc(length); // stack: [length]
+            var doneLabel = il.DefineLabel("done");
+            il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
             var i = il.DeclareLocal(typeof(uint));
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            il.Emit(OpCodes.Stloc, i); // i = 0; stack: []
-            var cycleStart = il.DefineLabel();
-            il.MarkLabel(cycleStart);
+            il.Ldc_I4(0); // stack: [0]
+            il.Stloc(i); // i = 0; stack: []
+            var cycleStartLabel = il.DefineLabel("cycleStart");
+            il.MarkLabel(cycleStartLabel);
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            context.LoadResult(); // stack: [pinnedData, ref index, dataLength, result]
-            il.Emit(OpCodes.Ldloc, i); // stack: [pinnedData, ref index, dataLength, result, i]
+            context.LoadResult(Type); // stack: [pinnedData, ref index, dataLength, result]
+            il.Ldloc(i); // stack: [pinnedData, ref index, dataLength, result, i]
 
-            il.Emit(OpCodes.Ldelema, elementType); // stack: [pinnedData, ref index, dataLength, ref result[i]]
+            il.Ldelema(elementType); // stack: [pinnedData, ref index, dataLength, ref result[i]]
 
-            il.Emit(OpCodes.Call, context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
-            il.Emit(OpCodes.Ldloc, i); // stack: [i]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [i, 1]
-            il.Emit(OpCodes.Add); // stack: [i + 1]
-            il.Emit(OpCodes.Dup); // stack: [i + 1, i + 1]
-            il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [i]
-            il.Emit(OpCodes.Ldloc, length); // stack: [i, length]
-            il.Emit(OpCodes.Blt_Un, cycleStart); // if(i < length) goto cycleStart
-            il.MarkLabel(allDoneLabel); // stack: []
+            il.Call(context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
+            il.Ldloc(i); // stack: [i]
+            il.Ldc_I4(1); // stack: [i, 1]
+            il.Add(); // stack: [i + 1]
+            il.Dup(); // stack: [i + 1, i + 1]
+            il.Stloc(i); // i = i + 1; stack: [i]
+            il.Ldloc(length); // stack: [i, length]
+            il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
+            il.MarkLabel(doneLabel); // stack: []
         }
 
         private static readonly MethodInfo resizeMethod = ((MethodCallExpression)((Expression<Action<int[]>>)(arr => Array.Resize(ref arr, 0))).Body).Method.GetGenericMethodDefinition();

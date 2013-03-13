@@ -1,5 +1,6 @@
 using System;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.SizeCounters
 {
@@ -17,14 +18,14 @@ namespace GroBuf.SizeCounters
             else elementType = typeof(object);
         }
 
-        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel();
+            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Brfalse, emptyLabel); // if(obj == null) goto empty;
+            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Ldlen); // stack: [obj.Length]
-            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+            context.Il.Ldlen(); // stack: [obj.Length]
+            context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
             context.Il.MarkLabel(emptyLabel);
             return true;
         }
@@ -32,81 +33,30 @@ namespace GroBuf.SizeCounters
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
-            il.Emit(OpCodes.Ldc_I4, 9); // stack: [9 = size] 9 = type code + data length + array length
+            il.Ldc_I4(9); // stack: [9 = size] 9 = type code + data length + array length
 
             var length = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [9, obj]
-            il.Emit(OpCodes.Ldlen); // stack: [9, obj.Length]
-            il.Emit(OpCodes.Stloc, length); // length = obj.Length; stack: [9]
+            il.Ldlen(); // stack: [9, obj.Length]
+            il.Stloc(length); // length = obj.Length; stack: [9]
             var i = il.DeclareLocal(typeof(int));
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [9, 0]
-            il.Emit(OpCodes.Stloc, i); // i = 0; stack: [9]
-            var cycleStart = il.DefineLabel();
-            il.MarkLabel(cycleStart);
+            il.Ldc_I4(0); // stack: [9, 0]
+            il.Stloc(i); // i = 0; stack: [9]
+            var cycleStartLabel = il.DefineLabel("cycleStart");
+            il.MarkLabel(cycleStartLabel);
             context.LoadObj(); // stack: [size, obj]
-            il.Emit(OpCodes.Ldloc, i); // stack: [size, obj, i]
-            LoadArrayElement(elementType, il); // stack: [size, obj[i]]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [size, obj[i], true]
-            il.Emit(OpCodes.Call, context.Context.GetCounter(elementType)); // stack: [size, writer(obj[i], true) = itemSize]
-            il.Emit(OpCodes.Add); // stack: [size + itemSize]
-            il.Emit(OpCodes.Ldloc, length); // stack: [size, length]
-            il.Emit(OpCodes.Ldloc, i); // stack: [size, length, i]
-            il.Emit(OpCodes.Ldc_I4_1); // stack: [size, length, i, 1]
-            il.Emit(OpCodes.Add); // stack: [size, length, i + 1]
-            il.Emit(OpCodes.Dup); // stack: [size, length, i + 1, i + 1]
-            il.Emit(OpCodes.Stloc, i); // i = i + 1; stack: [size, length, i]
-            il.Emit(OpCodes.Bgt, cycleStart); // if(length > i) goto cycleStart; stack: [size]
-        }
-
-        private static void LoadArrayElement(Type elementType, ILGenerator il)
-        {
-            if(elementType.IsClass) // class
-                il.Emit(OpCodes.Ldelem_Ref);
-            else if(!elementType.IsPrimitive)
-            {
-                // struct
-                il.Emit(OpCodes.Ldelema, elementType);
-                il.Emit(OpCodes.Ldobj, elementType);
-            }
-            else
-            {
-                // Primitive
-                switch(Type.GetTypeCode(elementType))
-                {
-                case TypeCode.Boolean:
-                case TypeCode.SByte:
-                    il.Emit(OpCodes.Ldelem_I1);
-                    break;
-                case TypeCode.Byte:
-                    il.Emit(OpCodes.Ldelem_U1);
-                    break;
-                case TypeCode.Int16:
-                    il.Emit(OpCodes.Ldelem_I2);
-                    break;
-                case TypeCode.Int32:
-                    il.Emit(OpCodes.Ldelem_I4);
-                    break;
-                case TypeCode.Int64:
-                case TypeCode.UInt64:
-                    il.Emit(OpCodes.Ldelem_I8);
-                    break;
-                case TypeCode.Char:
-                case TypeCode.UInt16:
-                    il.Emit(OpCodes.Ldelem_U2);
-                    break;
-                case TypeCode.UInt32:
-                    il.Emit(OpCodes.Ldelem_U4);
-                    break;
-                case TypeCode.Single:
-                    il.Emit(OpCodes.Ldelem_R4);
-                    break;
-                case TypeCode.Double:
-                    il.Emit(OpCodes.Ldelem_R8);
-                    break;
-                default:
-                    throw new NotSupportedException("Type '" + elementType + "' is not supported");
-                }
-            }
+            il.Ldloc(i); // stack: [size, obj, i]
+            il.Ldelem(elementType);
+            il.Ldc_I4(1); // stack: [size, obj[i], true]
+            il.Call(context.Context.GetCounter(elementType)); // stack: [size, writer(obj[i], true) = itemSize]
+            il.Add(); // stack: [size + itemSize]
+            il.Ldloc(length); // stack: [size, length]
+            il.Ldloc(i); // stack: [size, length, i]
+            il.Ldc_I4(1); // stack: [size, length, i, 1]
+            il.Add(); // stack: [size, length, i + 1]
+            il.Dup(); // stack: [size, length, i + 1, i + 1]
+            il.Stloc(i); // i = i + 1; stack: [size, length, i]
+            il.Bgt(typeof(int), cycleStartLabel); // if(length > i) goto cycleStart; stack: [size]
         }
 
         private readonly Type elementType;

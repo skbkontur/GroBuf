@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Emit;
 using System.Linq;
 
 namespace GroBuf.SizeCounters
@@ -18,17 +17,18 @@ namespace GroBuf.SizeCounters
             var hashCodes = BuildHashCodesTable();
             var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
 
+            var il = context.Il;
             context.LoadField(hashCodesField); // stack: [hashCodes]
             context.LoadObj(); // stack: [hashCodes, obj]
-            context.Il.Emit(OpCodes.Ldc_I4, hashCodes.Length); // stack: [hashCodes, obj, hashCodes.Length]
-            context.Il.Emit(OpCodes.Rem_Un); // stack: [hashCodes, obj % hashCodes.Length]
-            context.Il.Emit(OpCodes.Ldelem_I8); // stack: [hashCodes[obj % hashCodes.Length] = hashCode]
-            var countAsIntLabel = context.Il.DefineLabel();
-            context.Il.Emit(OpCodes.Brfalse, countAsIntLabel); // if(hashCode == 0) goto countAsInt;
-            context.Il.Emit(OpCodes.Ldc_I4, 9); // stack: [9]
-            context.Il.Emit(OpCodes.Ret); // return 9;
-            context.Il.MarkLabel(countAsIntLabel);
-            context.Il.Emit(OpCodes.Ldc_I4_5); // stack: [5]
+            il.Ldc_I4(hashCodes.Length); // stack: [hashCodes, obj, hashCodes.Length]
+            il.Rem(typeof(uint)); // stack: [hashCodes, obj % hashCodes.Length]
+            il.Ldelem(typeof(long)); // stack: [hashCodes[obj % hashCodes.Length] = hashCode]
+            var countAsIntLabel = il.DefineLabel("countAsInt");
+            il.Brfalse(countAsIntLabel); // if(hashCode == 0) goto countAsInt;
+            il.Ldc_I4(9); // stack: [9]
+            il.Ret(); // return 9;
+            il.MarkLabel(countAsIntLabel);
+            il.Ldc_I4(5); // stack: [5]
         }
 
         private ulong[] BuildHashCodesTable()
@@ -41,7 +41,7 @@ namespace GroBuf.SizeCounters
             {
                 hashSet.Clear();
                 bool ok = true;
-                foreach (var value in uniqueValues)
+                foreach(var value in uniqueValues)
                 {
                     var item = (uint)(value % x);
                     if(hashSet.Contains(item))

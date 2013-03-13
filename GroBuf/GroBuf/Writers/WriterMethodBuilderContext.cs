@@ -1,11 +1,12 @@
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.Writers
 {
     internal class WriterMethodBuilderContext
     {
-        public WriterMethodBuilderContext(WriterTypeBuilderContext context, ILGenerator il)
+        public WriterMethodBuilderContext(WriterTypeBuilderContext context, GroboIL il)
         {
             Context = context;
             Il = il;
@@ -17,7 +18,7 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadObj()
         {
-            Il.Emit(OpCodes.Ldarg_0);
+            Il.Ldarg(0);
         }
 
         /// <summary>
@@ -25,7 +26,7 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadObjByRef()
         {
-            Il.Emit(OpCodes.Ldarga_S, 0);
+            Il.Ldarga(0);
         }
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadWriteEmpty()
         {
-            Il.Emit(OpCodes.Ldarg_1);
+            Il.Ldarg(1);
         }
 
         /// <summary>
@@ -41,7 +42,7 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadResult()
         {
-            Il.Emit(OpCodes.Ldarg_2);
+            Il.Ldarg(2);
         }
 
         /// <summary>
@@ -49,7 +50,7 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadIndexByRef()
         {
-            Il.Emit(OpCodes.Ldarg_3);
+            Il.Ldarg(3);
         }
 
         /// <summary>
@@ -57,8 +58,8 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadIndex()
         {
-            Il.Emit(OpCodes.Ldarg_3);
-            Il.Emit(OpCodes.Ldind_I4);
+            Il.Ldarg(3);
+            Il.Ldind(typeof(int));
         }
 
         /// <summary>
@@ -67,8 +68,7 @@ namespace GroBuf.Writers
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
         {
-            Il.Emit(OpCodes.Ldnull);
-            Il.Emit(OpCodes.Ldfld, field);
+            Il.Ldfld(field);
         }
 
         /// <summary>
@@ -78,9 +78,9 @@ namespace GroBuf.Writers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_1); // stack: [ref index, index, 1]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 1]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 1
+            Il.Ldc_I4(1); // stack: [ref index, index, 1]
+            Il.Add(); // stack: [ref index, index + 1]
+            Il.Stind(typeof(int)); // index = index + 1
         }
 
         /// <summary>
@@ -90,9 +90,9 @@ namespace GroBuf.Writers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_2); // stack: [ref index, index, 2]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 2]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 2
+            Il.Ldc_I4(2); // stack: [ref index, index, 2]
+            Il.Add(); // stack: [ref index, index + 2]
+            Il.Stind(typeof(int)); // index = index + 2
         }
 
         /// <summary>
@@ -102,9 +102,9 @@ namespace GroBuf.Writers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_4); // stack: [ref index, index, 4]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 4]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 4
+            Il.Ldc_I4(4); // stack: [ref index, index, 4]
+            Il.Add(); // stack: [ref index, index + 4]
+            Il.Stind(typeof(int)); // index = index + 4
         }
 
         /// <summary>
@@ -114,9 +114,9 @@ namespace GroBuf.Writers
         {
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
-            Il.Emit(OpCodes.Ldc_I4_8); // stack: [ref index, index, 8]
-            Il.Emit(OpCodes.Add); // stack: [ref index, index + 8]
-            Il.Emit(OpCodes.Stind_I4); // index = index + 8
+            Il.Ldc_I4(8); // stack: [ref index, index, 8]
+            Il.Add(); // stack: [ref index, index + 8]
+            Il.Stind(typeof(int)); // index = index + 8
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace GroBuf.Writers
         {
             LoadResult(); // stack: [result]
             LoadIndex(); // stack: [result, index]
-            Il.Emit(OpCodes.Add); // stack: [result + index]
+            Il.Add(); // stack: [result + index]
         }
 
         /// <summary>
@@ -134,12 +134,12 @@ namespace GroBuf.Writers
         /// </summary>
         public void WriteNull()
         {
-            var retLabel = Il.DefineLabel();
+            var retLabel = Il.DefineLabel("return");
             LoadWriteEmpty(); // stack: [writeEmpty]
-            Il.Emit(OpCodes.Brfalse, retLabel); // if(!writeEmpty) goto ret;
+            Il.Brfalse(retLabel); // if(!writeEmpty) goto ret;
             WriteTypeCode(GroBufTypeCode.Empty);
             Il.MarkLabel(retLabel);
-            Il.Emit(OpCodes.Ret);
+            Il.Ret();
         }
 
         /// <summary>
@@ -149,13 +149,13 @@ namespace GroBuf.Writers
         public void WriteTypeCode(GroBufTypeCode typeCode)
         {
             GoToCurrentLocation(); // stack: [&result[index]]
-            Il.Emit(OpCodes.Ldc_I4_S, (byte)typeCode); // stack: [&result[index], typeCode]
-            Il.Emit(OpCodes.Stind_I1); // result[index] = typeCode
+            Il.Ldc_I4((int)typeCode); // stack: [&result[index], typeCode]
+            Il.Stind(typeof(byte)); // result[index] = typeCode
             IncreaseIndexBy1(); // index = index + 1
         }
 
         public WriterTypeBuilderContext Context { get; private set; }
-        public ILGenerator Il { get; private set; }
-        public LocalBuilder LocalInt { get; private set; }
+        public GroboIL Il { get; private set; }
+        public GroboIL.Local LocalInt { get; private set; }
     }
 }

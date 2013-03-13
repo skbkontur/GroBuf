@@ -3,6 +3,8 @@ using System.Collections;
 using System.Reflection;
 using System.Reflection.Emit;
 
+using GrEmit;
+
 using GroBuf.DataMembersExtracters;
 using GroBuf.SizeCounters;
 using GroBuf.Writers;
@@ -81,14 +83,14 @@ namespace GroBuf
             return result;
         }
 
-        private int GetSize<T>(T obj, bool writeEmpty)
-        {
-            return GetWriterAndSizeCounter<T>().Item2(obj, writeEmpty);
-        }
-
         public int GetSize(Type type, object obj, bool writeEmpty)
         {
             return GetWriterAndSizeCounter(type).Item2(obj, writeEmpty);
+        }
+
+        private int GetSize<T>(T obj, bool writeEmpty)
+        {
+            return GetWriterAndSizeCounter<T>().Item2(obj, writeEmpty);
         }
 
         private Tuple<WriterDelegate, SizeCounterDelegate> GetWriterAndSizeCounter(Type type)
@@ -152,13 +154,13 @@ namespace GroBuf
             MethodInfo writeMethod = GetWriter(type);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0); // stack: [obj]
-            il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
-            il.Emit(OpCodes.Ldarg_2); // stack: [obj, writeEmpty, result]
-            il.Emit(OpCodes.Ldarg_3); // stack: [obj, writeEmpty, result, ref index]
-            il.Emit(OpCodes.Call, writeMethod); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
-            il.Emit(OpCodes.Ret);
+            var il = new GroboIL(dynamicMethod);
+            il.Ldarg(0); // stack: [obj]
+            il.Ldarg(1); // stack: [obj, writeEmpty]
+            il.Ldarg(2); // stack: [obj, writeEmpty, result]
+            il.Ldarg(3); // stack: [obj, writeEmpty, result, ref index]
+            il.Call(writeMethod); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
+            il.Ret();
 
             return (WriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(WriterDelegate<T>));
         }
@@ -168,20 +170,17 @@ namespace GroBuf
             MethodInfo writeMethod = GetWriter(type);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0); // stack: [obj]
-            if (!type.IsValueType)
-                il.Emit(OpCodes.Castclass, type); // stack: [(type)obj]
-            else
-            {
-                il.Emit(OpCodes.Unbox, type); // stack: [ref (type)obj]
-                il.Emit(OpCodes.Ldobj, type); // stack: [(type)obj]
-            }
-            il.Emit(OpCodes.Ldarg_1); // stack: [(type)obj, writeEmpty]
-            il.Emit(OpCodes.Ldarg_2); // stack: [(type)obj, writeEmpty, result]
-            il.Emit(OpCodes.Ldarg_3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Emit(OpCodes.Call, writeMethod); // writer.write<T>((type)obj, writeEmpty, result, ref index); stack: []
-            il.Emit(OpCodes.Ret);
+            var il = new GroboIL(dynamicMethod);
+            il.Ldarg(0); // stack: [obj]
+            if(type.IsValueType)
+                il.Unbox_Any(type); // stack: [(type)obj]
+//            else
+//                il.Castclass(type); // stack: [(type)obj]
+            il.Ldarg(1); // stack: [(type)obj, writeEmpty]
+            il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
+            il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
+            il.Call(writeMethod); // writer.write<T>((type)obj, writeEmpty, result, ref index); stack: []
+            il.Ret();
 
             return (WriterDelegate)dynamicMethod.CreateDelegate(typeof(WriterDelegate));
         }
@@ -210,11 +209,11 @@ namespace GroBuf
             MethodInfo counter = GetCounter(type);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {type, typeof(bool)}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0); // stack: [obj]
-            il.Emit(OpCodes.Ldarg_1); // stack: [obj, writeEmpty]
-            il.Emit(OpCodes.Call, counter); // counter(obj, writeEmpty); stack: []
-            il.Emit(OpCodes.Ret);
+            var il = new GroboIL(dynamicMethod);
+            il.Ldarg(0); // stack: [obj]
+            il.Ldarg(1); // stack: [obj, writeEmpty]
+            il.Call(counter); // counter(obj, writeEmpty); stack: []
+            il.Ret();
 
             return (SizeCounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate<T>));
         }
@@ -224,18 +223,15 @@ namespace GroBuf
             MethodInfo counter = GetCounter(type);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {typeof(object), typeof(bool)}, GetType(), true);
-            var il = dynamicMethod.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0); // stack: [obj]
-            if(!type.IsValueType)
-                il.Emit(OpCodes.Castclass, type); // stack: [(type)obj]
-            else
-            {
-                il.Emit(OpCodes.Unbox, type); // stack: [ref (type)obj]
-                il.Emit(OpCodes.Ldobj, type); // stack: [(type)obj]
-            }
-            il.Emit(OpCodes.Ldarg_1); // stack: [(type)obj, writeEmpty]
-            il.Emit(OpCodes.Call, counter); // counter((type)obj, writeEmpty); stack: []
-            il.Emit(OpCodes.Ret);
+            var il = new GroboIL(dynamicMethod);
+            il.Ldarg(0); // stack: [obj]
+            if(type.IsValueType)
+                il.Unbox_Any(type); // stack: [(type)obj]
+            //            else
+            //                il.Castclass(type); // stack: [(type)obj]
+            il.Ldarg(1); // stack: [(type)obj, writeEmpty]
+            il.Call(counter); // counter((type)obj, writeEmpty); stack: []
+            il.Ret();
 
             return (SizeCounterDelegate)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate));
         }

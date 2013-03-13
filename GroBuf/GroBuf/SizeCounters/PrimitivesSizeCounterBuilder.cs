@@ -1,5 +1,4 @@
 using System;
-using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
@@ -14,33 +13,34 @@ namespace GroBuf.SizeCounters
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(Type);
+            var il = context.Il;
             switch(typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
             case GroBufTypeCode.Boolean:
-                context.Il.Emit(OpCodes.Ldc_I4_2);
+                il.Ldc_I4(2);
                 break;
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
-                context.Il.Emit(OpCodes.Ldc_I4_3);
+                il.Ldc_I4(3);
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
-                context.Il.Emit(OpCodes.Ldc_I4_5);
+                il.Ldc_I4(5);
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
-                context.Il.Emit(OpCodes.Ldc_I4, 9);
+                il.Ldc_I4(9);
                 break;
             case GroBufTypeCode.Single:
-                context.Il.Emit(OpCodes.Ldc_I4_5);
+                il.Ldc_I4(5);
                 break;
             case GroBufTypeCode.Double:
-                context.Il.Emit(OpCodes.Ldc_I4, 9);
+                il.Ldc_I4(9);
                 break;
             case GroBufTypeCode.Decimal:
-                context.Il.Emit(OpCodes.Ldc_I4, 17);
+                il.Ldc_I4(17);
                 break;
             default:
                 throw new NotSupportedException("Type '" + Type + "' is not supported");

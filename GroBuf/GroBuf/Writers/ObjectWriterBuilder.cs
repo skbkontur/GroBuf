@@ -2,7 +2,8 @@
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.Writers
 {
@@ -26,21 +27,21 @@ namespace GroBuf.Writers
             context.LoadIndexByRef(); // stack: [obj, writeEmpty, result, ref index]
             context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, writers]
             context.LoadObj(); // stack: [obj, writeEmpty, result, ref index, writers, obj]
-            il.Emit(OpCodes.Callvirt, getTypeMethod); // stack: [obj, writeEmpty, result, ref index, writers, obj.GetType()]
-            il.Emit(OpCodes.Call, getTypeCodeMethod); // stack: [obj, writeEmpty, result, ref index, writers, GroBufHelpers.GetTypeCode(obj.GetType())]
-            il.Emit(OpCodes.Ldelem_I); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            il.Emit(OpCodes.Dup); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())], writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            var writeNullLabel = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse, writeNullLabel); // if(writers[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto writeNull;
+            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, result, ref index, writers, obj.GetType()]
+            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, result, ref index, writers, GroBufHelpers.GetTypeCode(obj.GetType())]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            il.Dup(); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())], writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            var writeNullLabel = il.DefineLabel("writeNull");
+            il.Brfalse(writeNullLabel); // if(writers[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto writeNull;
             var parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType()};
-            il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), parameterTypes, null); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index); stack: []
-            il.Emit(OpCodes.Ret);
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index); stack: []
+            il.Ret();
             il.MarkLabel(writeNullLabel);
-            il.Emit(OpCodes.Pop);
-            il.Emit(OpCodes.Pop);
-            il.Emit(OpCodes.Pop);
-            il.Emit(OpCodes.Pop);
-            il.Emit(OpCodes.Pop);
+            il.Pop();
+            il.Pop();
+            il.Pop();
+            il.Pop();
+            il.Pop();
             context.WriteNull();
         }
 
@@ -48,23 +49,21 @@ namespace GroBuf.Writers
         {
             var typeBuilder = context.TypeBuilder;
             var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = method.GetILGenerator();
-            il.Emit(OpCodes.Ldnull); // stack: [null]
-            il.Emit(OpCodes.Ldc_I4, writers.Length); // stack: [null, writers.Length]
-            il.Emit(OpCodes.Newarr, typeof(IntPtr)); // stack: [null, new IntPtr[writers.Length]]
-            il.Emit(OpCodes.Stfld, field); // writersField = new IntPtr[writers.Length]
-            il.Emit(OpCodes.Ldnull); // stack: [null]
-            il.Emit(OpCodes.Ldfld, field); // stack: [writersField]
+            var il = new GroboIL(method);
+            il.Ldc_I4(writers.Length); // stack: [writers.Length]
+            il.Newarr(typeof(IntPtr)); // stack: [new IntPtr[writers.Length]]
+            il.Stfld(field); // writersField = new IntPtr[writers.Length]
+            il.Ldfld(field); // stack: [writersField]
             for(int i = 0; i < writers.Length; ++i)
             {
                 if(writers[i] == null) continue;
-                il.Emit(OpCodes.Dup); // stack: [writersField, writersField]
-                il.Emit(OpCodes.Ldc_I4, i); // stack: [writersField, writersField, i]
-                il.Emit(OpCodes.Ldftn, writers[i]); // stack: [writersField, writersField, i, writers[i]]
-                il.Emit(OpCodes.Stelem_I); // writersField[i] = writers[i]; stack: [writersField]
+                il.Dup(); // stack: [writersField, writersField]
+                il.Ldc_I4(i); // stack: [writersField, writersField, i]
+                il.Ldftn(writers[i]); // stack: [writersField, writersField, i, writers[i]]
+                il.Stelem(typeof(IntPtr)); // writersField[i] = writers[i]; stack: [writersField]
             }
-            il.Emit(OpCodes.Pop);
-            il.Emit(OpCodes.Ret);
+            il.Pop();
+            il.Ret();
             return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
         }
 
@@ -76,8 +75,10 @@ namespace GroBuf.Writers
                     typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
                 }.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));
             foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
+            {
                 if(!dict.ContainsKey(value))
                     dict.Add(value, null);
+            }
             int max = dict.Keys.Cast<int>().Max();
             var result = new MethodInfo[max + 1];
             foreach(var entry in dict)
@@ -92,20 +93,17 @@ namespace GroBuf.Writers
                                                               {
                                                                   typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType()
                                                               });
-            var il = method.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_0); // stack: [obj]
+            var il = new GroboIL(method);
+            il.Ldarg(0); // stack: [obj]
             if(type.IsClass)
-                il.Emit(OpCodes.Castclass, type); // stack: [(type)obj]
+                il.Castclass(type); // stack: [(type)obj]
             else
-            {
-                il.Emit(OpCodes.Unbox, type);
-                il.Emit(OpCodes.Ldobj, type); // stack: [(type)obj]
-            }
-            il.Emit(OpCodes.Ldarg_1); // stack: [(type)obj, writeEmpty]
-            il.Emit(OpCodes.Ldarg_2); // stack: [(type)obj, writeEmpty, result]
-            il.Emit(OpCodes.Ldarg_3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Emit(OpCodes.Call, context.GetWriter(type)); // write<type>((type)obj, writeEmpty, result, ref index)
-            il.Emit(OpCodes.Ret);
+                il.Unbox_Any(type); // stack: [(type)obj]
+            il.Ldarg(1); // stack: [(type)obj, writeEmpty]
+            il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
+            il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
+            il.Call(context.GetWriter(type)); // write<type>((type)obj, writeEmpty, result, ref index)
+            il.Ret();
             return method;
         }
 

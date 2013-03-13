@@ -1,7 +1,6 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
@@ -14,12 +13,13 @@ namespace GroBuf.SizeCounters
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
+            var il = context.Il;
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Call, lengthPropertyGetter); // stack: [obj.Length]
-            context.Il.Emit(OpCodes.Ldc_I4_1); // stack: [obj.Length, 1]
-            context.Il.Emit(OpCodes.Shl); // stack: [obj.Length << 1]
-            context.Il.Emit(OpCodes.Ldc_I4_5); // stack: [obj.Length << 1, 5]
-            context.Il.Emit(OpCodes.Add); // stack: [obj.Length << 1 + 5]
+            il.Call(lengthPropertyGetter); // stack: [obj.Length]
+            il.Ldc_I4(1); // stack: [obj.Length, 1]
+            il.Shl(); // stack: [obj.Length << 1]
+            il.Ldc_I4(5); // stack: [obj.Length << 1, 5]
+            il.Add(); // stack: [obj.Length << 1 + 5]
         }
 
         private static readonly MethodInfo lengthPropertyGetter = ((PropertyInfo)((MemberExpression)((Expression<Func<string, int>>)(s => s.Length)).Body).Member).GetGetMethod();

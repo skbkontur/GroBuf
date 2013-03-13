@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
@@ -18,23 +17,23 @@ namespace GroBuf.SizeCounters
             Func<Type, SizeCounterDelegate> sizeCountersFactory = type => (obj, writeEmpty) => groBufWriter.GetSize(type, obj, writeEmpty);
             var sizeCounterDelegate = (SizeCounterDelegate)sizeCounter.Invoke(null, new[] {sizeCountersFactory});
             var sizeCounterField = context.Context.BuildConstField("sizeCounter_" + Type.Name + "_" + Guid.NewGuid(), sizeCounterDelegate);
-            ILGenerator il = context.Il;
+            var il = context.Il;
             context.LoadField(sizeCounterField); // stack: [sizeCounterDelegate]
             context.LoadObj(); // stack: [sizeCounterDelegate, obj]
             if(Type.IsValueType)
-                il.Emit(OpCodes.Box, Type); // stack: [sizeCounterDelegate, (object)obj]
+                il.Box(Type); // stack: [sizeCounterDelegate, (object)obj]
             context.LoadWriteEmpty(); // stack: [sizeCounterDelegate, (object)obj, writeEmpty]
-            il.Emit(OpCodes.Call, typeof(SizeCounterDelegate).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance)); // stack: [sizeCounterDelegate.Invoke((object)obj, writeEmpty) = size]
+            il.Call(typeof(SizeCounterDelegate).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), typeof(SizeCounterDelegate)); // stack: [sizeCounterDelegate.Invoke((object)obj, writeEmpty) = size]
 
-            var countLength = il.DefineLabel();
-            il.Emit(OpCodes.Dup); // stack: [size, size]
-            il.Emit(OpCodes.Brtrue, countLength); // if(size != 0) goto countLength; stack: [size]
-            il.Emit(OpCodes.Pop); // stack: []
+            var countLengthLabel = il.DefineLabel("countLength");
+            il.Dup(); // stack: [size, size]
+            il.Brtrue(countLengthLabel); // if(size != 0) goto countLength; stack: [size]
+            il.Pop(); // stack: []
             context.ReturnForNull();
-            il.Emit(OpCodes.Ret);
-            il.MarkLabel(countLength);
-            il.Emit(OpCodes.Ldc_I4_5); // stack: [size, 5]
-            il.Emit(OpCodes.Add); // stack: [size + 5]
+            il.Ret();
+            il.MarkLabel(countLengthLabel);
+            il.Ldc_I4(5); // stack: [size, 5]
+            il.Add(); // stack: [size + 5]
         }
 
         private readonly MethodInfo sizeCounter;

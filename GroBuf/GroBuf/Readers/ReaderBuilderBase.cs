@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.Readers
 {
@@ -21,12 +22,12 @@ namespace GroBuf.Readers
                                                           typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
                                                       });
             readerTypeBuilderContext.SetReader(Type, method);
-            var il = method.GetILGenerator();
+            var il = new GroboIL(method);
             var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il);
 
             ReadTypeCodeAndCheck(context); // Read TypeCode and check
             ReadNotEmpty(context); // Read obj
-            il.Emit(OpCodes.Ret);
+            il.Ret();
             return method;
         }
 
@@ -43,19 +44,19 @@ namespace GroBuf.Readers
         private static void ReadTypeCodeAndCheck(ReaderMethodBuilderContext context)
         {
             var il = context.Il;
-            var notEmptyLabel = il.DefineLabel();
-            il.Emit(OpCodes.Ldc_I4_1);
+            var notEmptyLabel = il.DefineLabel("notEmpty");
+            il.Ldc_I4(1);
             context.AssertLength();
 
             context.GoToCurrentLocation(); // stack: [&data[index]]
-            il.Emit(OpCodes.Ldind_U1); // stack: [data[index]]
-            il.Emit(OpCodes.Dup); // stack: [data[index], data[index]]
-            il.Emit(OpCodes.Stloc, context.TypeCode); // typeCode = data[index]; stack: [typeCode]
+            il.Ldind(typeof(byte)); // stack: [data[index]]
+            il.Dup(); // stack: [data[index], data[index]]
+            il.Stloc(context.TypeCode); // typeCode = data[index]; stack: [typeCode]
 
-            il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(typeCode != 0) goto notNull;
+            il.Brtrue(notEmptyLabel); // if(typeCode != 0) goto notNull;
 
             context.IncreaseIndexBy1(); // index = index + 1
-            context.Il.Emit(OpCodes.Ret);
+            il.Ret();
 
             il.MarkLabel(notEmptyLabel);
 

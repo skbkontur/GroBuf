@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
@@ -15,7 +14,7 @@ namespace GroBuf.SizeCounters
         {
             var il = context.Il;
 
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [0 = size]
+            il.Ldc_I4(0); // stack: [0 = size]
 
             var dataMembers = context.Context.GetDataMembers(Type);
             foreach(var member in dataMembers)
@@ -32,38 +31,38 @@ namespace GroBuf.SizeCounters
                     var getter = property.GetGetMethod();
                     if(getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
-                    il.Emit(getter.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, getter); // stack: [size, obj.prop]
+                    il.Call(getter, Type); // stack: [size, obj.prop]
                     memberType = property.PropertyType;
                     break;
                 case MemberTypes.Field:
                     var field = (FieldInfo)member;
-                    il.Emit(OpCodes.Ldfld, field); // stack: [size, obj.field]
+                    il.Ldfld(field); // stack: [size, obj.field]
                     memberType = field.FieldType;
                     break;
                 default:
                     throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
                 }
-                il.Emit(OpCodes.Ldc_I4_0); // stack: [size, obj.member, false]
-                il.Emit(OpCodes.Call, context.Context.GetCounter(memberType)); // stack: [size, writers[i](obj.member, false) = memberSize]
-                il.Emit(OpCodes.Dup); // stack: [size, memberSize, memberSize]
-                var next = il.DefineLabel();
-                il.Emit(OpCodes.Brfalse, next); // if(memberSize = 0) goto next; stack: [size, memberSize]
+                il.Ldc_I4(0); // stack: [size, obj.member, false]
+                il.Call(context.Context.GetCounter(memberType)); // stack: [size, writers[i](obj.member, false) = memberSize]
+                il.Dup(); // stack: [size, memberSize, memberSize]
+                var nextLabel = il.DefineLabel("next");
+                il.Brfalse(nextLabel); // if(memberSize = 0) goto next; stack: [size, memberSize]
 
-                il.Emit(OpCodes.Ldc_I4_8); // stack: [size, memberSize, 8]
-                il.Emit(OpCodes.Add); // stack: [size, memberSize + 8]
-                il.MarkLabel(next);
-                il.Emit(OpCodes.Add); // stack: [size + curSize]
+                il.Ldc_I4(8); // stack: [size, memberSize, 8]
+                il.Add(); // stack: [size, memberSize + 8]
+                il.MarkLabel(nextLabel);
+                il.Add(); // stack: [size + curSize]
             }
 
-            var countLength = il.DefineLabel();
-            il.Emit(OpCodes.Dup); // stack: [size, size]
-            il.Emit(OpCodes.Brtrue, countLength); // if(size != 0) goto countLength; stack: [size]
-            il.Emit(OpCodes.Pop); // stack: []
+            var countLengthLabel = il.DefineLabel("countLength");
+            il.Dup(); // stack: [size, size]
+            il.Brtrue(countLengthLabel); // if(size != 0) goto countLength; stack: [size]
+            il.Pop(); // stack: []
             context.ReturnForNull();
-            il.Emit(OpCodes.Ret);
-            il.MarkLabel(countLength);
-            il.Emit(OpCodes.Ldc_I4_5); // stack: [size, 5]
-            il.Emit(OpCodes.Add); // stack: [size + 5]
+            il.Ret();
+            il.MarkLabel(countLengthLabel);
+            il.Ldc_I4(5); // stack: [size, 5]
+            il.Add(); // stack: [size + 5]
         }
     }
 }

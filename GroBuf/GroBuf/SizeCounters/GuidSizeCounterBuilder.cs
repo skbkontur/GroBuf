@@ -1,5 +1,4 @@
 using System;
-using System.Reflection.Emit;
 
 namespace GroBuf.SizeCounters
 {
@@ -12,7 +11,7 @@ namespace GroBuf.SizeCounters
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
-            context.Il.Emit(OpCodes.Ldc_I4, 17); // stack: [17]
+            context.Il.Ldc_I4(17); // stack: [17]
         }
     }
 }

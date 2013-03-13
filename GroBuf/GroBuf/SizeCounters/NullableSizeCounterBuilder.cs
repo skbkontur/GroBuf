@@ -1,5 +1,6 @@
 using System;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.SizeCounters
 {
@@ -16,16 +17,16 @@ namespace GroBuf.SizeCounters
         {
             var il = context.Il;
             context.LoadObjByRef(); // stack: [&obj]
-            il.Emit(OpCodes.Call, Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
+            il.Call(Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
-            il.Emit(OpCodes.Call, context.Context.GetCounter(Type.GetGenericArguments()[0])); // stack: [counter(obj.Value, writeEmpty)]
+            il.Call(context.Context.GetCounter(Type.GetGenericArguments()[0])); // stack: [counter(obj.Value, writeEmpty)]
         }
 
-        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
+        protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             context.LoadObjByRef(); // stack: [&obj]
-            context.Il.Emit(OpCodes.Call, Type.GetProperty("HasValue").GetGetMethod()); // stack: obj.HasValue
-            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj.HasValue) goto notEmpty;
+            context.Il.Call(Type.GetProperty("HasValue").GetGetMethod()); // stack: obj.HasValue
+            context.Il.Brtrue(notEmptyLabel); // if(obj.HasValue) goto notEmpty;
             return true;
         }
     }

@@ -1,7 +1,8 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.Readers
 {
@@ -24,32 +25,30 @@ namespace GroBuf.Readers
             context.LoadResultByRef(); // stack: [&data[index], ref result]
             context.SkipValue();
             context.LoadField(readersField); // stack: [&data[index], ref result, readers]
-            il.Emit(OpCodes.Ldloc, context.TypeCode); // stack: [&data[index], ref result, readers, typeCode]
-            il.Emit(OpCodes.Ldelem_I); // stack: [&data[index], ref result, readers[typeCode]]
-            il.EmitCalli(OpCodes.Calli, CallingConventions.Standard, typeof(void), new[] {typeof(byte*), Type.MakeByRefType()}, null); // readers[typeCode](&data[index], ref result); stack: []
+            il.Ldloc(context.TypeCode); // stack: [&data[index], ref result, readers, typeCode]
+            il.Ldelem(typeof(IntPtr)); // stack: [&data[index], ref result, readers[typeCode]]
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(byte*), Type.MakeByRefType()}); // readers[typeCode](&data[index], ref result); stack: []
         }
 
         private static Action BuildReadersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] readers)
         {
             var typeBuilder = context.TypeBuilder;
             var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = method.GetILGenerator();
-            il.Emit(OpCodes.Ldnull); // stack: [null]
-            il.Emit(OpCodes.Ldc_I4, readers.Length); // stack: [null, readers.Length]
-            il.Emit(OpCodes.Newarr, typeof(IntPtr)); // stack: [null, new IntPtr[readers.Length]]
-            il.Emit(OpCodes.Stfld, field); // readersField = new IntPtr[readers.Length]
-            il.Emit(OpCodes.Ldnull); // stack: [null]
-            il.Emit(OpCodes.Ldfld, field); // stack: [readersField]
+            var il = new GroboIL(method);
+            il.Ldc_I4(readers.Length); // stack: [readers.Length]
+            il.Newarr(typeof(IntPtr)); // stack: [new IntPtr[readers.Length]]
+            il.Stfld(field); // readersField = new IntPtr[readers.Length]
+            il.Ldfld(field); // stack: [readersField]
             for(int i = 0; i < readers.Length; ++i)
             {
                 if(readers[i] == null) continue;
-                il.Emit(OpCodes.Dup); // stack: [readersField, readersField]
-                il.Emit(OpCodes.Ldc_I4, i); // stack: [readersField, readersField, i]
-                il.Emit(OpCodes.Ldftn, readers[i]); // stack: [readersField, readersField, i, readers[i]]
-                il.Emit(OpCodes.Stelem_I); // readersField[i] = readers[i]; stack: [readersField]
+                il.Dup(); // stack: [readersField, readersField]
+                il.Ldc_I4(i); // stack: [readersField, readersField, i]
+                il.Ldftn(readers[i]); // stack: [readersField, readersField, i, readers[i]]
+                il.Stelem(typeof(IntPtr)); // readersField[i] = readers[i]; stack: [readersField]
             }
-            il.Emit(OpCodes.Pop);
-            il.Emit(OpCodes.Ret);
+            il.Pop();
+            il.Ret();
             return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
         }
 
@@ -78,10 +77,10 @@ namespace GroBuf.Readers
         {
             var method = context.TypeBuilder.DefineMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
                                                           typeof(void), new[] {typeof(byte*), Type.MakeByRefType()});
-            var il = method.GetILGenerator();
-            il.Emit(OpCodes.Ldarg_1); // stack: [ref result]
-            il.Emit(OpCodes.Initobj, Type); // [result = default(T)]
-            il.Emit(OpCodes.Ret);
+            var il = new GroboIL(method);
+            il.Ldarg(1); // stack: [ref result]
+            il.Initobj(Type); // [result = default(T)]
+            il.Ret();
             return method;
         }
 
@@ -89,74 +88,74 @@ namespace GroBuf.Readers
         {
             var method = context.TypeBuilder.DefineMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
                                                           typeof(void), new[] {typeof(byte*), Type.MakeByRefType()});
-            var il = method.GetILGenerator();
+            var il = new GroboIL(method);
             var expectedTypeCode = GroBufTypeCodeMap.GetTypeCode(Type);
 
-            il.Emit(OpCodes.Ldarg_1); // stack: [ref result]
-            if (typeCode == GroBufTypeCode.Decimal)
+            il.Ldarg(1); // stack: [ref result]
+            if(typeCode == GroBufTypeCode.Decimal)
             {
-                if (expectedTypeCode == GroBufTypeCode.Boolean)
+                if(expectedTypeCode == GroBufTypeCode.Boolean)
                 {
-                    il.Emit(OpCodes.Ldarg_0); // stack: [ref result, &temp, address]
-                    il.Emit(OpCodes.Ldind_I8); // stack: [ref result, &temp, (long)*address]
-                    il.Emit(OpCodes.Ldarg_0); // stack: [ref result, &temp + 8, address]
-                    il.Emit(OpCodes.Ldc_I4_8); // stack: [ref result, &temp + 8, address, 8]
-                    il.Emit(OpCodes.Add); // stack: [ref result, &temp + 8, address + 8]
-                    il.Emit(OpCodes.Ldind_I8); // stack: [ref result, &temp + 8, (long)*(address + 8)]
-                    il.Emit(OpCodes.Or);
-                    il.Emit(OpCodes.Ldc_I4_0); // stack: [ref result, value, 0]
-                    il.Emit(OpCodes.Ceq); // stack: [ref result, value == 0]
-                    il.Emit(OpCodes.Ldc_I4_1); // stack: [ref result, value == 0, 1]
-                    il.Emit(OpCodes.Xor); // stack: [ref result, value != 0]
+                    il.Ldarg(0); // stack: [ref result, &temp, address]
+                    il.Ldind(typeof(long)); // stack: [ref result, &temp, (long)*address]
+                    il.Ldarg(0); // stack: [ref result, &temp + 8, address]
+                    il.Ldc_I4(8); // stack: [ref result, &temp + 8, address, 8]
+                    il.Add(); // stack: [ref result, &temp + 8, address + 8]
+                    il.Ldind(typeof(long)); // stack: [ref result, &temp + 8, (long)*(address + 8)]
+                    il.Or();
+                    il.Ldc_I4(0); // stack: [ref result, value, 0]
+                    il.Ceq(); // stack: [ref result, value == 0]
+                    il.Ldc_I4(1); // stack: [ref result, value == 0, 1]
+                    il.Xor(); // stack: [ref result, value != 0]
                 }
                 else
                 {
                     var temp = il.DeclareLocal(typeof(decimal));
-                    il.Emit(OpCodes.Ldloca_S, temp); // stack: [ref result, &temp]
-                    il.Emit(OpCodes.Ldarg_0); // stack: [ref result, &temp, address]
-                    il.Emit(OpCodes.Ldind_I8); // stack: [ref result, &temp, (long)*address]
-                    il.Emit(OpCodes.Stind_I8); // *temp = *address;
-                    il.Emit(OpCodes.Ldloca_S, temp); // stack: [ref result, &temp]
-                    il.Emit(OpCodes.Ldc_I4_8); // stack: [ref result, &temp, 8]
-                    il.Emit(OpCodes.Add); // stack: [ref result, &temp + 8]
-                    il.Emit(OpCodes.Ldarg_0); // stack: [ref result, &temp + 8, address]
-                    il.Emit(OpCodes.Ldc_I4_8); // stack: [ref result, &temp + 8, address, 8]
-                    il.Emit(OpCodes.Add); // stack: [ref result, &temp + 8, address + 8]
-                    il.Emit(OpCodes.Ldind_I8); // stack: [ref result, &temp + 8, (long)*(address + 8)]
-                    il.Emit(OpCodes.Stind_I8); // *(temp + 8) = *(address + 8);
+                    il.Ldloca(temp); // stack: [ref result, &temp]
+                    il.Ldarg(0); // stack: [ref result, &temp, address]
+                    il.Ldind(typeof(long)); // stack: [ref result, &temp, (long)*address]
+                    il.Stind(typeof(long)); // *temp = *address;
+                    il.Ldloca(temp); // stack: [ref result, &temp]
+                    il.Ldc_I4(8); // stack: [ref result, &temp, 8]
+                    il.Add(); // stack: [ref result, &temp + 8]
+                    il.Ldarg(0); // stack: [ref result, &temp + 8, address]
+                    il.Ldc_I4(8); // stack: [ref result, &temp + 8, address, 8]
+                    il.Add(); // stack: [ref result, &temp + 8, address + 8]
+                    il.Ldind(typeof(long)); // stack: [ref result, &temp + 8, (long)*(address + 8)]
+                    il.Stind(typeof(long)); // *(temp + 8) = *(address + 8);
 
-                    il.Emit(OpCodes.Ldloc, temp); // stack: [ref result, ref temp]
+                    il.Ldloc(temp); // stack: [ref result, ref temp]
                     switch(expectedTypeCode)
                     {
                     case GroBufTypeCode.Int8:
-                        il.EmitCall(OpCodes.Call, decimalToInt8Method, null); // stack: [ref result, (sbyte)temp]
+                        il.Call(decimalToInt8Method); // stack: [ref result, (sbyte)temp]
                         break;
                     case GroBufTypeCode.UInt8:
-                        il.EmitCall(OpCodes.Call, decimalToUInt8Method, null); // stack: [ref result, (byte)temp]
+                        il.Call(decimalToUInt8Method, null); // stack: [ref result, (byte)temp]
                         break;
                     case GroBufTypeCode.Int16:
-                        il.EmitCall(OpCodes.Call, decimalToInt16Method, null); // stack: [ref result, (short)temp]
+                        il.Call(decimalToInt16Method, null); // stack: [ref result, (short)temp]
                         break;
                     case GroBufTypeCode.UInt16:
-                        il.EmitCall(OpCodes.Call, decimalToUInt16Method, null); // stack: [ref result, (ushort)temp]
+                        il.Call(decimalToUInt16Method, null); // stack: [ref result, (ushort)temp]
                         break;
                     case GroBufTypeCode.Int32:
-                        il.EmitCall(OpCodes.Call, decimalToInt32Method, null); // stack: [ref result, (int)temp]
+                        il.Call(decimalToInt32Method, null); // stack: [ref result, (int)temp]
                         break;
                     case GroBufTypeCode.UInt32:
-                        il.EmitCall(OpCodes.Call, decimalToUInt32Method, null); // stack: [ref result, (uint)temp]
+                        il.Call(decimalToUInt32Method, null); // stack: [ref result, (uint)temp]
                         break;
                     case GroBufTypeCode.Int64:
-                        il.EmitCall(OpCodes.Call, decimalToInt64Method, null); // stack: [ref result, (long)temp]
+                        il.Call(decimalToInt64Method, null); // stack: [ref result, (long)temp]
                         break;
                     case GroBufTypeCode.UInt64:
-                        il.EmitCall(OpCodes.Call, decimalToUInt64Method, null); // stack: [ref result, (ulong)temp]
+                        il.Call(decimalToUInt64Method, null); // stack: [ref result, (ulong)temp]
                         break;
                     case GroBufTypeCode.Single:
-                        il.EmitCall(OpCodes.Call, decimalToSingleMethod, null); // stack: [ref result, (float)temp]
+                        il.Call(decimalToSingleMethod, null); // stack: [ref result, (float)temp]
                         break;
                     case GroBufTypeCode.Double:
-                        il.EmitCall(OpCodes.Call, decimalToDoubleMethod, null); // stack: [ref result, (double)temp]
+                        il.Call(decimalToDoubleMethod, null); // stack: [ref result, (double)temp]
                         break;
                     case GroBufTypeCode.Decimal:
                         break;
@@ -167,14 +166,14 @@ namespace GroBuf.Readers
             }
             else
             {
-                il.Emit(OpCodes.Ldarg_0); // stack: [ref result, address]
+                il.Ldarg(0); // stack: [ref result, address]
                 EmitReadPrimitiveValue(il, Type == typeof(bool) ? GetTypeCodeForBool(typeCode) : typeCode); // stack: [ref result, value]
                 if(Type == typeof(bool))
                 {
-                    il.Emit(OpCodes.Ldc_I4_0); // stack: [ref result, value, 0]
-                    il.Emit(OpCodes.Ceq); // stack: [ref result, value == 0]
-                    il.Emit(OpCodes.Ldc_I4_1); // stack: [ref result, value == 0, 1]
-                    il.Emit(OpCodes.Xor); // stack: [ref result, value != 0]
+                    il.Ldc_I4(0); // stack: [ref result, value, 0]
+                    il.Ceq(); // stack: [ref result, value == 0]
+                    il.Ldc_I4(1); // stack: [ref result, value == 0, 1]
+                    il.Xor(); // stack: [ref result, value != 0]
                 }
                 else
                     EmitConvertValue(il, typeCode, expectedTypeCode);
@@ -184,33 +183,33 @@ namespace GroBuf.Readers
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
             case GroBufTypeCode.Boolean:
-                il.Emit(OpCodes.Stind_I1); // result = value
+                il.Stind(typeof(byte)); // result = value
                 break;
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
-                il.Emit(OpCodes.Stind_I2); // result = value
+                il.Stind(typeof(short)); // result = value
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
-                il.Emit(OpCodes.Stind_I4); // result = value
+                il.Stind(typeof(int)); // result = value
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
-                il.Emit(OpCodes.Stind_I8); // result = value
+                il.Stind(typeof(long)); // result = value
                 break;
             case GroBufTypeCode.Single:
-                il.Emit(OpCodes.Stind_R4); // result = value
+                il.Stind(typeof(float)); // result = value
                 break;
             case GroBufTypeCode.Double:
-                il.Emit(OpCodes.Stind_R8); // result = value
+                il.Stind(typeof(double)); // result = value
                 break;
             case GroBufTypeCode.Decimal:
-                il.Emit(OpCodes.Stobj, typeof(decimal)); // result = value
+                il.Stobj(typeof(decimal)); // result = value
                 break;
             default:
                 throw new NotSupportedException("Type with type code '" + expectedTypeCode + "' is not supported");
             }
-            il.Emit(OpCodes.Ret);
+            il.Ret();
             return method;
         }
 
@@ -223,60 +222,60 @@ namespace GroBuf.Readers
             return typeCode;
         }
 
-        private static void EmitConvertValue(ILGenerator il, GroBufTypeCode typeCode, GroBufTypeCode expectedTypeCode)
+        private static void EmitConvertValue(GroboIL il, GroBufTypeCode typeCode, GroBufTypeCode expectedTypeCode)
         {
             if(expectedTypeCode == typeCode)
                 return;
             switch(expectedTypeCode)
             {
             case GroBufTypeCode.Int8:
-                il.Emit(OpCodes.Conv_I1);
+                il.Conv_I1();
                 break;
             case GroBufTypeCode.UInt8:
             case GroBufTypeCode.Boolean:
-                il.Emit(OpCodes.Conv_U1);
+                il.Conv_U1();
                 break;
             case GroBufTypeCode.Int16:
-                il.Emit(OpCodes.Conv_I2);
+                il.Conv_I2();
                 break;
             case GroBufTypeCode.UInt16:
-                il.Emit(OpCodes.Conv_U2);
+                il.Conv_U2();
                 break;
             case GroBufTypeCode.Int32:
                 if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTime)
-                    il.Emit(OpCodes.Conv_I4);
+                    il.Conv_I4();
                 break;
             case GroBufTypeCode.UInt32:
                 if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTime)
-                    il.Emit(OpCodes.Conv_U4);
+                    il.Conv_U4();
                 break;
             case GroBufTypeCode.Int64:
                 if(typeCode != GroBufTypeCode.UInt64)
                 {
                     if(typeCode == GroBufTypeCode.UInt8 || typeCode == GroBufTypeCode.UInt16 || typeCode == GroBufTypeCode.UInt32)
-                        il.Emit(OpCodes.Conv_U8);
+                        il.Conv_U8();
                     else
-                        il.Emit(OpCodes.Conv_I8);
+                        il.Conv_I8();
                 }
                 break;
             case GroBufTypeCode.UInt64:
                 if(typeCode != GroBufTypeCode.Int64 && typeCode != GroBufTypeCode.DateTime)
                 {
                     if(typeCode == GroBufTypeCode.Int8 || typeCode == GroBufTypeCode.Int16 || typeCode == GroBufTypeCode.Int32)
-                        il.Emit(OpCodes.Conv_I8);
+                        il.Conv_I8();
                     else
-                        il.Emit(OpCodes.Conv_U8);
+                        il.Conv_U8();
                 }
                 break;
             case GroBufTypeCode.Single:
                 if(typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.UInt32)
-                    il.Emit(OpCodes.Conv_R_Un);
-                il.Emit(OpCodes.Conv_R4);
+                    il.Conv_R_Un();
+                il.Conv_R4();
                 break;
             case GroBufTypeCode.Double:
                 if(typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.UInt32)
-                    il.Emit(OpCodes.Conv_R_Un);
-                il.Emit(OpCodes.Conv_R8);
+                    il.Conv_R_Un();
+                il.Conv_R8();
                 break;
             case GroBufTypeCode.Decimal:
                 switch(typeCode)
@@ -287,23 +286,23 @@ namespace GroBuf.Readers
                 case GroBufTypeCode.Int32:
                 case GroBufTypeCode.UInt8:
                 case GroBufTypeCode.UInt16:
-                    il.Emit(OpCodes.Newobj, decimalByIntConstructor);
+                    il.Newobj(decimalByIntConstructor);
                     break;
                 case GroBufTypeCode.UInt32:
-                    il.Emit(OpCodes.Newobj, decimalByUIntConstructor);
+                    il.Newobj(decimalByUIntConstructor);
                     break;
                 case GroBufTypeCode.Int64:
                 case GroBufTypeCode.DateTime:
-                    il.Emit(OpCodes.Newobj, decimalByLongConstructor);
+                    il.Newobj(decimalByLongConstructor);
                     break;
                 case GroBufTypeCode.UInt64:
-                    il.Emit(OpCodes.Newobj, decimalByULongConstructor);
+                    il.Newobj(decimalByULongConstructor);
                     break;
                 case GroBufTypeCode.Single:
-                    il.Emit(OpCodes.Newobj, decimalByFloatConstructor);
+                    il.Newobj(decimalByFloatConstructor);
                     break;
                 case GroBufTypeCode.Double:
-                    il.Emit(OpCodes.Newobj, decimalByDoubleConstructor);
+                    il.Newobj(decimalByDoubleConstructor);
                     break;
                 default:
                     throw new NotSupportedException("Type with type code '" + typeCode + "' is not supported");
@@ -314,41 +313,41 @@ namespace GroBuf.Readers
             }
         }
 
-        private static void EmitReadPrimitiveValue(ILGenerator il, GroBufTypeCode typeCode)
+        private static void EmitReadPrimitiveValue(GroboIL il, GroBufTypeCode typeCode)
         {
             switch(typeCode)
             {
             case GroBufTypeCode.Int8:
-                il.Emit(OpCodes.Ldind_I1);
+                il.Ldind(typeof(sbyte));
                 break;
             case GroBufTypeCode.UInt8:
             case GroBufTypeCode.Boolean:
-                il.Emit(OpCodes.Ldind_U1);
+                il.Ldind(typeof(byte));
                 break;
             case GroBufTypeCode.Int16:
-                il.Emit(OpCodes.Ldind_I2);
+                il.Ldind(typeof(short));
                 break;
             case GroBufTypeCode.UInt16:
-                il.Emit(OpCodes.Ldind_U2);
+                il.Ldind(typeof(ushort));
                 break;
             case GroBufTypeCode.Int32:
-                il.Emit(OpCodes.Ldind_I4);
+                il.Ldind(typeof(int));
                 break;
             case GroBufTypeCode.UInt32:
-                il.Emit(OpCodes.Ldind_U4);
+                il.Ldind(typeof(uint));
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.DateTime:
-                il.Emit(OpCodes.Ldind_I8);
+                il.Ldind(typeof(long));
                 break;
             case GroBufTypeCode.UInt64:
-                il.Emit(OpCodes.Ldind_I8);
+                il.Ldind(typeof(ulong));
                 break;
             case GroBufTypeCode.Single:
-                il.Emit(OpCodes.Ldind_R4);
+                il.Ldind(typeof(float));
                 break;
             case GroBufTypeCode.Double:
-                il.Emit(OpCodes.Ldind_R8);
+                il.Ldind(typeof(double));
                 break;
             default:
                 throw new NotSupportedException("Type with type code '" + typeCode + "' is not supported");

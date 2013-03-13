@@ -1,11 +1,12 @@
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.SizeCounters
 {
     internal class SizeCounterMethodBuilderContext
     {
-        public SizeCounterMethodBuilderContext(SizeCounterTypeBuilderContext context, ILGenerator il)
+        public SizeCounterMethodBuilderContext(SizeCounterTypeBuilderContext context, GroboIL il)
         {
             Context = context;
             Il = il;
@@ -16,7 +17,7 @@ namespace GroBuf.SizeCounters
         /// </summary>
         public void LoadObj()
         {
-            Il.Emit(OpCodes.Ldarg_0);
+            Il.Ldarg(0);
         }
 
         /// <summary>
@@ -24,7 +25,7 @@ namespace GroBuf.SizeCounters
         /// </summary>
         public void LoadObjByRef()
         {
-            Il.Emit(OpCodes.Ldarga_S, 0);
+            Il.Ldarga(0);
         }
 
         /// <summary>
@@ -32,7 +33,7 @@ namespace GroBuf.SizeCounters
         /// </summary>
         public void LoadWriteEmpty()
         {
-            Il.Emit(OpCodes.Ldarg_1);
+            Il.Ldarg(1);
         }
 
         /// <summary>
@@ -41,8 +42,7 @@ namespace GroBuf.SizeCounters
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
         {
-            Il.Emit(OpCodes.Ldnull);
-            Il.Emit(OpCodes.Ldfld, field);
+            Il.Ldfld(field);
         }
 
         /// <summary>
@@ -51,10 +51,10 @@ namespace GroBuf.SizeCounters
         public void ReturnForNull()
         {
             LoadWriteEmpty(); // stack: [writeEmpty]
-            Il.Emit(OpCodes.Ret);
+            Il.Ret();
         }
 
         public SizeCounterTypeBuilderContext Context { get; private set; }
-        public ILGenerator Il { get; private set; }
+        public GroboIL Il { get; private set; }
     }
 }

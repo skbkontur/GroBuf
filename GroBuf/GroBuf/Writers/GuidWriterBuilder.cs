@@ -1,5 +1,4 @@
 using System;
-using System.Reflection.Emit;
 
 namespace GroBuf.Writers
 {
@@ -16,15 +15,15 @@ namespace GroBuf.Writers
             context.WriteTypeCode(GroBufTypeCode.Guid);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]
-            il.Emit(OpCodes.Ldind_I8); // stack: [&result[index], (int64)*obj]
-            il.Emit(OpCodes.Stind_I8); // result[index] = (int64)*obj
+            il.Ldind(typeof(long)); // stack: [&result[index], (int64)*obj]
+            il.Stind(typeof(long)); // result[index] = (int64)*obj
             context.IncreaseIndexBy8(); // index = index + 8
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]
-            il.Emit(OpCodes.Ldc_I4_8); // stack: [&result[index], &obj, 8]
-            il.Emit(OpCodes.Add); // stack: [&result[index], &obj + 8]
-            il.Emit(OpCodes.Ldind_I8); // stack: [&result[index], *(&obj+8)]
-            il.Emit(OpCodes.Stind_I8); // result[index] = (int64)*(obj + 8)
+            il.Ldc_I4(8); // stack: [&result[index], &obj, 8]
+            il.Add(); // stack: [&result[index], &obj + 8]
+            il.Ldind(typeof(long)); // stack: [&result[index], *(&obj+8)]
+            il.Stind(typeof(long)); // result[index] = (int64)*(obj + 8)
             context.IncreaseIndexBy8(); // index = index + 8
         }
     }

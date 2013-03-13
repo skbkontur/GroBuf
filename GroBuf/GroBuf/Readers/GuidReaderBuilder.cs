@@ -1,5 +1,4 @@
 using System;
-using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
@@ -17,25 +16,25 @@ namespace GroBuf.Readers
             var il = context.Il;
             var pinnedResult = il.DeclareLocal(Type.MakeByRefType(), true);
 
-            il.Emit(OpCodes.Ldc_I4, 16);
+            il.Ldc_I4(16);
             context.AssertLength();
             context.LoadResultByRef(); // stack: [ref result]
-            il.Emit(OpCodes.Stloc, pinnedResult); // pinnedResult = ref result
-            il.Emit(OpCodes.Ldloc, pinnedResult); // stack: [&result]
-            il.Emit(OpCodes.Dup); // stack: [&result, &result]
+            il.Stloc(pinnedResult); // pinnedResult = ref result
+            il.Ldloc(pinnedResult); // stack: [&result]
+            il.Dup(); // stack: [&result, &result]
             context.GoToCurrentLocation(); // stack: [&result, &result, &data[index]]
-            il.Emit(OpCodes.Ldind_I8); // stack: [&result, &result, (int64)data[index]]
-            il.Emit(OpCodes.Stind_I8); // *result = (int64)data[index]; stack: [&result]
+            il.Ldind(typeof(long)); // stack: [&result, &result, (int64)data[index]]
+            il.Stind(typeof(long)); // *result = (int64)data[index]; stack: [&result]
             context.IncreaseIndexBy8(); // index = index + 8
-            il.Emit(OpCodes.Ldc_I4_8); // stack: [&result, 8]
-            il.Emit(OpCodes.Add); // stack: [&result + 8]
+            il.Ldc_I4(8); // stack: [&result, 8]
+            il.Add(); // stack: [&result + 8]
             context.GoToCurrentLocation(); // stack: [&result + 8, &data[index]]
-            il.Emit(OpCodes.Ldind_I8); // stack: [&result + 8, (int64)data[index]]
-            il.Emit(OpCodes.Stind_I8); // *(&result + 8) = (int64)data[index]; stack: []
+            il.Ldind(typeof(long)); // stack: [&result + 8, (int64)data[index]]
+            il.Stind(typeof(long)); // *(&result + 8) = (int64)data[index]; stack: []
             context.IncreaseIndexBy8(); // index = index + 8
-            il.Emit(OpCodes.Ldc_I4_0); // stack: [0]
-            il.Emit(OpCodes.Conv_U); // stack: [null]
-            il.Emit(OpCodes.Stloc, pinnedResult); // pinnedResult = null
+            il.Ldc_I4(0); // stack: [0]
+            il.Conv_U(); // stack: [null]
+            il.Stloc(pinnedResult); // pinnedResult = null
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
-using System.Reflection.Emit;
+
+using GrEmit;
 
 namespace GroBuf.SizeCounters
 {
@@ -21,15 +22,15 @@ namespace GroBuf.SizeCounters
                                                           Type, typeof(bool)
                                                       });
             sizeCounterTypeBuilderContext.SetCounter(Type, method);
-            var il = method.GetILGenerator();
+            var il = new GroboIL(method);
             var context = new SizeCounterMethodBuilderContext(sizeCounterTypeBuilderContext, il);
 
-            var notEmptyLabel = il.DefineLabel();
+            var notEmptyLabel = il.DefineLabel("notEmpty");
             if(CheckEmpty(context, notEmptyLabel)) // Check if obj is empty
                 context.ReturnForNull(); // return for null
             il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
             CountSizeNotEmpty(context); // Count size
-            il.Emit(OpCodes.Ret);
+            il.Ret();
             return method;
         }
 
@@ -41,11 +42,11 @@ namespace GroBuf.SizeCounters
         /// <param name="context">Current context</param>
         /// <param name="notEmptyLabel">Label where to go if <c>obj</c> is not empty</param>
         /// <returns>true if <c>obj</c> can be empty</returns>
-        protected virtual bool CheckEmpty(SizeCounterMethodBuilderContext context, Label notEmptyLabel)
+        protected virtual bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             if(!Type.IsClass) return false;
             context.LoadObj(); // stack: [obj]
-            context.Il.Emit(OpCodes.Brtrue, notEmptyLabel); // if(obj != null) goto notEmpty;
+            context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             return true;
         }
 
