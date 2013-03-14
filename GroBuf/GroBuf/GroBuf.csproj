@@ -95,6 +95,7 @@
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
+    <Compile Include="Readers\DictionaryReaderBuilder.cs" />
     <Compile Include="Readers\CustomReaderBuilder.cs" />
     <Compile Include="Readers\ObjectConstructionHelper.cs" />
     <Compile Include="Readers\PrimitivesArrayReaderBuilder.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\CustomSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\DictionarySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\DateTimeSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\EnumSizeCounterBuilder.cs" />
@@ -136,6 +138,7 @@
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
+    <Compile Include="Writers\DictionaryWriterBuilder.cs" />
     <Compile Include="Writers\CustomWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesArrayWriterBuilder.cs" />
     <Compile Include="Writers\DateTimeWriterBuilder.cs" />

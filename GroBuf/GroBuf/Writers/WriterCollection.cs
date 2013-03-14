@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -51,7 +52,9 @@ namespace GroBuf.Writers
                 writerBuilder = type.GetElementType().IsPrimitive ? (IWriterBuilder)new PrimitivesArrayWriterBuilder(type) : new ArrayWriterBuilder(type);
             else if(type == typeof(Array))
                 writerBuilder = new ArrayWriterBuilder(type);
-            else if(type == typeof(object))
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                writerBuilder = new DictionaryWriterBuilder(type);
+            else if (type == typeof(object))
                 writerBuilder = new ObjectWriterBuilder();
             else
                 writerBuilder = new ClassWriterBuilder(type);

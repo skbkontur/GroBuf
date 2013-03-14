@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -51,6 +52,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = type.GetElementType().IsPrimitive ? (ISizeCounterBuilder)new PrimitivesArraySizeCounterBuilder(type) : new ArraySizeCounterBuilder(type);
             else if(type == typeof(Array))
                 sizeCounterBuilder = new ArraySizeCounterBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                sizeCounterBuilder = new DictionarySizeCounterBuilder(type);
             else if(type == typeof(object))
                 sizeCounterBuilder = new ObjectSizeCounterBuilder();
             else

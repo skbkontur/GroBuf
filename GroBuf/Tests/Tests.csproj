@@ -81,6 +81,7 @@
     <Compile Include="TestChangeType.cs" />
     <Compile Include="TestCustomReadWrite.cs" />
     <Compile Include="TestDateTime.cs" />
+    <Compile Include="TestDictionary.cs" />
     <Compile Include="TestGetHashMultiThread.cs" />
     <Compile Include="TestHashCompatibility.cs" />
     <Compile Include="TestMultipleReadWrite.cs" />

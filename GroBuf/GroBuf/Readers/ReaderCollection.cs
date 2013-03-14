@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
@@ -51,7 +52,9 @@ namespace GroBuf.Readers
                 readerBuilder = type.GetElementType().IsPrimitive ? (IReaderBuilder)new PrimitivesArrayReaderBuilder(type) : new ArrayReaderBuilder(type);
             else if(type == typeof(Array))
                 readerBuilder = new ArrayReaderBuilder(type);
-            else if(type == typeof(object))
+            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+                readerBuilder = new DictionaryReaderBuilder(type);
+            else if (type == typeof(object))
                 readerBuilder = new ObjectReaderBuilder();
             else
                 readerBuilder = new ClassReaderBuilder(type);

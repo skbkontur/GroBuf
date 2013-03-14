@@ -93,6 +93,9 @@
         BooleanArray = 29,
 
         [DataLength(-1)]
+        Dictionary = 30,
+
+        [DataLength(-1)]
         CustomData = 255
     }
 }
