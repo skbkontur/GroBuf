@@ -21,6 +21,11 @@ namespace GroBuf.Readers
             else elementType = typeof(object);
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.BuildConstants(elementType);
+        }
+
         protected override unsafe void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();

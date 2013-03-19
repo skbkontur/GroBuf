@@ -15,6 +15,32 @@ namespace GroBuf.Readers
         {
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[]
+                {
+                    new KeyValuePair<string, Type>("setters_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])),
+                    new KeyValuePair<string, Type>("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), typeof(ulong[])),
+                });
+            foreach(var member in context.GetDataMembers(Type))
+            {
+                Type memberType;
+                switch(member.MemberType)
+                {
+                case MemberTypes.Property:
+                    memberType = ((PropertyInfo)member).PropertyType;
+                    break;
+                case MemberTypes.Field:
+                    memberType = ((FieldInfo)member).FieldType;
+                    break;
+                default:
+                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                }
+                context.BuildConstants(memberType);
+            }
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             MemberInfo[] dataMembers;
@@ -25,10 +51,11 @@ namespace GroBuf.Readers
             var end = context.Length;
             var typeCode = context.TypeCode;
 
-            MethodInfo[] setters = dataMembers.Select(member => member == null ? null : GetMemberSetter(context.Context, member)).ToArray();
+            KeyValuePair<Delegate, IntPtr>[] setters = dataMembers.Select(member => member == null ? default(KeyValuePair<Delegate, IntPtr>) : GetMemberSetter(context.Context, member)).ToArray();
 
-            FieldInfo settersField = context.Context.BuildConstField<IntPtr[]>("setters_" + Type.Name + "_" + Guid.NewGuid(), field => BuildSettersFieldInitializer(context.Context, field, setters));
-            FieldInfo hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
+            FieldInfo settersField = context.Context.InitConstField(Type, 0, setters.Select(pair => pair.Value).ToArray());
+            context.Context.InitConstField(Type, 1, setters.Select(pair => pair.Key).ToArray());
+            FieldInfo hashCodesField = context.Context.InitConstField(Type, 2, hashCodes);
 
             context.IncreaseIndexBy1(); // index = index + 1
             context.AssertTypeCode(GroBufTypeCode.Object);
@@ -102,28 +129,6 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(index < end) goto cycleStart; stack: []
         }
 
-        private static Action BuildSettersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] setters)
-        {
-            TypeBuilder typeBuilder = context.TypeBuilder;
-            MethodBuilder method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = new GroboIL(method);
-            il.Ldc_I4(setters.Length); // stack: [setters.Length]
-            il.Newarr(typeof(IntPtr)); // stack: [new IntPtr[setters.Length]]
-            il.Stfld(field); // settersField = new IntPtr[setters.Length]
-            il.Ldfld(field); // stack: [settersField]
-            for(int i = 0; i < setters.Length; ++i)
-            {
-                if(setters[i] == null) continue;
-                il.Dup(); // stack: [settersField, settersField]
-                il.Ldc_I4(i); // stack: [settersField, settersField, i]
-                il.Ldftn(setters[i]); // stack: [settersField, settersField, i, setters[i]]
-                il.Stelem(typeof(IntPtr)); // settersField[i] = setters[i]; stack: [settersField]
-            }
-            il.Pop();
-            il.Ret();
-            return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
-        }
-
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
             MemberInfo[] members = context.GetDataMembers(Type);
@@ -156,13 +161,13 @@ namespace GroBuf.Readers
             }
         }
 
-        private MethodInfo GetMemberSetter(ReaderTypeBuilderContext context, MemberInfo member)
+        private KeyValuePair<Delegate, IntPtr> GetMemberSetter(ReaderTypeBuilderContext context, MemberInfo member)
         {
-            MethodBuilder method = context.TypeBuilder.DefineMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
-                                                                    new[]
-                                                                        {
-                                                                            typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
-                                                                        });
+            var method = new DynamicMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), typeof(void),
+                                           new[]
+                                               {
+                                                   typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
+                                               }, context.Module, true);
             var il = new GroboIL(method);
 
             if(Type.IsClass)
@@ -193,23 +198,23 @@ namespace GroBuf.Readers
             case MemberTypes.Field:
                 var field = (FieldInfo)member;
                 il.Ldflda(field); // stack: [data, ref index, dataLength, ref result.field]
-                il.Call(context.GetReader(field.FieldType)); // reader(data, ref index, dataLength, ref result.field); stack: []
+                ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, dataLength, ref result.field); stack: []
                 break;
             case MemberTypes.Property:
                 var property = (PropertyInfo)member;
                 var propertyValue = il.DeclareLocal(property.PropertyType);
-                MethodInfo getter = property.GetGetMethod();
+                MethodInfo getter = property.GetGetMethod(true);
                 if(getter == null)
                     throw new MissingMethodException(Type.Name, property.Name + "_get");
                 il.Call(getter, Type); // stack: [ data, ref index, dataLength, result.property]
                 il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index, dataLength]
                 il.Ldloca(propertyValue); // stack: [data, ref index, dataLength, ref propertyValue]
-                il.Call(context.GetReader(property.PropertyType)); // reader(data, ref index, dataLength, ref propertyValue); stack: []
+                ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, dataLength, ref propertyValue); stack: []
                 il.Ldarg(3); // stack: [ref result]
                 if(Type.IsClass)
                     il.Ldind(typeof(object)); // stack: [result]
                 il.Ldloc(propertyValue); // stack: [result, propertyValue]
-                MethodInfo setter = property.GetSetMethod();
+                MethodInfo setter = property.GetSetMethod(true);
                 if(setter == null)
                     throw new MissingMethodException(Type.Name, property.Name + "_set");
                 il.Call(setter, Type); // result.property = propertyValue
@@ -218,7 +223,8 @@ namespace GroBuf.Readers
                 throw new NotSupportedException("Data member of type '" + member.MemberType + "' is not supported");
             }
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(ReaderDelegate<>).MakeGenericType(Type));
+            return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
     }
 }

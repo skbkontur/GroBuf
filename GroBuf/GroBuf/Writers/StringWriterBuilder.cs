@@ -12,6 +12,10 @@ namespace GroBuf.Writers
         {
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+        }
+
         protected override unsafe void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var length = context.LocalInt;

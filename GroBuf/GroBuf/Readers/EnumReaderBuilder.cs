@@ -12,13 +12,24 @@ namespace GroBuf.Readers
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was '" + Type + "'");
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[]
+                {
+                    new KeyValuePair<string, Type>("values_" + Type.Name + "_" + Guid.NewGuid(), typeof(int[])),
+                    new KeyValuePair<string, Type>("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), typeof(ulong[])),
+                });
+            context.BuildConstants(typeof(int));
+            context.BuildConstants(typeof(string));
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             int[] values;
             ulong[] hashCodes;
             BuildValuesTable(out values, out hashCodes);
-            var valuesField = context.Context.BuildConstField("values_" + Type.Name + "_" + Guid.NewGuid(), values);
-            var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
+            var valuesField = context.Context.InitConstField(Type, 0, values);
+            var hashCodesField = context.Context.InitConstField(Type, 1, hashCodes);
             var il = context.Il;
             il.Ldloc(context.TypeCode); // stack: [typeCode]
             il.Ldc_I4((int)GroBufTypeCode.Enum);
@@ -67,7 +78,7 @@ namespace GroBuf.Readers
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
             il.Ldloca(str); // stack: [pinnedData, ref index, dataLength, ref str]
-            il.Call(context.Context.GetReader(typeof(string))); // reader<string>(pinnedData, ref index, dataLength, ref str); stack: []
+            context.CallReader(typeof(string)); // reader<string>(pinnedData, ref index, dataLength, ref str); stack: []
             context.LoadResultByRef(); // stack: [ref result]
             il.Ldloc(str); // stack: [ref result, str]
             il.Call(typeof(GroBufHelpers).GetMethod("CalcHash", BindingFlags.Public | BindingFlags.Static)); // stack: [ref result, GroBufHelpers.CalcHash(str)]
@@ -78,7 +89,7 @@ namespace GroBuf.Readers
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
             context.LoadResultByRef(); // stack: [pinnedData, ref index, dataLength, ref result]
-            il.Call(context.Context.GetReader(typeof(int))); // reader<int>(pinnedData, ref index, dataLength, ref result)
+            context.CallReader(typeof(int)); // reader<int>(pinnedData, ref index, dataLength, ref result)
         }
 
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)

@@ -1,9 +1,8 @@
-﻿using System.Reflection;
-
-namespace GroBuf.Readers
+﻿namespace GroBuf.Readers
 {
     internal interface IReaderBuilder
     {
-        MethodInfo BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext);
+        void BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext);
+        void BuildConstants(ReaderConstantsBuilderContext context);
     }
 }

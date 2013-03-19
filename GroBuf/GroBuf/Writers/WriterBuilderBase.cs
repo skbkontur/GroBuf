@@ -1,5 +1,6 @@
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 
 using GrEmit;
 
@@ -12,16 +13,14 @@ namespace GroBuf.Writers
             Type = type;
         }
 
-        public MethodInfo BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext)
+        public void BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext)
         {
-            var typeBuilder = writerTypeBuilderContext.TypeBuilder;
-
-            var method = typeBuilder.DefineMethod("Write_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
-                                                  new[]
-                                                      {
-                                                          Type, typeof(bool), typeof(byte*), typeof(int).MakeByRefType(),
-                                                      });
-            writerTypeBuilderContext.SetWriter(Type, method);
+            var method = new DynamicMethod("Write_" + Type.Name + "_" + Guid.NewGuid(), typeof(void),
+                                           new[]
+                                               {
+                                                   Type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(),
+                                               }, writerTypeBuilderContext.Module, true);
+            writerTypeBuilderContext.SetWriterMethod(Type, method);
             var il = new GroboIL(method);
             var context = new WriterMethodBuilderContext(writerTypeBuilderContext, il);
 
@@ -31,9 +30,18 @@ namespace GroBuf.Writers
             il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
             WriteNotEmpty(context); // Write obj
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(WriterDelegate<>).MakeGenericType(Type));
+            var pointer = GroBufHelpers.ExtractDynamicMethodPointer(method);
+            writerTypeBuilderContext.SetWriterPointer(Type, pointer, @delegate);
         }
 
+        public void BuildConstants(WriterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new KeyValuePair<string, Type>[0]);
+            BuildConstantsInternal(context);
+        }
+
+        protected abstract void BuildConstantsInternal(WriterConstantsBuilderContext context);
         protected abstract void WriteNotEmpty(WriterMethodBuilderContext context);
 
         /// <summary>

@@ -11,6 +11,10 @@ namespace GroBuf.Writers
         {
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;

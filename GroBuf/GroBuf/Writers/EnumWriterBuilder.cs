@@ -12,10 +12,15 @@ namespace GroBuf.Writers
             if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was " + Type);
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), typeof(ulong[]))});
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var hashCodes = BuildHashCodesTable();
-            var hashCodesField = context.Context.BuildConstField("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), hashCodes);
+            var hashCodesField = context.Context.InitConstField(Type, 0, hashCodes);
 
             var il = context.Il;
             context.LoadField(hashCodesField); // stack: [hashCodes]

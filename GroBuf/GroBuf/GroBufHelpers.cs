@@ -2,6 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
+
+using GrEmit;
 
 namespace GroBuf
 {
@@ -18,7 +22,7 @@ namespace GroBuf
         public static ulong[] CalcHashAndCheck(IEnumerable<string> strings)
         {
             var dict = new Dictionary<ulong, string>();
-            foreach(string s in strings)
+            foreach(var s in strings)
             {
                 ulong hash = CalcHash(s);
                 if(hash == 0)
@@ -41,12 +45,39 @@ namespace GroBuf
 
         public static readonly int[] Lengths = BuildLengths();
 
+        public static readonly Func<DynamicMethod, IntPtr> ExtractDynamicMethodPointer = EmitDynamicMethodPointerExtractor();
+
+        private static Func<DynamicMethod, IntPtr> EmitDynamicMethodPointerExtractor()
+        {
+            var method = new DynamicMethod("DynamicMethodPointerExtractor", typeof(IntPtr), new[] {typeof(DynamicMethod)}, typeof(GroBufHelpers).Module, true);
+            var il = new GroboIL(method);
+            il.Ldarg(0); // stack: [dynamicMethod]
+            MethodInfo getMethodDescriptorMethod = typeof(DynamicMethod).GetMethod("GetMethodDescriptor", BindingFlags.Instance | BindingFlags.NonPublic);
+            if(getMethodDescriptorMethod == null)
+                throw new MissingMethodException(typeof(DynamicMethod).Name, "GetMethodDescriptor");
+            il.Call(getMethodDescriptorMethod); // stack: [dynamicMethod.GetMethodDescriptor()]
+            var runtimeMethodHandle = il.DeclareLocal(typeof(RuntimeMethodHandle));
+            il.Stloc(runtimeMethodHandle); // runtimeMethodHandle = dynamicMethod.GetMethodDescriptor(); stack: []
+            il.Ldloc(runtimeMethodHandle); // stack: [runtimeMethodHandle]
+            MethodInfo prepareMethodMethod = typeof(RuntimeHelpers).GetMethod("PrepareMethod", new[] {typeof(RuntimeMethodHandle)});
+            if(prepareMethodMethod == null)
+                throw new MissingMethodException(typeof(RuntimeHelpers).Name, "PrepareMethod");
+            il.Call(prepareMethodMethod); // RuntimeHelpers.PrepareMethod(runtimeMethodHandle)
+            MethodInfo getFunctionPointerMethod = typeof(RuntimeMethodHandle).GetMethod("GetFunctionPointer", BindingFlags.Instance | BindingFlags.Public);
+            if(getFunctionPointerMethod == null)
+                throw new MissingMethodException(typeof(RuntimeMethodHandle).Name, "GetFunctionPointer");
+            il.Ldloca(runtimeMethodHandle); // stack: [&runtimeMethodHandle]
+            il.Call(getFunctionPointerMethod); // stack: [runtimeMethodHandle.GetFunctionPointer()]
+            il.Ret(); // return runtimeMethodHandle.GetFunctionPointer()
+            return (Func<DynamicMethod, IntPtr>)method.CreateDelegate(typeof(Func<DynamicMethod, IntPtr>));
+        }
+
         private static int[] BuildLengths()
         {
             var lengths = new int[256];
             Type type = typeof(GroBufTypeCode);
             FieldInfo[] fields = type.GetFields();
-            foreach(FieldInfo field in fields)
+            foreach(var field in fields)
             {
                 if(field.FieldType != type) continue;
                 var attribute = (DataLengthAttribute)field.GetCustomAttributes(typeof(DataLengthAttribute), false).SingleOrDefault();

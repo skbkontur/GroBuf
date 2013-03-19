@@ -134,14 +134,14 @@ namespace GroBuf
             return reader;
         }
 
-        private MethodInfo GetReadMethod(Type type)
+        private IntPtr GetReadMethod(Type type)
         {
-            var readMethod = (MethodInfo)readMethods[type];
+            var readMethod = (IntPtr?)readMethods[type];
             if(readMethod == null)
             {
                 lock(readMethodsLock)
                 {
-                    readMethod = (MethodInfo)readMethods[type];
+                    readMethod = (IntPtr?)readMethods[type];
                     if(readMethod == null)
                     {
                         readMethod = new ReaderTypeBuilder(this, module, readerCollection, dataMembersExtractor).BuildReader(type);
@@ -149,13 +149,13 @@ namespace GroBuf
                     }
                 }
             }
-            return readMethod;
+            return readMethod.Value;
         }
 
         private ReaderDelegate<T> BuildReader<T>()
         {
             var type = typeof(T);
-            MethodInfo readMethod = GetReadMethod(type);
+            var reader = GetReadMethod(type);
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [data]
@@ -190,7 +190,8 @@ namespace GroBuf
                 il.MarkLabel(notNullLabel);
             }
 
-            il.Call(readMethod); // reader(data, ref index, length, ref result); stack: []
+            il.Ldc_IntPtr(reader);
+            il.Calli(CallingConventions.Standard, typeof(void), new[] { typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType() }); // reader(data, ref index, length, ref result); stack: []
             il.Ret();
 
             return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));
@@ -198,7 +199,7 @@ namespace GroBuf
 
         private ReaderDelegate BuildReader(Type type)
         {
-            var readMethod = GetReadMethod(type);
+            var reader = GetReadMethod(type);
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), typeof(object).MakeByRefType()}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [data]
@@ -254,7 +255,8 @@ namespace GroBuf
                 il.Ldloca(local); // stack: [data, ref index, length, ref local]
             }
 
-            il.Call(readMethod); // reader(data, ref index, length, ref result); stack: []
+            il.Ldc_IntPtr(reader);
+            il.Calli(CallingConventions.Standard, typeof(void), new[] { typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType() }); // reader(data, ref index, length, ref result); stack: []
 
             if(type.IsValueType)
             {

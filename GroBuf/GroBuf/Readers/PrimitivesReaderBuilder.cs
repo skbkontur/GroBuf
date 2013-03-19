@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 
 using GrEmit;
+
+using System.Linq;
 
 namespace GroBuf.Readers
 {
@@ -14,11 +18,21 @@ namespace GroBuf.Readers
             if(!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[]
+                {
+                    new KeyValuePair<string, Type>("readers_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])),
+                });
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
             var readers = BuildPrimitiveValueReaders(context.Context);
-            var readersField = context.Context.BuildConstField<IntPtr[]>("readers_" + Type.Name + "_" + Guid.NewGuid(), field => BuildReadersFieldInitializer(context.Context, field, readers));
+            var readersField = context.Context.InitConstField(Type, 0, readers.Select(pair => pair.Value).ToArray());
+            context.Context.InitConstField(Type, 1, readers.Select(pair => pair.Key).ToArray());
             var il = context.Il;
 
             context.GoToCurrentLocation(); // stack: [&data[index]]
@@ -30,31 +44,11 @@ namespace GroBuf.Readers
             il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(byte*), Type.MakeByRefType()}); // readers[typeCode](&data[index], ref result); stack: []
         }
 
-        private static Action BuildReadersFieldInitializer(ReaderTypeBuilderContext context, FieldInfo field, MethodInfo[] readers)
-        {
-            var typeBuilder = context.TypeBuilder;
-            var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = new GroboIL(method);
-            il.Ldc_I4(readers.Length); // stack: [readers.Length]
-            il.Newarr(typeof(IntPtr)); // stack: [new IntPtr[readers.Length]]
-            il.Stfld(field); // readersField = new IntPtr[readers.Length]
-            il.Ldfld(field); // stack: [readersField]
-            for(int i = 0; i < readers.Length; ++i)
-            {
-                if(readers[i] == null) continue;
-                il.Dup(); // stack: [readersField, readersField]
-                il.Ldc_I4(i); // stack: [readersField, readersField, i]
-                il.Ldftn(readers[i]); // stack: [readersField, readersField, i, readers[i]]
-                il.Stelem(typeof(IntPtr)); // readersField[i] = readers[i]; stack: [readersField]
-            }
-            il.Pop();
-            il.Ret();
-            return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
-        }
+        private delegate void PrimitiveValueReaderDelegate<T>(IntPtr data, ref T result);
 
-        private MethodInfo[] BuildPrimitiveValueReaders(ReaderTypeBuilderContext context)
+        private KeyValuePair<Delegate, IntPtr>[] BuildPrimitiveValueReaders(ReaderTypeBuilderContext context)
         {
-            var result = new MethodInfo[256];
+            var result = new KeyValuePair<Delegate, IntPtr>[256];
             var defaultReader = BuildDefaultValueReader(context);
             for(int i = 0; i < 256; ++i)
                 result[i] = defaultReader;
@@ -73,21 +67,20 @@ namespace GroBuf.Readers
         }
 
         // todo: kill
-        private MethodInfo BuildDefaultValueReader(ReaderTypeBuilderContext context)
+        private KeyValuePair<Delegate, IntPtr> BuildDefaultValueReader(ReaderTypeBuilderContext context)
         {
-            var method = context.TypeBuilder.DefineMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
-                                                          typeof(void), new[] {typeof(byte*), Type.MakeByRefType()});
+            var method = new DynamicMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(1); // stack: [ref result]
             il.Initobj(Type); // [result = default(T)]
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(PrimitiveValueReaderDelegate<>).MakeGenericType(Type));
+            return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
-        private MethodInfo BuildPrimitiveValueReader(ReaderTypeBuilderContext context, GroBufTypeCode typeCode)
+        private KeyValuePair<Delegate, IntPtr> BuildPrimitiveValueReader(ReaderTypeBuilderContext context, GroBufTypeCode typeCode)
         {
-            var method = context.TypeBuilder.DefineMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static,
-                                                          typeof(void), new[] {typeof(byte*), Type.MakeByRefType()});
+            var method = new DynamicMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, context.Module, true);
             var il = new GroboIL(method);
             var expectedTypeCode = GroBufTypeCodeMap.GetTypeCode(Type);
 
@@ -210,7 +203,8 @@ namespace GroBuf.Readers
                 throw new NotSupportedException("Type with type code '" + expectedTypeCode + "' is not supported");
             }
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(PrimitiveValueReaderDelegate<>).MakeGenericType(Type));
+            return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
         private GroBufTypeCode GetTypeCodeForBool(GroBufTypeCode typeCode)

@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 
 using GrEmit;
@@ -152,6 +153,20 @@ namespace GroBuf.Writers
             Il.Ldc_I4((int)typeCode); // stack: [&result[index], typeCode]
             Il.Stind(typeof(byte)); // result[index] = typeCode
             IncreaseIndexBy1(); // index = index + 1
+        }
+
+        public void CallWriter(Type type)
+        {
+            var counter = Context.GetWriter(type);
+            if (counter.Pointer != IntPtr.Zero)
+                Il.Ldc_IntPtr(counter.Pointer);
+            else
+            {
+                Il.Ldfld(Context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
+                Il.Ldc_I4(counter.Index);
+                Il.Ldelem(typeof(IntPtr));
+            }
+            Il.Calli(CallingConventions.Standard, typeof(void), new[] { type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType() });
         }
 
         public WriterTypeBuilderContext Context { get; private set; }

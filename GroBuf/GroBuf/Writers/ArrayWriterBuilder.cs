@@ -31,6 +31,11 @@ namespace GroBuf.Writers
             return true;
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.BuildConstants(elementType);
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
@@ -60,7 +65,7 @@ namespace GroBuf.Writers
             il.Ldc_I4(1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]
             context.LoadIndexByRef(); // stack: [obj[i], true, result, ref index]
-            il.Call(context.Context.GetWriter(elementType)); // writer(obj[i], true, result, ref index); stack: []
+            context.CallWriter(elementType); // writer(obj[i], true, result, ref index); stack: []
             il.Ldloc(length); // stack: [length]
             il.Ldloc(i); // stack: [length, i]
             il.Ldc_I4(1); // stack: [length, i, 1]

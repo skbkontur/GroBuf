@@ -1,9 +1,8 @@
-﻿using System.Reflection;
-
-namespace GroBuf.SizeCounters
+﻿namespace GroBuf.SizeCounters
 {
     internal interface ISizeCounterBuilder
     {
-        MethodInfo BuildSizeCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext);
+        void BuildSizeCounter(SizeCounterBuilderContext sizeCounterBuilderContext);
+        void BuildConstants(SizeCounterConstantsBuilderContext context);
     }
 }

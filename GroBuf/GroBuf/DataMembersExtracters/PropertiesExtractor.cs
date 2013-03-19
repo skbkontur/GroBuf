@@ -8,7 +8,7 @@ namespace GroBuf.DataMembersExtracters
     {
         public MemberInfo[] GetMembers(Type type)
         {
-            return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.GetGetMethod() != null && property.GetSetMethod() != null).ToArray();
+            return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Where(property => property.CanRead && property.CanWrite).ToArray();
         }
     }
 }

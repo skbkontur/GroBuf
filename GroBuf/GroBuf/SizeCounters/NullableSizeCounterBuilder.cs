@@ -13,13 +13,18 @@ namespace GroBuf.SizeCounters
                 throw new InvalidOperationException("Expected nullable but was '" + Type + "'");
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+            context.BuildConstants(Type.GetGenericArguments()[0]);
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
             context.LoadObjByRef(); // stack: [&obj]
             il.Call(Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
-            il.Call(context.Context.GetCounter(Type.GetGenericArguments()[0])); // stack: [counter(obj.Value, writeEmpty)]
+            context.CallSizeCounter(Type.GetGenericArguments()[0]); // stack: [counter(obj.Value, writeEmpty)]
         }
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)

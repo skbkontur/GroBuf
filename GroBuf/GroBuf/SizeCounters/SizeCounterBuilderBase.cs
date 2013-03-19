@@ -1,5 +1,6 @@
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 
 using GrEmit;
 
@@ -12,18 +13,12 @@ namespace GroBuf.SizeCounters
             Type = type;
         }
 
-        public MethodInfo BuildSizeCounter(SizeCounterTypeBuilderContext sizeCounterTypeBuilderContext)
+        public void BuildSizeCounter(SizeCounterBuilderContext sizeCounterBuilderContext)
         {
-            var typeBuilder = sizeCounterTypeBuilderContext.TypeBuilder;
-
-            var method = typeBuilder.DefineMethod("Count_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(int),
-                                                  new[]
-                                                      {
-                                                          Type, typeof(bool)
-                                                      });
-            sizeCounterTypeBuilderContext.SetCounter(Type, method);
+            var method = new DynamicMethod("Count_" + Type.Name + "_" + Guid.NewGuid(), typeof(int), new[] {Type, typeof(bool)}, sizeCounterBuilderContext.Module, true);
+            sizeCounterBuilderContext.SetSizeCounterMethod(Type, method);
             var il = new GroboIL(method);
-            var context = new SizeCounterMethodBuilderContext(sizeCounterTypeBuilderContext, il);
+            var context = new SizeCounterMethodBuilderContext(sizeCounterBuilderContext, il);
 
             var notEmptyLabel = il.DefineLabel("notEmpty");
             if(CheckEmpty(context, notEmptyLabel)) // Check if obj is empty
@@ -31,8 +26,18 @@ namespace GroBuf.SizeCounters
             il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
             CountSizeNotEmpty(context); // Count size
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(SizeCounterDelegate<>).MakeGenericType(Type));
+            var pointer = GroBufHelpers.ExtractDynamicMethodPointer(method);
+            sizeCounterBuilderContext.SetSizeCounterPointer(Type, pointer, @delegate);
         }
+
+        public void BuildConstants(SizeCounterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new KeyValuePair<string, Type>[0]);
+            BuildConstantsInternal(context);
+        }
+
+        protected abstract void BuildConstantsInternal(SizeCounterConstantsBuilderContext context);
 
         protected abstract void CountSizeNotEmpty(SizeCounterMethodBuilderContext context);
 

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 
 using GrEmit;
 
@@ -14,12 +16,23 @@ namespace GroBuf.Writers
         {
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[]
+                {
+                    new KeyValuePair<string, Type>("writers_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])),
+                });
+            Array.ForEach(primitiveTypes, context.BuildConstants);
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
 
             var writers = GetWriters(context.Context);
-            var writersField = context.Context.BuildConstField<IntPtr[]>("writers_" + Type.Name + "_" + Guid.NewGuid(), field => BuildWritersFieldInitializer(context.Context, field, writers));
+            var writersField = context.Context.InitConstField(Type, 0, writers.Select(pair => pair.Value).ToArray());
+            context.Context.InitConstField(Type, 1, writers.Select(pair => pair.Key).ToArray());
 
             context.LoadObj(); // stack: [obj]
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
@@ -45,69 +58,54 @@ namespace GroBuf.Writers
             context.WriteNull();
         }
 
-        private static Action BuildWritersFieldInitializer(WriterTypeBuilderContext context, FieldInfo field, MethodInfo[] writers)
+        private static KeyValuePair<Delegate, IntPtr>[] GetWriters(WriterTypeBuilderContext context)
         {
-            var typeBuilder = context.TypeBuilder;
-            var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = new GroboIL(method);
-            il.Ldc_I4(writers.Length); // stack: [writers.Length]
-            il.Newarr(typeof(IntPtr)); // stack: [new IntPtr[writers.Length]]
-            il.Stfld(field); // writersField = new IntPtr[writers.Length]
-            il.Ldfld(field); // stack: [writersField]
-            for(int i = 0; i < writers.Length; ++i)
-            {
-                if(writers[i] == null) continue;
-                il.Dup(); // stack: [writersField, writersField]
-                il.Ldc_I4(i); // stack: [writersField, writersField, i]
-                il.Ldftn(writers[i]); // stack: [writersField, writersField, i, writers[i]]
-                il.Stelem(typeof(IntPtr)); // writersField[i] = writers[i]; stack: [writersField]
-            }
-            il.Pop();
-            il.Ret();
-            return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
-        }
-
-        private static MethodInfo[] GetWriters(WriterTypeBuilderContext context)
-        {
-            var dict = new[]
-                {
-                    typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
-                }.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));
+            var dict = primitiveTypes.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));
             foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
             {
                 if(!dict.ContainsKey(value))
-                    dict.Add(value, null);
+                    dict.Add(value, new KeyValuePair<Delegate, IntPtr>(null, IntPtr.Zero));
             }
             int max = dict.Keys.Cast<int>().Max();
-            var result = new MethodInfo[max + 1];
+            var result = new KeyValuePair<Delegate, IntPtr>[max + 1];
             foreach(var entry in dict)
                 result[(int)entry.Key] = entry.Value;
             return result;
         }
 
-        private static MethodInfo GetWriter(WriterTypeBuilderContext context, Type type)
+        private static KeyValuePair<Delegate, IntPtr> GetWriter(WriterTypeBuilderContext context, Type type)
         {
-            var method = context.TypeBuilder.DefineMethod("CastTo_" + type.Name + "_AndWrite_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
+            var method = new DynamicMethod("CastTo_" + type.Name + "_AndWrite_" + Guid.NewGuid(), typeof(void),
                                                           new[]
                                                               {
-                                                                  typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType()
-                                                              });
+                                                                  typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()
+                                                              }, context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(0); // stack: [obj]
-            if(type.IsClass)
-                il.Castclass(type); // stack: [(type)obj]
-            else
+            if(type.IsValueType)
                 il.Unbox_Any(type); // stack: [(type)obj]
+//            else
+//                il.Castclass(type); // stack: [(type)obj]
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Call(context.GetWriter(type)); // write<type>((type)obj, writeEmpty, result, ref index)
+            var writer = context.GetWriter(type).Pointer;
+            if (writer == IntPtr.Zero)
+                throw new InvalidOperationException();
+            il.Ldc_IntPtr(writer);
+            il.Calli(CallingConventions.Standard, typeof(void), new[] { type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType() }); // write<type>((type)obj, writeEmpty, result, ref index)
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(WriterDelegate<object>));
+            return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
         private static readonly MethodInfo getTypeMethod = ((MethodCallExpression)((Expression<Func<object, Type>>)(obj => obj.GetType())).Body).Method;
         private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufTypeCodeMap.GetTypeCode(type))).Body).Method;
+        private static readonly Type[] primitiveTypes = new[]
+                {
+                    typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
+                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+                };
+
     }
 }

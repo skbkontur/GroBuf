@@ -18,6 +18,11 @@ namespace GroBuf.Readers
             else elementType = typeof(object);
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.BuildConstants(elementType);
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
@@ -80,7 +85,7 @@ namespace GroBuf.Readers
 
             il.Ldelema(elementType); // stack: [pinnedData, ref index, dataLength, ref result[i]]
 
-            il.Call(context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
+            context.CallReader(elementType); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
             il.Ldloc(i); // stack: [i]
             il.Ldc_I4(1); // stack: [i, 1]
             il.Add(); // stack: [i + 1]

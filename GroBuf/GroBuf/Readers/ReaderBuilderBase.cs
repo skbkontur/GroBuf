@@ -1,5 +1,6 @@
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Reflection.Emit;
 
 using GrEmit;
 
@@ -12,25 +13,32 @@ namespace GroBuf.Readers
             Type = type;
         }
 
-        public MethodInfo BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext)
+        public void BuildReader(ReaderTypeBuilderContext readerTypeBuilderContext)
         {
-            var typeBuilder = readerTypeBuilderContext.TypeBuilder;
-
-            var method = typeBuilder.DefineMethod("Read_" + Type.Name + "_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(void),
-                                                  new[]
-                                                      {
-                                                          typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
-                                                      });
-            readerTypeBuilderContext.SetReader(Type, method);
+            var method = new DynamicMethod("Read_" + Type.Name + "_" + Guid.NewGuid(), typeof(void),
+                                           new[]
+                                               {
+                                                   typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
+                                               }, readerTypeBuilderContext.Module, true);
+            readerTypeBuilderContext.SetReaderMethod(Type, method);
             var il = new GroboIL(method);
             var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il);
 
             ReadTypeCodeAndCheck(context); // Read TypeCode and check
             ReadNotEmpty(context); // Read obj
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(ReaderDelegate<>).MakeGenericType(Type));
+            var pointer = GroBufHelpers.ExtractDynamicMethodPointer(method);
+            readerTypeBuilderContext.SetReaderPointer(Type, pointer, @delegate);
         }
 
+        public void BuildConstants(ReaderConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new KeyValuePair<string, Type>[0]);
+            BuildConstantsInternal(context);
+        }
+
+        protected abstract void BuildConstantsInternal(ReaderConstantsBuilderContext context);
         protected abstract void ReadNotEmpty(ReaderMethodBuilderContext context);
 
         protected Type Type { get; private set; }

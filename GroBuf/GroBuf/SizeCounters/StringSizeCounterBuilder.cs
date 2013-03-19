@@ -11,6 +11,10 @@ namespace GroBuf.SizeCounters
         {
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;

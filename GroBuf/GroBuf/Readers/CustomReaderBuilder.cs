@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace GroBuf.Readers
@@ -11,12 +12,17 @@ namespace GroBuf.Readers
             this.reader = reader;
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("reader_" + Type.Name + "_" + Guid.NewGuid(), typeof(ReaderDelegate))});
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             var groBufReader = context.Context.GroBufReader;
             Func<Type, ReaderDelegate> readersFactory = type => ((IntPtr data, ref int index, int length, ref object result) => groBufReader.Read(type, data, ref index, length, ref result));
             var readerDelegate = (ReaderDelegate)reader.Invoke(null, new[] {readersFactory});
-            var readerField = context.Context.BuildConstField("reader_" + Type.Name + "_" + Guid.NewGuid(), readerDelegate);
+            var readerField = context.Context.InitConstField(Type, 0, readerDelegate);
             var il = context.Il;
 
             context.IncreaseIndexBy1(); // index = index + 1

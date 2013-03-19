@@ -9,6 +9,10 @@ namespace GroBuf.SizeCounters
         {
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             context.Il.Ldc_I4(17); // stack: [17]

@@ -10,6 +10,10 @@ namespace GroBuf.Writers
             if(!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was " + Type);
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(Type);

@@ -9,6 +9,10 @@ namespace GroBuf.Readers
         {
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();

@@ -235,6 +235,25 @@ namespace GroBuf.Readers
             Il.MarkLabel(okLabel);
         }
 
+        public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
+        {
+            var counter = context.GetReader(type);
+            if (counter.Pointer != IntPtr.Zero)
+                il.Ldc_IntPtr(counter.Pointer);
+            else
+            {
+                il.Ldfld(context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
+                il.Ldc_I4(counter.Index);
+                il.Ldelem(typeof(IntPtr));
+            }
+            il.Calli(CallingConventions.Standard, typeof(void), new[] { typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType() });
+        }
+
+        public void CallReader(Type type)
+        {
+            CallReader(Il, type, Context);
+        }
+
         public ReaderTypeBuilderContext Context { get; private set; }
         public GroboIL Il { get; private set; }
 

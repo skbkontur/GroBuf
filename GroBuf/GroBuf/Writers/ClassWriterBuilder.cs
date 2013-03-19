@@ -11,6 +11,26 @@ namespace GroBuf.Writers
         {
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            foreach(var member in context.GetDataMembers(Type))
+            {
+                Type memberType;
+                switch(member.MemberType)
+                {
+                case MemberTypes.Property:
+                    memberType = ((PropertyInfo)member).PropertyType;
+                    break;
+                case MemberTypes.Field:
+                    memberType = ((FieldInfo)member).FieldType;
+                    break;
+                default:
+                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                }
+                context.BuildConstants(memberType);
+            }
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
@@ -39,7 +59,7 @@ namespace GroBuf.Writers
                 {
                 case MemberTypes.Property:
                     var property = (PropertyInfo)member;
-                    var getter = property.GetGetMethod();
+                    var getter = property.GetGetMethod(true);
                     if(getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
                     il.Call(getter, Type); // stack: [obj.prop]
@@ -63,7 +83,7 @@ namespace GroBuf.Writers
                 il.Ldc_I4(8); // stack: [obj.prop, false, result, ref index, ref index, index, 8]
                 il.Add(); // stack: [obj.prop, false, result, ref index, ref index, index + 8]
                 il.Stind(typeof(int)); // index = index + 8; stack: [obj.prop, false, result, ref index]
-                il.Call(context.Context.GetWriter(memberType)); // writers[i](obj.prop, false, result, ref index, ref result)
+                context.CallWriter(memberType); // writers[i](obj.prop, false, result, ref index, ref result)
                 context.LoadIndex(); // stack: [index]
                 il.Ldc_I4(8); // stack: [index, 8]
                 il.Sub(); // stack: [index - 8]

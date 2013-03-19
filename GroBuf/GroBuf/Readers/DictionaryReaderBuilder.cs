@@ -10,6 +10,14 @@ namespace GroBuf.Readers
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                 throw new InvalidOperationException("Dictionary expected but was '" + Type + "'");
+            keyType = Type.GetGenericArguments()[0];
+            valueType = Type.GetGenericArguments()[1];
+        }
+
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.BuildConstants(keyType);
+            context.BuildConstants(valueType);
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
@@ -56,13 +64,13 @@ namespace GroBuf.Readers
             var key = il.DeclareLocal(Type.GetGenericArguments()[0]);
             var value = il.DeclareLocal(Type.GetGenericArguments()[1]);
             il.Ldloca(key); // stack: [pinnedData, ref index, dataLength, ref key]
-            il.Call(context.Context.GetReader(Type.GetGenericArguments()[0])); // reader(pinnedData, ref index, dataLength, ref key); stack: []
+            context.CallReader(keyType); // reader(pinnedData, ref index, dataLength, ref key); stack: []
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
             il.Ldloca(value); // stack: [pinnedData, ref index, dataLength, ref value]
-            il.Call(context.Context.GetReader(Type.GetGenericArguments()[1])); // reader(pinnedData, ref index, dataLength, ref value); stack: []
+            context.CallReader(valueType); // reader(pinnedData, ref index, dataLength, ref value); stack: []
 
             context.LoadResult(Type);
             il.Ldloc(key);
@@ -78,5 +86,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        private readonly Type keyType;
+        private readonly Type valueType;
     }
 }

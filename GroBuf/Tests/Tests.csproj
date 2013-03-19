@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestNonPublicFields.cs" />
     <Compile Include="TestChangeType.cs" />
     <Compile Include="TestCustomReadWrite.cs" />
     <Compile Include="TestDateTime.cs" />

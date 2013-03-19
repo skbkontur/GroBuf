@@ -14,6 +14,8 @@ namespace GroBuf.Writers
         {
             if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                 throw new InvalidOperationException("Dictionary expected but was '" + Type + "'");
+            keyType = Type.GetGenericArguments()[0];
+            valueType = Type.GetGenericArguments()[1];
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
@@ -26,6 +28,12 @@ namespace GroBuf.Writers
             context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
             context.Il.MarkLabel(emptyLabel);
             return true;
+        }
+
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.BuildConstants(keyType);
+            context.BuildConstants(valueType);
         }
 
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
@@ -66,13 +74,13 @@ namespace GroBuf.Writers
             il.Ldc_I4(1);
             context.LoadResult(); // stack: [obj[i], true, result]
             context.LoadIndexByRef();
-            il.Call(context.Context.GetWriter(Type.GetGenericArguments()[0]));
+            context.CallWriter(keyType);
             il.Ldloca(current);
             il.Call(keyValueType.GetProperty("Value").GetGetMethod(), keyValueType);
             il.Ldc_I4(1);
             context.LoadResult(); // stack: [obj[i], true, result]
             context.LoadIndexByRef();
-            il.Call(context.Context.GetWriter(Type.GetGenericArguments()[1]));
+            context.CallWriter(valueType);
             il.Ldloc(enumerator);
             il.Call(typeof(IEnumerator).GetMethod("MoveNext"), typeof(IEnumerator));
             il.Brtrue(cycleStartLabel);
@@ -90,5 +98,8 @@ namespace GroBuf.Writers
 
             il.MarkLabel(doneLabel);
         }
+
+        private readonly Type keyType;
+        private readonly Type valueType;
     }
 }

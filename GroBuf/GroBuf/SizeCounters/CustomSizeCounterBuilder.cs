@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace GroBuf.SizeCounters
@@ -11,12 +12,17 @@ namespace GroBuf.SizeCounters
             this.sizeCounter = sizeCounter;
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("sizeCounter_" + Type.Name + "_" + Guid.NewGuid(), typeof(SizeCounterDelegate))});
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var groBufWriter = context.Context.GroBufWriter;
             Func<Type, SizeCounterDelegate> sizeCountersFactory = type => (obj, writeEmpty) => groBufWriter.GetSize(type, obj, writeEmpty);
             var sizeCounterDelegate = (SizeCounterDelegate)sizeCounter.Invoke(null, new[] {sizeCountersFactory});
-            var sizeCounterField = context.Context.BuildConstField("sizeCounter_" + Type.Name + "_" + Guid.NewGuid(), sizeCounterDelegate);
+            var sizeCounterField = context.Context.InitConstField(Type, 0, sizeCounterDelegate);
             var il = context.Il;
             context.LoadField(sizeCounterField); // stack: [sizeCounterDelegate]
             context.LoadObj(); // stack: [sizeCounterDelegate, obj]

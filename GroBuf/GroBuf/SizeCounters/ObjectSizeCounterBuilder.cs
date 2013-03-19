@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Reflection.Emit;
 
 using GrEmit;
 
@@ -14,12 +16,23 @@ namespace GroBuf.SizeCounters
         {
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[]
+                {
+                    new KeyValuePair<string, Type>("counters_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[]))
+                });
+            Array.ForEach(primitiveTypes, context.BuildConstants);
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
 
-            var counters = GetCounters(context.Context);
-            var countersField = context.Context.BuildConstField<IntPtr[]>("counters_" + Type.Name + "_" + Guid.NewGuid(), field => BuildCountersFieldInitializer(context.Context, field, counters));
+            var counters = GetCounters(context);
+            var countersField = context.Context.InitConstField(Type, 0, counters.Select(pair => pair.Value).ToArray());
+            context.Context.InitConstField(Type, 1, counters.Select(pair => pair.Key).ToArray());
 
             context.LoadObj(); // stack: [obj]
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
@@ -41,67 +54,48 @@ namespace GroBuf.SizeCounters
             context.ReturnForNull();
         }
 
-        private static Action BuildCountersFieldInitializer(SizeCounterTypeBuilderContext context, FieldInfo field, MethodInfo[] counters)
+        private static KeyValuePair<Delegate, IntPtr>[] GetCounters(SizeCounterMethodBuilderContext context)
         {
-            var typeBuilder = context.TypeBuilder;
-            var method = typeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), Type.EmptyTypes);
-            var il = new GroboIL(method);
-            il.Ldc_I4(counters.Length); // stack: [counters.Length]
-            il.Newarr(typeof(IntPtr)); // stack: [new IntPtr[counters.Length]]
-            il.Stfld(field); // countersField = new IntPtr[counters.Length]
-            il.Ldfld(field); // stack: [countersField]
-            for(int i = 0; i < counters.Length; ++i)
-            {
-                if(counters[i] == null) continue;
-                il.Dup(); // stack: [countersField, countersField]
-                il.Ldc_I4(i); // stack: [countersField, countersField, i]
-                il.Ldftn(counters[i]); // stack: [countersField, countersField, i, counters[i]]
-                il.Stelem(typeof(IntPtr)); // countersField[i] = counters[i]; stack: [countersField]
-            }
-            il.Pop();
-            il.Ret();
-            return () => typeBuilder.GetMethod(method.Name).Invoke(null, null);
-        }
-
-        private static MethodInfo[] GetCounters(SizeCounterTypeBuilderContext context)
-        {
-            var dict = new[]
-                {
-                    typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
-                }.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetCounter(context, type));
+            var dict = primitiveTypes.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetCounter(context, type));
             foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
             {
                 if(!dict.ContainsKey(value))
-                    dict.Add(value, null);
+                    dict.Add(value, new KeyValuePair<Delegate, IntPtr>(null, IntPtr.Zero));
             }
             int max = dict.Keys.Cast<int>().Max();
-            var result = new MethodInfo[max + 1];
+            var result = new KeyValuePair<Delegate, IntPtr>[max + 1];
             foreach(var entry in dict)
                 result[(int)entry.Key] = entry.Value;
             return result;
         }
 
-        private static MethodInfo GetCounter(SizeCounterTypeBuilderContext context, Type type)
+        private static KeyValuePair<Delegate, IntPtr> GetCounter(SizeCounterMethodBuilderContext context, Type type)
         {
-            var method = context.TypeBuilder.DefineMethod("CastTo_" + type.Name + "_AndCount_" + Guid.NewGuid(), MethodAttributes.Public | MethodAttributes.Static, typeof(int),
-                                                          new[]
-                                                              {
-                                                                  typeof(object), typeof(bool)
-                                                              });
+            var method = new DynamicMethod("CastTo_" + type.Name + "_AndCount_" + Guid.NewGuid(), typeof(int), new[] {typeof(object), typeof(bool)}, context.Context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(0); // stack: [obj]
-            if(type.IsClass)
-                il.Castclass(type); // stack: [(type)obj]
-            else
+            if(type.IsValueType)
                 il.Unbox_Any(type); // stack: [(type)obj]
+//            else
+//                il.Castclass(type); // stack: [(type)obj]
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
-            il.Call(context.GetCounter(type)); // stack: [count<type>((type)obj, writeEmpty)]
+            var counter = context.Context.GetCounter(type).Pointer;
+            if (counter == IntPtr.Zero)
+                throw new InvalidOperationException("Attempt to call method at Zero pointer");
+            il.Ldc_IntPtr(counter);
+            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)}); // stack: [count<type>((type)obj, writeEmpty)]
             il.Ret();
-            return method;
+            var @delegate = method.CreateDelegate(typeof(SizeCounterDelegate<object>));
+            return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
         private static readonly MethodInfo getTypeMethod = ((MethodCallExpression)((Expression<Func<object, Type>>)(obj => obj.GetType())).Body).Method;
         private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufTypeCodeMap.GetTypeCode(type))).Body).Method;
+
+        private static readonly Type[] primitiveTypes = new[]
+            {
+                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
+                typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+            };
     }
 }

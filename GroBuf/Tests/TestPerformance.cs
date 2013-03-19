@@ -29,10 +29,10 @@ namespace GroBuf.Tests
         public void TestGroBuf()
         {
             Console.WriteLine("GroBuf big data: all types");
-            DoTestBig(10, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
+            DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
             Console.WriteLine();
             Console.WriteLine("GroBuf big data: strings");
-            DoTestBig(10, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
+            DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
             Console.WriteLine();
             Console.WriteLine("GroBuf small data: all types");
             DoTestSmall(1000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));

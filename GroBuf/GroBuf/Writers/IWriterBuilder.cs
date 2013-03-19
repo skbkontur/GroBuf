@@ -1,9 +1,8 @@
-﻿using System.Reflection;
-
-namespace GroBuf.Writers
+﻿namespace GroBuf.Writers
 {
     internal interface IWriterBuilder
     {
-        MethodInfo BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext);
+        void BuildWriter(WriterTypeBuilderContext writerTypeBuilderContext);
+        void BuildConstants(WriterConstantsBuilderContext context);
     }
 }

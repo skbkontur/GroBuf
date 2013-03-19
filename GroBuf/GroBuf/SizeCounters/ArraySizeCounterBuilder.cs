@@ -18,6 +18,11 @@ namespace GroBuf.SizeCounters
             else elementType = typeof(object);
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+            context.BuildConstants(elementType);
+        }
+
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             var emptyLabel = context.Il.DefineLabel("empty");
@@ -48,7 +53,7 @@ namespace GroBuf.SizeCounters
             il.Ldloc(i); // stack: [size, obj, i]
             il.Ldelem(elementType);
             il.Ldc_I4(1); // stack: [size, obj[i], true]
-            il.Call(context.Context.GetCounter(elementType)); // stack: [size, writer(obj[i], true) = itemSize]
+            context.CallSizeCounter(elementType); // stack: [size, writer(obj[i], true) = itemSize]
             il.Add(); // stack: [size + itemSize]
             il.Ldloc(length); // stack: [size, length]
             il.Ldloc(i); // stack: [size, length, i]

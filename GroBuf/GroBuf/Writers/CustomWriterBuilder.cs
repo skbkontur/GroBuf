@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace GroBuf.Writers
@@ -11,12 +12,17 @@ namespace GroBuf.Writers
             this.writer = writer;
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("writer_" + Type.Name + "_" + Guid.NewGuid(), typeof(WriterDelegate))});
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var groBufWriter = context.Context.GroBufWriter;
             Func<Type, WriterDelegate> writersFactory = type => ((object o, bool empty, IntPtr result, ref int index) => groBufWriter.Write(type, o, empty, result, ref index));
             var writerDelegate = (WriterDelegate)writer.Invoke(null, new[] {writersFactory});
-            var writerField = context.Context.BuildConstField("writer_" + Type.Name + "_" + Guid.NewGuid(), writerDelegate);
+            var writerField = context.Context.InitConstField(Type, 0, writerDelegate);
             var il = context.Il;
 
             var length = context.LocalInt;

@@ -9,15 +9,15 @@ using GrEmit;
 
 using GroBuf.DataMembersExtracters;
 
-namespace GroBuf.Writers
+namespace GroBuf.SizeCounters
 {
-    internal class WriterConstantsBuilderContext
+    internal class SizeCounterConstantsBuilderContext
     {
-        public WriterConstantsBuilderContext(GroBufWriter groBufWriter, TypeBuilder constantsBuilder, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor)
+        public SizeCounterConstantsBuilderContext(GroBufWriter groBufWriter, TypeBuilder constantsBuilder, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
         {
             GroBufWriter = groBufWriter;
             ConstantsBuilder = constantsBuilder;
-            this.writerCollection = writerCollection;
+            this.sizeCounterCollection = sizeCounterCollection;
             this.dataMembersExtractor = dataMembersExtractor;
         }
 
@@ -36,7 +36,7 @@ namespace GroBuf.Writers
         public void BuildConstants(Type type)
         {
             if(hashtable[type] == null)
-                writerCollection.GetWriterBuilder(type).BuildConstants(this);
+                sizeCounterCollection.GetSizeCounterBuilder(type).BuildConstants(this);
         }
 
         public Dictionary<Type, string[]> GetFields()
@@ -49,19 +49,19 @@ namespace GroBuf.Writers
 
         private readonly Hashtable hashtable = new Hashtable();
 
-        private readonly IWriterCollection writerCollection;
+        private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
     }
 
-    internal class WriterTypeBuilderContext
+    internal class SizeCounterBuilderContext
     {
-        public WriterTypeBuilderContext(GroBufWriter groBufWriter, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor)
+        public SizeCounterBuilderContext(GroBufWriter groBufWriter, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
         {
             GroBufWriter = groBufWriter;
             Module = module;
             ConstantsType = constantsType;
             this.fields = fields;
-            this.writerCollection = writerCollection;
+            this.sizeCounterCollection = sizeCounterCollection;
             this.dataMembersExtractor = dataMembersExtractor;
         }
 
@@ -84,45 +84,45 @@ namespace GroBuf.Writers
 
         public CompiledDynamicMethod[] GetMethods()
         {
-            return writers.Values.Cast<CompiledDynamicMethod>().ToArray();
+            return sizeCounters.Values.Cast<CompiledDynamicMethod>().ToArray();
         }
 
-        public void SetWriterMethod(Type type, DynamicMethod method)
+        public void SetSizeCounterMethod(Type type, DynamicMethod method)
         {
-            if (writers[type] != null)
+            if(sizeCounters[type] != null)
                 throw new InvalidOperationException();
-            writers[type] = new CompiledDynamicMethod { Method = method, Index = writers.Count };
+            sizeCounters[type] = new CompiledDynamicMethod {Method = method, Index = sizeCounters.Count};
         }
 
-        public void SetWriterPointer(Type type, IntPtr writerPointer, Delegate writer)
+        public void SetSizeCounterPointer(Type type, IntPtr sizeCounterPointer, Delegate sizeCounter)
         {
-            if (writers[type] == null)
+            if(sizeCounters[type] == null)
                 throw new InvalidOperationException();
-            var compiledDynamicMethod = (CompiledDynamicMethod)writers[type];
-            compiledDynamicMethod.Pointer = writerPointer;
-            compiledDynamicMethod.Delegate = writer;
+            var compiledDynamicMethod = (CompiledDynamicMethod)sizeCounters[type];
+            compiledDynamicMethod.Pointer = sizeCounterPointer;
+            compiledDynamicMethod.Delegate = sizeCounter;
         }
 
-        public CompiledDynamicMethod GetWriter(Type type)
+        public CompiledDynamicMethod GetCounter(Type type)
         {
-            var writer = (CompiledDynamicMethod)writers[type];
-            if(writer == null)
+            var sizeCounter = (CompiledDynamicMethod)sizeCounters[type];
+            if(sizeCounter == null)
             {
-                writerCollection.GetWriterBuilder(type).BuildWriter(this);
-                writer = (CompiledDynamicMethod)writers[type];
-                if (writer == null)
+                sizeCounterCollection.GetSizeCounterBuilder(type).BuildSizeCounter(this);
+                sizeCounter = (CompiledDynamicMethod)sizeCounters[type];
+                if(sizeCounter == null)
                     throw new InvalidOperationException();
             }
-            return writer;
+            return sizeCounter;
         }
 
-        public GroBufWriter GroBufWriter { get; set; }
+        public GroBufWriter GroBufWriter { get; private set; }
         public ModuleBuilder Module { get; set; }
         public Type ConstantsType { get; set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {
-            var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] { typeof(T) }, Module);
+            var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] {typeof(T)}, Module);
             var il = new GroboIL(method);
             il.Ldarg(0);
             il.Stfld(field);
@@ -131,11 +131,11 @@ namespace GroBuf.Writers
             return () => action(value);
         }
 
-        private readonly IWriterCollection writerCollection;
-        private readonly IDataMembersExtractor dataMembersExtractor;
         private readonly Dictionary<Type, FieldInfo[]> fields;
+        private readonly ISizeCounterCollection sizeCounterCollection;
+        private readonly IDataMembersExtractor dataMembersExtractor;
 
-        private readonly Hashtable writers = new Hashtable();
+        private readonly Hashtable sizeCounters = new Hashtable();
         private readonly Hashtable initializers = new Hashtable();
     }
 }

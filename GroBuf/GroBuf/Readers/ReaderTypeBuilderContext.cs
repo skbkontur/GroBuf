@@ -1,22 +1,24 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+
+using GrEmit;
 
 using GroBuf.DataMembersExtracters;
 
 namespace GroBuf.Readers
 {
-    internal class ReaderTypeBuilderContext
+    internal class ReaderConstantsBuilderContext
     {
-        public ReaderTypeBuilderContext(GroBufReader groBufReader, TypeBuilder typeBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
+        public ReaderConstantsBuilderContext(GroBufReader groBufReader, TypeBuilder constantsBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
         {
             GroBufReader = groBufReader;
-            TypeBuilder = typeBuilder;
+            ConstantsBuilder = constantsBuilder;
             this.readerCollection = readerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
-            Lengths = BuildConstField("lengths", GroBufHelpers.Lengths);
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -24,16 +26,55 @@ namespace GroBuf.Readers
             return dataMembersExtractor.GetMembers(type);
         }
 
-        public FieldInfo BuildConstField<T>(string name, T value)
+        public void SetFields(Type type, KeyValuePair<string, Type>[] fields)
         {
-            return BuildConstField<T>(name, field => BuildFieldInitializer(field, value));
+            hashtable[type] = fields;
+            foreach(var field in fields)
+                ConstantsBuilder.DefineField(field.Key, field.Value, FieldAttributes.Public | FieldAttributes.Static);
         }
 
-        public FieldInfo BuildConstField<T>(string name, Func<FieldInfo, Action> fieldInitializer)
+        public void BuildConstants(Type type)
         {
-            var field = TypeBuilder.DefineField(name, typeof(T), FieldAttributes.Public | FieldAttributes.Static | FieldAttributes.InitOnly);
-            fields.Add(name, field);
-            initializers.Add(name, fieldInitializer(field));
+            if(hashtable[type] == null)
+                readerCollection.GetReaderBuilder(type).BuildConstants(this);
+        }
+
+        public Dictionary<Type, string[]> GetFields()
+        {
+            return hashtable.Cast<DictionaryEntry>().ToDictionary(entry => (Type)entry.Key, entry => ((KeyValuePair<string, Type>[])entry.Value).Select(pair => pair.Key).ToArray());
+        }
+
+        public GroBufReader GroBufReader { get; private set; }
+        public TypeBuilder ConstantsBuilder { get; private set; }
+
+        private readonly Hashtable hashtable = new Hashtable();
+
+        private readonly IReaderCollection readerCollection;
+        private readonly IDataMembersExtractor dataMembersExtractor;
+    }
+
+    internal class ReaderTypeBuilderContext
+    {
+        public ReaderTypeBuilderContext(GroBufReader groBufReader, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
+        {
+            GroBufReader = groBufReader;
+            Module = module;
+            ConstantsType = constantsType;
+            this.fields = fields;
+            this.readerCollection = readerCollection;
+            this.dataMembersExtractor = dataMembersExtractor;
+            Lengths = typeof(GroBufHelpers).GetField("Lengths", BindingFlags.Static | BindingFlags.Public);
+        }
+
+        public MemberInfo[] GetDataMembers(Type type)
+        {
+            return dataMembersExtractor.GetMembers(type);
+        }
+
+        public FieldInfo InitConstField<T>(Type type, int index, T value)
+        {
+            var field = fields[type][index];
+            initializers.Add(field.Name, ((Func<FieldInfo, Action>)(f => BuildFieldInitializer(f, value)))(field));
             return field;
         }
 
@@ -42,47 +83,61 @@ namespace GroBuf.Readers
             return (from object value in initializers.Values select ((Action)value)).ToArray();
         }
 
-        public void SetReader(Type type, MethodInfo reader)
+        public CompiledDynamicMethod[] GetMethods()
+        {
+            return readers.Values.Cast<CompiledDynamicMethod>().ToArray();
+        }
+
+        public void SetReaderMethod(Type type, DynamicMethod method)
         {
             if(readers[type] != null)
                 throw new InvalidOperationException();
-            readers[type] = reader;
+            readers[type] = new CompiledDynamicMethod {Method = method, Index = readers.Count};
         }
 
-        public MethodInfo GetReader(Type type)
+        public void SetReaderPointer(Type type, IntPtr readerPointer, Delegate reader)
         {
-            var reader = (MethodInfo)readers[type];
+            if(readers[type] == null)
+                throw new InvalidOperationException();
+            var compiledDynamicMethod = (CompiledDynamicMethod)readers[type];
+            compiledDynamicMethod.Pointer = readerPointer;
+            compiledDynamicMethod.Delegate = reader;
+        }
+
+        public CompiledDynamicMethod GetReader(Type type)
+        {
+            var reader = (CompiledDynamicMethod)readers[type];
             if(reader == null)
             {
-                reader = readerCollection.GetReaderBuilder(type).BuildReader(this);
-                if(readers[type] == null)
-                    readers[type] = reader;
-                else if((MethodInfo)readers[type] != reader)
+                readerCollection.GetReaderBuilder(type).BuildReader(this);
+                reader = (CompiledDynamicMethod)readers[type];
+                if(reader == null)
                     throw new InvalidOperationException();
             }
             return reader;
         }
 
         public GroBufReader GroBufReader { get; private set; }
-        public TypeBuilder TypeBuilder { get; private set; }
+        public ModuleBuilder Module { get; set; }
+        public Type ConstantsType { get; set; }
         public FieldInfo Lengths { get; private set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {
-            var method = TypeBuilder.DefineMethod(field.Name + "_Init", MethodAttributes.Public | MethodAttributes.Static, typeof(void), new[] {typeof(T)});
-            var il = method.GetILGenerator();
-            il.Emit(OpCodes.Ldnull);
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Stfld, field);
-            il.Emit(OpCodes.Ret);
-            return () => TypeBuilder.GetMethod(method.Name).Invoke(null, new object[] {value});
+            var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] {typeof(T)}, Module);
+            var il = new GroboIL(method);
+            il.Ldarg(0);
+            il.Stfld(field);
+            il.Ret();
+            var action = (Action<T>)method.CreateDelegate(typeof(Action<T>));
+            return () => action(value);
         }
 
+        private readonly Dictionary<Type, FieldInfo[]> fields;
         private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
 
         private readonly Hashtable readers = new Hashtable();
-        private readonly Hashtable fields = new Hashtable();
         private readonly Hashtable initializers = new Hashtable();
     }
 }

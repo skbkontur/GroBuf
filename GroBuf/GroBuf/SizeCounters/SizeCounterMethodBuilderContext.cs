@@ -1,3 +1,4 @@
+using System;
 using System.Reflection;
 
 using GrEmit;
@@ -6,7 +7,7 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterMethodBuilderContext
     {
-        public SizeCounterMethodBuilderContext(SizeCounterTypeBuilderContext context, GroboIL il)
+        public SizeCounterMethodBuilderContext(SizeCounterBuilderContext context, GroboIL il)
         {
             Context = context;
             Il = il;
@@ -54,7 +55,21 @@ namespace GroBuf.SizeCounters
             Il.Ret();
         }
 
-        public SizeCounterTypeBuilderContext Context { get; private set; }
+        public void CallSizeCounter(Type type)
+        {
+            var counter = Context.GetCounter(type);
+            if(counter.Pointer != IntPtr.Zero)
+                Il.Ldc_IntPtr(counter.Pointer);
+            else
+            {
+                Il.Ldfld(Context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
+                Il.Ldc_I4(counter.Index);
+                Il.Ldelem(typeof(IntPtr));
+            }
+            Il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)});
+        }
+
+        public SizeCounterBuilderContext Context { get; private set; }
         public GroboIL Il { get; private set; }
     }
 }

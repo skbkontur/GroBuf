@@ -11,6 +11,11 @@ namespace GroBuf.Readers
                 throw new InvalidOperationException("Expected nullable but was '" + Type + "'");
         }
 
+        protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
+        {
+            context.BuildConstants(Type.GetGenericArguments()[0]);
+        }
+
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             var il = context.Il;
@@ -18,14 +23,14 @@ namespace GroBuf.Readers
             context.LoadData(); // stack: [ref result, data]
             context.LoadIndexByRef(); // stack: [ref result, data, ref index]
             context.LoadDataLength(); // stack: [ref result, data, ref index, dataLength]
-            var elementType = Type.GetGenericArguments()[0];
-            var value = il.DeclareLocal(elementType);
+            var argumentType = Type.GetGenericArguments()[0];
+            var value = il.DeclareLocal(argumentType);
             il.Ldloca(value); // stack: [ref result, data, ref index, dataLength, ref value]
-            il.Call(context.Context.GetReader(elementType)); // reader(pinnedData, ref index, dataLength, ref value); stack: [ref result]
+            context.CallReader(argumentType); // reader(pinnedData, ref index, dataLength, ref value); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
-            var constructor = Type.GetConstructor(new[] {elementType});
+            var constructor = Type.GetConstructor(new[] {argumentType});
             if(constructor == null)
-                throw new MissingConstructorException(Type, elementType);
+                throw new MissingConstructorException(Type, argumentType);
             il.Newobj(constructor); // stack: [ref result, new elementType?(value)]
             il.Stobj(Type); // result = new elementType?(value)
         }

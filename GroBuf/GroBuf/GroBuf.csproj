@@ -78,6 +78,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CompiledDynamicMethod.cs" />
+    <Compile Include="DataMembersExtracters\AllFieldsExtractor.cs" />
     <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />
     <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
     <Compile Include="GroBufCustomSerializationAttribute.cs" />
@@ -133,7 +135,7 @@
     <Compile Include="SizeCounters\SizeCounterCollection.cs" />
     <Compile Include="SizeCounters\SizeCounterMethodBuilderContext.cs" />
     <Compile Include="SizeCounters\SizeCounterTypeBuilder.cs" />
-    <Compile Include="SizeCounters\SizeCounterTypeBuilderContext.cs" />
+    <Compile Include="SizeCounters\SizeCounterBuilderContext.cs" />
     <Compile Include="SizeCounters\StringSizeCounterBuilder.cs" />
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />

@@ -13,6 +13,11 @@ namespace GroBuf.Writers
                 throw new InvalidOperationException("Expected nullable but was " + Type);
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.BuildConstants(Type.GetGenericArguments()[0]);
+        }
+
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
@@ -21,7 +26,7 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
             context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
-            il.Call(context.Context.GetWriter(Type.GetGenericArguments()[0])); // writer(obj.Value, writeEmpty, result, ref index)
+            context.CallWriter(Type.GetGenericArguments()[0]); // writer(obj.Value, writeEmpty, result, ref index)
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)

@@ -10,6 +10,26 @@ namespace GroBuf.SizeCounters
         {
         }
 
+        protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
+        {
+            foreach(var member in context.GetDataMembers(Type))
+            {
+                Type memberType;
+                switch(member.MemberType)
+                {
+                case MemberTypes.Property:
+                    memberType = ((PropertyInfo)member).PropertyType;
+                    break;
+                case MemberTypes.Field:
+                    memberType = ((FieldInfo)member).FieldType;
+                    break;
+                default:
+                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                }
+                context.BuildConstants(memberType);
+            }
+        }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
@@ -28,7 +48,7 @@ namespace GroBuf.SizeCounters
                 {
                 case MemberTypes.Property:
                     var property = (PropertyInfo)member;
-                    var getter = property.GetGetMethod();
+                    var getter = property.GetGetMethod(true);
                     if(getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
                     il.Call(getter, Type); // stack: [size, obj.prop]
@@ -43,7 +63,7 @@ namespace GroBuf.SizeCounters
                     throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
                 }
                 il.Ldc_I4(0); // stack: [size, obj.member, false]
-                il.Call(context.Context.GetCounter(memberType)); // stack: [size, writers[i](obj.member, false) = memberSize]
+                context.CallSizeCounter(memberType); // stack: [size, writers[i](obj.member, false) = memberSize]
                 il.Dup(); // stack: [size, memberSize, memberSize]
                 var nextLabel = il.DefineLabel("next");
                 il.Brfalse(nextLabel); // if(memberSize = 0) goto next; stack: [size, memberSize]

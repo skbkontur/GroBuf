@@ -5,12 +5,12 @@ using NUnit.Framework;
 namespace GroBuf.Tests
 {
     [TestFixture]
-    public class TestNonPublicProperties
+    public class TestNonPublicFields
     {
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new SerializerImpl(new AllFieldsExtractor());
         }
 
         [Test]

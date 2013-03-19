@@ -32,6 +32,11 @@ namespace GroBuf.Writers
             return true;
         }
 
+        protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
+        {
+            context.BuildConstants(elementType);
+        }
+
         protected override unsafe void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
