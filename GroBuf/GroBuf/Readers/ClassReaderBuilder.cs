@@ -134,7 +134,7 @@ namespace GroBuf.Readers
             MemberInfo[] members = context.GetDataMembers(Type);
             ulong[] hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
             var hashSet = new HashSet<uint>();
-            for(var x = (uint)members.Length;; ++x)
+            for(var x = Math.Max((uint)members.Length, 1);; ++x)
             {
                 hashSet.Clear();
                 bool ok = true;

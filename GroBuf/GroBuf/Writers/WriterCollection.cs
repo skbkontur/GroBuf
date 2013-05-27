@@ -29,10 +29,10 @@ namespace GroBuf.Writers
         private static IWriterBuilder GetWriterBuilderInternal(Type type)
         {
             IWriterBuilder writerBuilder;
-            if (type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            if(type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
             {
                 MethodInfo customWriter = GroBufHelpers.GetMethod<GroBufWriterAttribute>(type);
-                if (customWriter == null)
+                if(customWriter == null)
                     throw new MissingMethodException("Missing grobuf custom writer for type '" + type + "'");
                 writerBuilder = new CustomWriterBuilder(type, customWriter);
             }
@@ -52,9 +52,11 @@ namespace GroBuf.Writers
                 writerBuilder = type.GetElementType().IsPrimitive ? (IWriterBuilder)new PrimitivesArrayWriterBuilder(type) : new ArrayWriterBuilder(type);
             else if(type == typeof(Array))
                 writerBuilder = new ArrayWriterBuilder(type);
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 writerBuilder = new DictionaryWriterBuilder(type);
-            else if (type == typeof(object))
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                writerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IWriterBuilder)new PrimitivesListWriterBuilder(type) : new ListWriterBuilder(type);
+            else if(type == typeof(object))
                 writerBuilder = new ObjectWriterBuilder();
             else
                 writerBuilder = new ClassWriterBuilder(type);

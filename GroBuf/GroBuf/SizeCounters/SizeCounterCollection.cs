@@ -54,6 +54,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new ArraySizeCounterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 sizeCounterBuilder = new DictionarySizeCounterBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                sizeCounterBuilder = type.GetGenericArguments()[0].IsPrimitive ? (ISizeCounterBuilder)new PrimitivesListSizeCounterBuilder(type) : new ListSizeCounterBuilder(type);
             else if(type == typeof(object))
                 sizeCounterBuilder = new ObjectSizeCounterBuilder();
             else

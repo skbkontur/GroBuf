@@ -38,6 +38,11 @@ namespace GroBuf
             return reader.Read<T>(data, ref index);
         }
 
+        public void Deserialize<T>(byte[] data, ref T result)
+        {
+            reader.Read(data, ref result);
+        }
+
         public int GetSize(Type type, object obj)
         {
             return writer.GetSize(type, obj);

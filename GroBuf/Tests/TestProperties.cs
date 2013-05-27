@@ -33,6 +33,21 @@ namespace GroBuf.Tests
             Assert.AreEqual(1234567890123, oo.B.DateTime.Ticks);
         }
 
+        [Test]
+        public void TestEmpty()
+        {
+            var o = new B {S = "zzz"};
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<C>(data);
+            Assert.IsNotNull(oo);
+            data = serializer.Serialize(oo);
+            o = serializer.Deserialize<B>(data);
+            Assert.IsNotNull(o);
+            Assert.IsNull(o.S);
+            Assert.IsNull(o.Long);
+            Assert.AreEqual(default(DateTime), o.DateTime);
+        }
+
         public class A
         {
             public int[] Ints { get; set; }
@@ -45,6 +60,11 @@ namespace GroBuf.Tests
             public string S { get; set; }
             public long? Long { get; set; }
             public DateTime DateTime { get; set; }
+        }
+
+        public class C
+        {
+            
         }
 
         private SerializerImpl serializer;

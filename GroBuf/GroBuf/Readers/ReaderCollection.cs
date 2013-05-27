@@ -29,10 +29,10 @@ namespace GroBuf.Readers
         private static IReaderBuilder GetReaderBuilderInternal(Type type)
         {
             IReaderBuilder readerBuilder;
-            if (type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            if(type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
             {
                 MethodInfo customReader = GroBufHelpers.GetMethod<GroBufReaderAttribute>(type);
-                if (customReader == null)
+                if(customReader == null)
                     throw new MissingMethodException("Missing grobuf custom reader for type '" + type + "'");
                 readerBuilder = new CustomReaderBuilder(type, customReader);
             }
@@ -52,9 +52,11 @@ namespace GroBuf.Readers
                 readerBuilder = type.GetElementType().IsPrimitive ? (IReaderBuilder)new PrimitivesArrayReaderBuilder(type) : new ArrayReaderBuilder(type);
             else if(type == typeof(Array))
                 readerBuilder = new ArrayReaderBuilder(type);
-            else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 readerBuilder = new DictionaryReaderBuilder(type);
-            else if (type == typeof(object))
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
+                readerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IReaderBuilder)new PrimitivesListReaderBuilder(type) : new ListReaderBuilder(type);
+            else if(type == typeof(object))
                 readerBuilder = new ObjectReaderBuilder();
             else
                 readerBuilder = new ClassReaderBuilder(type);

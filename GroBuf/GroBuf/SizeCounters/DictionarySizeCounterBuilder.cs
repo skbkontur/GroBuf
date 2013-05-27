@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Reflection.Emit;
 
 using GrEmit;
 
 namespace GroBuf.SizeCounters
 {
-    // todo переписать
     internal class DictionarySizeCounterBuilder : SizeCounterBuilderBase
     {
         public DictionarySizeCounterBuilder(Type type)
@@ -32,7 +29,7 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [obj]
             context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
             context.LoadObj(); // stack: [obj]
-            context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod(), Type); // stack: [obj.Length]
+            context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Length]
             context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
             context.Il.MarkLabel(emptyLabel);
             return true;
@@ -72,7 +69,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(1); // stack: [size, obj[i], true]
             context.CallSizeCounter(keyType); // stack: [size, writer(entry.key, true) = keySize]
             il.Add(); // stack: [size + keySize]
-            
+
             il.Ldloc(entry); // stack: [size, entry]
             il.Ldfld(entryType.GetField("value")); // stack: [size, entry.value]
             il.Ldc_I4(1); // stack: [size, obj[i], true]
@@ -87,38 +84,6 @@ namespace GroBuf.SizeCounters
             il.Dup(); // stack: [size, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, count, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [size]
-
-//            var keyValueType = typeof(KeyValuePair<,>).MakeGenericType(keyType, valueType);
-//            var enumeratorType = typeof(IEnumerator<>).MakeGenericType(keyValueType);
-//            var enumerator = il.DeclareLocal(enumeratorType);
-//            il.Call(typeof(IEnumerable<>).MakeGenericType(keyValueType).GetMethod("GetEnumerator"), Type); // stack: [size, obj.GetEnumerator()]
-//            il.Dup(); // stack: [size, enumerator]
-//            il.Stloc(enumerator); // enumerator = obj.GetEnumerator(); stack: [size, enumerator]
-//            il.Call(typeof(IEnumerator).GetMethod("Reset"), typeof(IEnumerator)); // enumerator.Reset(); stack: [size]
-//            var endLabel = il.DefineLabel("end");
-//            il.Ldloc(enumerator);
-//            il.Call(typeof(IEnumerator).GetMethod("MoveNext"), typeof(IEnumerator));
-//            il.Brfalse(endLabel);
-//            var cycleStartLabel = il.DefineLabel("cycleStart");
-//            il.MarkLabel(cycleStartLabel);
-//            il.Ldloc(enumerator); // stack: [size, enumerator]
-//            il.Call(enumeratorType.GetProperty("Current").GetGetMethod(), enumeratorType); // stack: [size, enumerator.Current]
-//            var current = il.DeclareLocal(keyValueType);
-//            il.Stloc(current);
-//            il.Ldloca(current);
-//            il.Call(keyValueType.GetProperty("Key").GetGetMethod(), keyValueType);
-//            il.Ldc_I4(1);
-//            context.CallSizeCounter(keyType);
-//            il.Add();
-//            il.Ldloca(current);
-//            il.Call(keyValueType.GetProperty("Value").GetGetMethod(), keyValueType);
-//            il.Ldc_I4(1);
-//            context.CallSizeCounter(valueType);
-//            il.Add();
-//            il.Ldloc(enumerator);
-//            il.Call(typeof(IEnumerator).GetMethod("MoveNext"), typeof(IEnumerator));
-//            il.Brtrue(cycleStartLabel);
-//            il.MarkLabel(endLabel);
         }
 
         private readonly Type keyType;

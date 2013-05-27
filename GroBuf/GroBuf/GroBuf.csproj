@@ -97,6 +97,8 @@
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
+    <Compile Include="Readers\PrimitivesListReaderBuilder.cs" />
+    <Compile Include="Readers\ListReaderBuilder.cs" />
     <Compile Include="Readers\DictionaryReaderBuilder.cs" />
     <Compile Include="Readers\CustomReaderBuilder.cs" />
     <Compile Include="Readers\ObjectConstructionHelper.cs" />
@@ -120,6 +122,8 @@
     <Compile Include="SizeCounterDelegate.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\PrimitivesListSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\ListSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\CustomSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\DictionarySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesArraySizeCounterBuilder.cs" />
@@ -140,6 +144,8 @@
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
+    <Compile Include="Writers\PrimitivesListWriterBuilder.cs" />
+    <Compile Include="Writers\ListWriterBuilder.cs" />
     <Compile Include="Writers\DictionaryWriterBuilder.cs" />
     <Compile Include="Writers\CustomWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesArrayWriterBuilder.cs" />
