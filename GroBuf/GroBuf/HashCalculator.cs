@@ -4,8 +4,9 @@ namespace GroBuf
 {
     public class HashCalculator
     {
-        public HashCalculator(int maxLength)
+        public HashCalculator(int seed, int maxLength)
         {
+            this.seed = seed;
             this.maxLength = maxLength;
             randTable = InitRandTable(maxLength * 2);
         }
@@ -23,21 +24,21 @@ namespace GroBuf
             return result;
         }
 
-        private static ulong[][] InitRandTable(int count)
+        private ulong[][] InitRandTable(int count)
         {
-            const int seed = 314159265; //NOTE не менять !!!
             var random = new GroBufRandom(seed);
-            var randTable = new ulong[count][];
+            var table = new ulong[count][];
             for(int len = 0; len < count; ++len)
             {
                 var arr = new ulong[256];
                 for(int i = 0; i < arr.Length; ++i)
                     arr[i] = ((ulong)(random.Next() & 0xFFFFFF)) | (((ulong)(random.Next() & 0xFFFFFF)) << 24) | (((ulong)(random.Next() & 0xFFFFFF)) << 48);
-                randTable[len] = arr;
+                table[len] = arr;
             }
-            return randTable;
+            return table;
         }
 
+        private readonly int seed;
         private readonly int maxLength;
         private readonly ulong[][] randTable;
     }

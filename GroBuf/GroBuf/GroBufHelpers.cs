@@ -40,7 +40,7 @@ namespace GroBuf
 
         public static ulong CalcHash(string str)
         {
-            return hashCalculator.CalcHash(str);
+            return HashCalculator.CalcHash(str);
         }
 
         public static readonly int[] Lengths = BuildLengths();
@@ -87,7 +87,9 @@ namespace GroBuf
             return lengths;
         }
 
-        private static readonly HashCalculator hashCalculator = new HashCalculator(1000);
+        public const int Seed = 314159265; //NOTE не менять !!!
+
+        public static readonly HashCalculator HashCalculator = new HashCalculator(Seed, 1000);
 
         private static readonly object dummy = new object();
     }
