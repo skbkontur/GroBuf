@@ -48,7 +48,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestComplex()
         {
-            var b = new B {A = new A {Strings = new string[0], Ints = new int[0]}};
+            var b = new B {A = new A {Strings = new string[0], Ints = new int[0]}, ArrayA = new[] {null, new A()}};
             var data = serializer.Serialize(b);
             var bb = serializer.Deserialize<B>(data);
             Assert.IsNotNull(bb);
@@ -57,6 +57,10 @@ namespace GroBuf.Tests
             Assert.AreEqual(0, bb.A.Strings.Length);
             Assert.IsNotNull(bb.A.Ints);
             Assert.AreEqual(0, bb.A.Ints.Length);
+            Assert.IsNotNull(bb.ArrayA);
+            Assert.AreEqual(2, bb.ArrayA.Length);
+            Assert.IsNull(bb.ArrayA[0]);
+            Assert.IsNotNull(bb.ArrayA[1]);
         }
 
         private SerializerImpl serializer;
@@ -70,6 +74,7 @@ namespace GroBuf.Tests
         private class B
         {
             public A A { get; set; }
+            public A[] ArrayA { get; set; }
         }
     }
 }
