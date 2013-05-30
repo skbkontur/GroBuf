@@ -13,9 +13,10 @@ namespace GroBuf
 {
     internal class GroBufWriter
     {
-        public GroBufWriter(IDataMembersExtractor dataMembersExtractor)
+        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, GroBufOptions options)
         {
             this.dataMembersExtractor = dataMembersExtractor;
+            this.options = options;
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
@@ -87,6 +88,8 @@ namespace GroBuf
         {
             return GetWriterAndSizeCounter(type).Item2(obj, writeEmpty);
         }
+
+        public GroBufOptions Options { get { return options; } }
 
         private int GetSize<T>(T obj, bool writeEmpty)
         {
@@ -160,7 +163,7 @@ namespace GroBuf
             il.Ldarg(2); // stack: [obj, writeEmpty, result]
             il.Ldarg(3); // stack: [obj, writeEmpty, result, ref index]
             il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] { type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType() }); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}); // writer.write<T>(obj, writeEmpty, result, ref index); stack: []
             il.Ret();
 
             return (WriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(WriterDelegate<T>));
@@ -181,7 +184,7 @@ namespace GroBuf
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
             il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] { type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType() }); // writer.write<T>((type)obj, writeEmpty, result, ref index); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}); // writer.write<T>((type)obj, writeEmpty, result, ref index); stack: []
             il.Ret();
 
             return (WriterDelegate)dynamicMethod.CreateDelegate(typeof(WriterDelegate));
@@ -215,7 +218,7 @@ namespace GroBuf
             il.Ldarg(0); // stack: [obj]
             il.Ldarg(1); // stack: [obj, writeEmpty]
             il.Ldc_IntPtr(counter); // stack: [obj, writeEmpty, counter]
-            il.Calli(CallingConventions.Standard, typeof(int), new[] { type, typeof(bool) }); // counter(obj, writeEmpty); stack: []
+            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)}); // counter(obj, writeEmpty); stack: []
             il.Ret();
 
             return (SizeCounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate<T>));
@@ -241,6 +244,7 @@ namespace GroBuf
         }
 
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly GroBufOptions options;
 
         private readonly Hashtable writersAndSizeCounters = new Hashtable();
         private readonly Hashtable writersAndSizeCounters2 = new Hashtable();

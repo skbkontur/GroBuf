@@ -74,13 +74,16 @@ namespace GroBuf.SizeCounters
                 il.Add(); // stack: [size + curSize]
             }
 
-            var countLengthLabel = il.DefineLabel("countLength");
-            il.Dup(); // stack: [size, size]
-            il.Brtrue(countLengthLabel); // if(size != 0) goto countLength; stack: [size]
-            il.Pop(); // stack: []
-            context.ReturnForNull();
-            il.Ret();
-            il.MarkLabel(countLengthLabel);
+            if (!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            {
+                var countLengthLabel = il.DefineLabel("countLength");
+                il.Dup(); // stack: [size, size]
+                il.Brtrue(countLengthLabel); // if(size != 0) goto countLength; stack: [size]
+                il.Pop(); // stack: []
+                context.ReturnForNull();
+                il.Ret();
+                il.MarkLabel(countLengthLabel);
+            }
             il.Ldc_I4(5); // stack: [size, 5]
             il.Add(); // stack: [size + 5]
         }

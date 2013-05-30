@@ -20,14 +20,18 @@ namespace GroBuf.Writers
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var il = context.Il;
-            var emptyLabel = il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            il.Ldlen(); // stack: [obj.Length]
-            il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldlen(); // stack: [obj.Length]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -40,7 +44,6 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.Array);
-            var doneLabel = il.DefineLabel("done");
             var length = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [obj]
             il.Ldlen(); // stack: [obj.Length]
@@ -53,6 +56,10 @@ namespace GroBuf.Writers
             il.Ldloc(length); // stack: [&result[index], length]
             il.Stind(typeof(int)); // *(int*)&result[index] = length; stack: []
             context.IncreaseIndexBy4(); // index = index + 4
+
+            var writeDataLengthLabel = il.DefineLabel("writeDataLength");
+            il.Ldloc(length); // stack: [length]
+            il.Brfalse(writeDataLengthLabel); // if(length == 0) goto writeDataLength; stack: []
 
             var i = il.DeclareLocal(typeof(int));
             il.Ldc_I4(0); // stack: [0]
@@ -74,6 +81,7 @@ namespace GroBuf.Writers
             il.Stloc(i); // i = i + 1; stack: [length, i]
             il.Bgt(typeof(int), cycleStart); // if(length > i) goto cycleStart; stack: []
 
+            il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]
             il.Ldloc(start); // stack: [result, start]
             il.Add(); // stack: [result + start]
@@ -83,8 +91,6 @@ namespace GroBuf.Writers
             il.Ldc_I4(4); // stack: [result + start, index - start, 4]
             il.Sub(); // stack: [result + start, index - start - 4]
             il.Stind(typeof(int)); // *(int*)(result + start) = index - start - 4
-
-            il.MarkLabel(doneLabel);
         }
 
         private readonly Type elementType;

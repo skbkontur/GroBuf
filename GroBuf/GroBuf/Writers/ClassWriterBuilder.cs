@@ -113,19 +113,21 @@ namespace GroBuf.Writers
             il.Ldc_I4(5); // stack: [index - start, 5]
             il.Sub(); // stack: [index - start - 5]
 
-            var writeLengthLabel = il.DefineLabel("writeLength");
-            var doneLabel = il.DefineLabel("done");
-            il.Dup(); // stack: [index - start - 5, index - start - 5]
-            il.Stloc(length); // length = index - start - 5; stack: [length]
-            il.Brtrue(writeLengthLabel); // if(length != 0) goto writeLength;
+            il.Stloc(length); // length = index - start - 5; stack: []
 
-            context.LoadIndexByRef(); // stack: [ref index]
-            il.Ldloc(start); // stack: [ref index, start]
-            il.Stind(typeof(int)); // index = start
-            context.WriteNull();
+            if(!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            {
+                var writeLengthLabel = il.DefineLabel("writeLength");
+                il.Ldloc(length); // stack: [length]
+                il.Brtrue(writeLengthLabel); // if(length != 0) goto writeLength;
 
-            il.MarkLabel(writeLengthLabel);
+                context.LoadIndexByRef(); // stack: [ref index]
+                il.Ldloc(start); // stack: [ref index, start]
+                il.Stind(typeof(int)); // index = start
+                context.WriteNull();
 
+                il.MarkLabel(writeLengthLabel);
+            }
             context.LoadResult(); // stack: [result]
             il.Ldloc(start); // stack: [result, start]
             il.Add(); // stack: [result + start]
@@ -136,7 +138,6 @@ namespace GroBuf.Writers
             il.Add(); // stack: [result + start + 1]
             il.Ldloc(length); // stack: [result + start + 1, length]
             il.Stind(typeof(int)); // *(int*)(result + start + 1) = length
-            il.MarkLabel(doneLabel);
         }
     }
 }

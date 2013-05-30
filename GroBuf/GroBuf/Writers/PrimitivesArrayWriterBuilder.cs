@@ -21,14 +21,18 @@ namespace GroBuf.Writers
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var il = context.Il;
-            var emptyLabel = il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            il.Ldlen(); // stack: [obj.Length]
-            il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldlen(); // stack: [obj.Length]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -51,6 +55,11 @@ namespace GroBuf.Writers
             il.Stloc(size); // size = obj size; stack: [&result[index], obj size]
             il.Stind(typeof(int)); // result[index] = size; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
+
+            var doneLabel = il.DefineLabel("done");
+            il.Ldloc(size); // stack: [size]
+            il.Brfalse(doneLabel); // if(size == 0) goto done; stack: []
+
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
             il.Ldc_I4(0); // stack: [&result[index], obj, 0]
@@ -70,6 +79,7 @@ namespace GroBuf.Writers
             il.Ldloc(size); // stack: [ref index, index, size]
             il.Add(); // stack: [ref index, index + size]
             il.Stind(typeof(int)); // index = index + size
+            il.MarkLabel(doneLabel);
         }
 
         private static void CountArraySize(Type elementType, GroboIL il)

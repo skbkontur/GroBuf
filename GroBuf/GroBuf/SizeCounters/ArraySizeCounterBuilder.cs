@@ -25,13 +25,18 @@ namespace GroBuf.SizeCounters
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldlen(); // stack: [obj.Length]
-            context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldlen(); // stack: [obj.Length]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -44,9 +49,12 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [9, obj]
             il.Ldlen(); // stack: [9, obj.Length]
             il.Stloc(length); // length = obj.Length; stack: [9]
+            var doneLabel = il.DefineLabel("done");
+            il.Ldloc(length); // stack: [size, length]
+            il.Brfalse(doneLabel); // if(length == 0) goto done; stack: [size]
             var i = il.DeclareLocal(typeof(int));
-            il.Ldc_I4(0); // stack: [9, 0]
-            il.Stloc(i); // i = 0; stack: [9]
+            il.Ldc_I4(0); // stack: [size, 0]
+            il.Stloc(i); // i = 0; stack: [size]
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
             context.LoadObj(); // stack: [size, obj]
@@ -62,6 +70,7 @@ namespace GroBuf.SizeCounters
             il.Dup(); // stack: [size, length, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, length, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(length > i) goto cycleStart; stack: [size]
+            il.MarkLabel(doneLabel);
         }
 
         private readonly Type elementType;

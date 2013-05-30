@@ -30,6 +30,7 @@ namespace GroBuf.Tests
         {
             Console.WriteLine("GroBuf big data: all types");
             DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
+            return;
             Console.WriteLine();
             Console.WriteLine("GroBuf big data: strings");
             DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));

@@ -162,6 +162,7 @@
     <Compile Include="TestTools\ConcurrentCache.cs" />
     <Compile Include="TestTools\XmlHelpers.cs" />
     <Compile Include="TestWithDerivedTypes.cs" />
+    <Compile Include="TestWriteEmptyObjects.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GroBuf\GroBuf.csproj">

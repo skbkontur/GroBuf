@@ -64,15 +64,34 @@ namespace GroBuf.Readers
             context.AssertLength();
 
             context.GoToCurrentLocation(); // stack: [&data[index]]
-            il.Ldind(typeof(uint)); // stack: [(uint)data[index]]
-            context.IncreaseIndexBy4(); // index = index + 4; stack: [(uint)data[index]]
+            il.Ldind(typeof(uint)); // stack: [(uint)data[index] = data length]
+            context.IncreaseIndexBy4(); // index = index + 4; stack: [data length]
 
-            il.Dup(); // stack: [(uint)data[index], (uint)data[index]]
-            context.AssertLength(); // stack: [(uint)data[index]]
+            il.Dup(); // stack: [data length, data length]
+            il.Stloc(end); // end = data length; stack: [data length]
 
-            context.LoadIndex(); // stack: [(uint)data[index], index]
-            il.Add(); // stack: [(uint)data[index] + index]
-            il.Stloc(end); // end = (uint)data[index] + index
+            if (Type.IsClass)
+            {
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldind(typeof(object)); // stack: [result]
+                var notNullLabel = il.DefineLabel("notNull");
+                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: []
+                context.LoadResultByRef(); // stack: [ref result]
+                ObjectConstructionHelper.EmitConstructionOfType(Type, il);
+                il.Stind(typeof(object)); // result = new type(); stack: []
+                il.MarkLabel(notNullLabel);
+            }
+
+            var doneLabel = il.DefineLabel("done");
+            il.Brfalse(doneLabel); // if(data length == 0) goto done; stack: []
+            il.Ldloc(end); // stack: [data length]
+
+            context.AssertLength(); // stack: []
+
+            il.Ldloc(end); // stack: [data length]
+            context.LoadIndex(); // stack: [data length, index]
+            il.Add(); // stack: [data length + index]
+            il.Stloc(end); // end = data length + index
 
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
@@ -127,6 +146,8 @@ namespace GroBuf.Readers
             context.LoadIndex(); // stack: [index]
             il.Ldloc(end); // stack: [index, end]
             il.Blt(typeof(uint), cycleStartLabel); // if(index < end) goto cycleStart; stack: []
+
+            il.MarkLabel(doneLabel);
         }
 
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
@@ -169,23 +190,6 @@ namespace GroBuf.Readers
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
                                                }, context.Module, true);
             var il = new GroboIL(method);
-
-            if(Type.IsClass)
-            {
-                il.Ldarg(3); // stack: [ref result]
-                il.Ldind(typeof(object)); // stack: [result]
-                var notNullLabel = il.DefineLabel("notNull");
-                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: []
-                il.Ldarg(3); // stack: [ref result]
-                ObjectConstructionHelper.EmitConstructionOfType(Type, il);
-                //ConstructorInfo constructor = Type.GetConstructor(Type.EmptyTypes);
-                //if(constructor == null)
-                //    throw new MissingConstructorException(Type);
-
-                //il.Emit(OpCodes.Newobj, constructor); // stack: [ref result, new type()]
-                il.Stind(typeof(object)); // result = new type(); stack: []
-                il.MarkLabel(notNullLabel);
-            }
 
             il.Ldarg(0); // stack: [data]
             il.Ldarg(1); // stack: [data, ref index]

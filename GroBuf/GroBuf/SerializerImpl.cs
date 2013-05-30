@@ -7,9 +7,9 @@ namespace GroBuf
 {
     public class SerializerImpl
     {
-        public SerializerImpl(IDataMembersExtractor dataMembersExtractor)
+        public SerializerImpl(IDataMembersExtractor dataMembersExtractor, GroBufOptions options = GroBufOptions.None)
         {
-            writer = new GroBufWriter(dataMembersExtractor);
+            writer = new GroBufWriter(dataMembersExtractor, options);
             reader = new GroBufReader(dataMembersExtractor);
         }
 
