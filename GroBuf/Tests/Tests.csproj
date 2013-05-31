@@ -78,6 +78,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="QxxTest.cs" />
     <Compile Include="TestList.cs" />
     <Compile Include="TestNonPublicFields.cs" />
     <Compile Include="TestChangeType.cs" />
