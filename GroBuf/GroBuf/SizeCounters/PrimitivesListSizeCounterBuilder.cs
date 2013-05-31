@@ -20,13 +20,18 @@ namespace GroBuf.SizeCounters
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
-            context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 

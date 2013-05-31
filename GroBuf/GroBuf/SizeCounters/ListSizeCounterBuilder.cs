@@ -11,7 +11,7 @@ namespace GroBuf.SizeCounters
         public ListSizeCounterBuilder(Type type)
             : base(type)
         {
-            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
+            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
                 throw new InvalidOperationException("Expected list but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
         }
@@ -23,13 +23,18 @@ namespace GroBuf.SizeCounters
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
-            context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -42,6 +47,11 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [9, obj]
             il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [9, obj.Count]
             il.Stloc(count); // count = obj.Count; stack: [9]
+
+            il.Ldloc(count); // stack: [9, count]
+            var doneLabel = il.DefineLabel("done");
+            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: [9]
+
             var items = il.DeclareLocal(elementType.MakeArrayType());
             context.LoadObj(); // stack: [9, obj]
             il.Ldfld(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [9, obj._items]
@@ -64,6 +74,8 @@ namespace GroBuf.SizeCounters
             il.Dup(); // stack: [size, length, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, length, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(length > i) goto cycleStart; stack: [size]
+
+            il.MarkLabel(doneLabel);
         }
 
         private readonly Type elementType;

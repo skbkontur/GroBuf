@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System.Collections.Generic;
+
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
@@ -36,6 +38,28 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestEmptyList()
+        {
+            var a = new A {StringList = new List<string>()};
+            var data = serializer.Serialize(a);
+            var aa = serializer.Deserialize<A>(data);
+            Assert.IsNotNull(aa);
+            Assert.IsNotNull(aa.StringList);
+            Assert.AreEqual(0, aa.StringList.Count);
+        }
+
+        [Test]
+        public void TestEmptyPrimitivesList()
+        {
+            var a = new A {IntList = new List<int>()};
+            var data = serializer.Serialize(a);
+            var aa = serializer.Deserialize<A>(data);
+            Assert.IsNotNull(aa);
+            Assert.IsNotNull(aa.IntList);
+            Assert.AreEqual(0, aa.IntList.Count);
+        }
+
+        [Test]
         public void TestEmptyClass()
         {
             var b = new B {A = new A()};
@@ -69,6 +93,8 @@ namespace GroBuf.Tests
         {
             public string[] Strings { get; set; }
             public int[] Ints { get; set; }
+            public List<string> StringList { get; set; }
+            public List<int> IntList { get; set; }
         }
 
         private class B

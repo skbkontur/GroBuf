@@ -11,21 +11,25 @@ namespace GroBuf.Writers
         public ListWriterBuilder(Type type)
             : base(type)
         {
-            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
+            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
                 throw new InvalidOperationException("Expected list but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var il = context.Il;
-            var emptyLabel = il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
-            il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
-            il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -38,11 +42,15 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.Array);
-            var doneLabel = il.DefineLabel("done");
             var count = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [obj]
             il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
             il.Stloc(count); // count = obj.Count
+
+            il.Ldloc(count); // stack: [count]
+            var doneLabel = il.DefineLabel("done");
+            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: []
+
             var items = il.DeclareLocal(elementType.MakeArrayType());
             context.LoadObj(); // stack: [obj]
             il.Ldfld(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj._items]
