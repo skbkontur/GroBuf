@@ -49,7 +49,7 @@ namespace GroBuf.SizeCounters
         /// <returns>true if <c>obj</c> can be empty</returns>
         protected virtual bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            if(!Type.IsClass) return false;
+            if(Type.IsValueType) return false;
             context.LoadObj(); // stack: [obj]
             context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             return true;

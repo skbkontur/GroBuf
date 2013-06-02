@@ -70,7 +70,7 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [data length, data length]
             il.Stloc(end); // end = data length; stack: [data length]
 
-            if (Type.IsClass)
+            if(!Type.IsValueType)
             {
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldind(typeof(object)); // stack: [result]
@@ -195,7 +195,7 @@ namespace GroBuf.Readers
             il.Ldarg(1); // stack: [data, ref index]
             il.Ldarg(2); // stack: [data, ref index, dataLength]
             il.Ldarg(3); // stack: [data, ref index, dataLength, ref result]
-            if(Type.IsClass)
+            if(!Type.IsValueType)
                 il.Ldind(typeof(object)); // stack: [data, ref index, dataLength, result]
             switch(member.MemberType)
             {
@@ -215,7 +215,7 @@ namespace GroBuf.Readers
                 il.Ldloca(propertyValue); // stack: [data, ref index, dataLength, ref propertyValue]
                 ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, dataLength, ref propertyValue); stack: []
                 il.Ldarg(3); // stack: [ref result]
-                if(Type.IsClass)
+                if(!Type.IsValueType)
                     il.Ldind(typeof(object)); // stack: [result]
                 il.Ldloc(propertyValue); // stack: [result, propertyValue]
                 MethodInfo setter = property.GetSetMethod(true);

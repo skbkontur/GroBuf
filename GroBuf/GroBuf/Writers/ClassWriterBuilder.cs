@@ -50,10 +50,10 @@ namespace GroBuf.Writers
             for(int i = 0; i < dataMembers.Length; i++)
             {
                 var member = dataMembers[i];
-                if(Type.IsClass)
-                    context.LoadObj(); // stack: [obj]
-                else
+                if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [ref obj]
+                else
+                    context.LoadObj(); // stack: [obj]
                 Type memberType;
                 switch(member.MemberType)
                 {

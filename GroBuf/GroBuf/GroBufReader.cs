@@ -163,7 +163,7 @@ namespace GroBuf
             il.Ldarg(2); // stack: [data, ref index, length]
             il.Ldarg(3); // stack: [data, ref index, length, ref result]
 
-            if(type.IsClass && type != typeof(string))
+            if(!type.IsValueType && type != typeof(string))
             {
                 il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                 il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]
@@ -191,7 +191,7 @@ namespace GroBuf
             }
 
             il.Ldc_IntPtr(reader);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] { typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType() }); // reader(data, ref index, length, ref result); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}); // reader(data, ref index, length, ref result); stack: []
             il.Ret();
 
             return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));
@@ -256,7 +256,7 @@ namespace GroBuf
             }
 
             il.Ldc_IntPtr(reader);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] { typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType() }); // reader(data, ref index, length, ref result); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}); // reader(data, ref index, length, ref result); stack: []
 
             if(type.IsValueType)
             {

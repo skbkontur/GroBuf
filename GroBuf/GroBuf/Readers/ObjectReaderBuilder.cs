@@ -84,7 +84,7 @@ namespace GroBuf.Readers
             il.Ldc_IntPtr(reader);
             il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}); // read<type>(data, ref index, dataLength, ref value); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
-            if(!type.IsClass)
+            if(type.IsValueType)
                 il.Box(type); // stack: [ref result, (object)value]
             il.Stind(typeof(object)); // result = (object)value
             il.Ret();

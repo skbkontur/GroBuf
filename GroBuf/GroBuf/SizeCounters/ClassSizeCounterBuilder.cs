@@ -39,10 +39,10 @@ namespace GroBuf.SizeCounters
             var dataMembers = context.Context.GetDataMembers(Type);
             foreach(var member in dataMembers)
             {
-                if(Type.IsClass)
-                    context.LoadObj(); // stack: [size, obj]
-                else
+                if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [size, ref obj]
+                else
+                    context.LoadObj(); // stack: [size, obj]
                 Type memberType;
                 switch(member.MemberType)
                 {
@@ -74,7 +74,7 @@ namespace GroBuf.SizeCounters
                 il.Add(); // stack: [size + curSize]
             }
 
-            if (!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if(!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
             {
                 var countLengthLabel = il.DefineLabel("countLength");
                 il.Dup(); // stack: [size, size]
