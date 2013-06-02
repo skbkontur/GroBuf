@@ -29,11 +29,13 @@ namespace GroBuf.SizeCounters
         private static ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type)
         {
             ISizeCounterBuilder sizeCounterBuilder;
-            if(type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            var attribute = type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
+            if(attribute != null)
             {
-                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufSizeCounterAttribute>(type);
+                var customSerializerType = attribute.CustomSerializerType ?? type;
+                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufSizeCounterAttribute>(customSerializerType);
                 if(customSizeCounter == null)
-                    throw new MissingMethodException("Missing grobuf custom size counter for type '" + type + "'");
+                    throw new MissingMethodException("Missing grobuf custom size counter for type '" + customSerializerType + "'");
                 sizeCounterBuilder = new CustomSizeCounterBuilder(type, customSizeCounter);
             }
             else if(type == typeof(string))

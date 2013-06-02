@@ -29,12 +29,14 @@ namespace GroBuf.Readers
         private static IReaderBuilder GetReaderBuilderInternal(Type type)
         {
             IReaderBuilder readerBuilder;
-            if(type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            var attribute = type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
+            if(attribute != null)
             {
-                MethodInfo customReader = GroBufHelpers.GetMethod<GroBufReaderAttribute>(type);
-                if(customReader == null)
-                    throw new MissingMethodException("Missing grobuf custom reader for type '" + type + "'");
-                readerBuilder = new CustomReaderBuilder(type, customReader);
+                var customSerializerType = attribute.CustomSerializerType ?? type;
+                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufReaderAttribute>(customSerializerType);
+                if(customSizeCounter == null)
+                    throw new MissingMethodException("Missing grobuf custom reader for type '" + customSerializerType + "'");
+                readerBuilder = new CustomReaderBuilder(type, customSizeCounter);
             }
             else if(type == typeof(string))
                 readerBuilder = new StringReaderBuilder();

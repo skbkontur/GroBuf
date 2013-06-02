@@ -29,12 +29,14 @@ namespace GroBuf.Writers
         private static IWriterBuilder GetWriterBuilderInternal(Type type)
         {
             IWriterBuilder writerBuilder;
-            if(type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).Any())
+            var attribute = type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
+            if(attribute != null)
             {
-                MethodInfo customWriter = GroBufHelpers.GetMethod<GroBufWriterAttribute>(type);
-                if(customWriter == null)
-                    throw new MissingMethodException("Missing grobuf custom writer for type '" + type + "'");
-                writerBuilder = new CustomWriterBuilder(type, customWriter);
+                var customSerializerType = attribute.CustomSerializerType ?? type;
+                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufWriterAttribute>(customSerializerType);
+                if(customSizeCounter == null)
+                    throw new MissingMethodException("Missing grobuf custom writer for type '" + customSerializerType + "'");
+                writerBuilder = new CustomWriterBuilder(type, customSizeCounter);
             }
             else if(type == typeof(string))
                 writerBuilder = new StringWriterBuilder();
