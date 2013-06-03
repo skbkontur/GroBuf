@@ -8,6 +8,15 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterCollection : ISizeCounterCollection
     {
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
+
+        public SizeCounterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
+        {
+            this.customSerializerCollection = customSerializerCollection;
+            this.factory = factory;
+        }
+
         public ISizeCounterBuilder GetSizeCounterBuilder(Type type)
         {
             var sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[type];
@@ -26,18 +35,12 @@ namespace GroBuf.SizeCounters
             return sizeCounterBuilder;
         }
 
-        private static ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type)
+        private ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type)
         {
             ISizeCounterBuilder sizeCounterBuilder;
-            var attribute = type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
-            if(attribute != null)
-            {
-                var customSerializerType = attribute.CustomSerializerType ?? type;
-                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufSizeCounterAttribute>(customSerializerType);
-                if(customSizeCounter == null)
-                    throw new MissingMethodException("Missing grobuf custom size counter for type '" + customSerializerType + "'");
-                sizeCounterBuilder = new CustomSizeCounterBuilder(type, customSizeCounter);
-            }
+            var customSerializer = customSerializerCollection.Get(type, factory);
+            if(customSerializer != null)
+                sizeCounterBuilder = new CustomSizeCounterBuilder(type, customSerializer);
             else if(type == typeof(string))
                 sizeCounterBuilder = new StringSizeCounterBuilder();
             else if(type == typeof(DateTime))

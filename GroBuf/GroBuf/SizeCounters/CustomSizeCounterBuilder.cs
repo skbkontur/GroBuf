@@ -1,35 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+
+using GrEmit.Utils;
 
 namespace GroBuf.SizeCounters
 {
     internal class CustomSizeCounterBuilder : SizeCounterBuilderBase
     {
-        public CustomSizeCounterBuilder(Type type, MethodInfo sizeCounter)
+        private readonly IGroBufCustomSerializer customSerializer;
+
+        public CustomSizeCounterBuilder(Type type, IGroBufCustomSerializer customSerializer)
             : base(type)
         {
-            this.sizeCounter = sizeCounter;
+            this.customSerializer = customSerializer;
         }
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
         {
-            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("sizeCounter_" + Type.Name + "_" + Guid.NewGuid(), typeof(SizeCounterDelegate))});
+            context.SetFields(Type, new[] { new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer)) });
         }
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
-            var groBufWriter = context.Context.GroBufWriter;
-            Func<Type, SizeCounterDelegate> sizeCountersFactory = type => (obj, writeEmpty) => groBufWriter.GetSize(type, obj, writeEmpty);
-            var sizeCounterDelegate = (SizeCounterDelegate)sizeCounter.Invoke(null, new[] {sizeCountersFactory});
-            var sizeCounterField = context.Context.InitConstField(Type, 0, sizeCounterDelegate);
+            var customSerializerField = context.Context.InitConstField(Type, 0, customSerializer);
             var il = context.Il;
-            context.LoadField(sizeCounterField); // stack: [sizeCounterDelegate]
-            context.LoadObj(); // stack: [sizeCounterDelegate, obj]
+
+            context.LoadField(customSerializerField); // stack: [customSerializer]
+            context.LoadObj(); // stack: [customSerializer, obj]
             if(Type.IsValueType)
-                il.Box(Type); // stack: [sizeCounterDelegate, (object)obj]
-            context.LoadWriteEmpty(); // stack: [sizeCounterDelegate, (object)obj, writeEmpty]
-            il.Call(typeof(SizeCounterDelegate).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), typeof(SizeCounterDelegate)); // stack: [sizeCounterDelegate.Invoke((object)obj, writeEmpty) = size]
+                il.Box(Type); // stack: [customSerializer, (object)obj]
+            context.LoadWriteEmpty(); // stack: [customSerializer, (object)obj, writeEmpty]
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.CountSize(null, false)), typeof(IGroBufCustomSerializer)); // stack: [customSerializer.CountSize((object)obj, writeEmpty)]
 
             var countLengthLabel = il.DefineLabel("countLength");
             il.Dup(); // stack: [size, size]
@@ -41,7 +42,5 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(5); // stack: [size, 5]
             il.Add(); // stack: [size + 5]
         }
-
-        private readonly MethodInfo sizeCounter;
     }
 }

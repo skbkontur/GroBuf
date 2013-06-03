@@ -8,6 +8,15 @@ namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
+
+        public WriterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
+        {
+            this.customSerializerCollection = customSerializerCollection;
+            this.factory = factory;
+        }
+
         public IWriterBuilder GetWriterBuilder(Type type)
         {
             var writerBuilder = (IWriterBuilder)writerBuilders[type];
@@ -26,19 +35,13 @@ namespace GroBuf.Writers
             return writerBuilder;
         }
 
-        private static IWriterBuilder GetWriterBuilderInternal(Type type)
+        private IWriterBuilder GetWriterBuilderInternal(Type type)
         {
             IWriterBuilder writerBuilder;
-            var attribute = type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
-            if(attribute != null)
-            {
-                var customSerializerType = attribute.CustomSerializerType ?? type;
-                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufWriterAttribute>(customSerializerType);
-                if(customSizeCounter == null)
-                    throw new MissingMethodException("Missing grobuf custom writer for type '" + customSerializerType + "'");
-                writerBuilder = new CustomWriterBuilder(type, customSizeCounter);
-            }
-            else if(type == typeof(string))
+            var customSerializer = customSerializerCollection.Get(type, factory);
+            if (customSerializer != null)
+                writerBuilder = new CustomWriterBuilder(type, customSerializer);
+            else if (type == typeof(string))
                 writerBuilder = new StringWriterBuilder();
             else if(type == typeof(DateTime))
                 writerBuilder = new DateTimeWriterBuilder();

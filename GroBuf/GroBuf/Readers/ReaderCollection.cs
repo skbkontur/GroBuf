@@ -1,13 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
+
+        public ReaderCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
+        {
+            this.customSerializerCollection = customSerializerCollection;
+            this.factory = factory;
+        }
+
         public IReaderBuilder GetReaderBuilder(Type type)
         {
             var readerBuilder = (IReaderBuilder)readerBuilders[type];
@@ -26,19 +33,13 @@ namespace GroBuf.Readers
             return readerBuilder;
         }
 
-        private static IReaderBuilder GetReaderBuilderInternal(Type type)
+        private IReaderBuilder GetReaderBuilderInternal(Type type)
         {
             IReaderBuilder readerBuilder;
-            var attribute = type.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
-            if(attribute != null)
-            {
-                var customSerializerType = attribute.CustomSerializerType ?? type;
-                MethodInfo customSizeCounter = GroBufHelpers.GetMethod<GroBufReaderAttribute>(customSerializerType);
-                if(customSizeCounter == null)
-                    throw new MissingMethodException("Missing grobuf custom reader for type '" + customSerializerType + "'");
-                readerBuilder = new CustomReaderBuilder(type, customSizeCounter);
-            }
-            else if(type == typeof(string))
+            var customSerializer = customSerializerCollection.Get(type, factory);
+            if (customSerializer != null)
+                readerBuilder = new CustomReaderBuilder(type, customSerializer);
+            else if (type == typeof(string))
                 readerBuilder = new StringReaderBuilder();
             else if(type == typeof(DateTime))
                 readerBuilder = new DateTimeReaderBuilder();

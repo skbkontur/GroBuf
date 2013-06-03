@@ -1,28 +1,28 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+
+using GrEmit.Utils;
 
 namespace GroBuf.Readers
 {
     internal class CustomReaderBuilder : ReaderBuilderBase
     {
-        public CustomReaderBuilder(Type type, MethodInfo reader)
+        private readonly IGroBufCustomSerializer customSerializer;
+
+        public CustomReaderBuilder(Type type, IGroBufCustomSerializer customSerializer)
             : base(type)
         {
-            this.reader = reader;
+            this.customSerializer = customSerializer;
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
         {
-            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("reader_" + Type.Name + "_" + Guid.NewGuid(), typeof(ReaderDelegate))});
+            context.SetFields(Type, new[] { new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer)) });
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
-            var groBufReader = context.Context.GroBufReader;
-            Func<Type, ReaderDelegate> readersFactory = type => ((IntPtr data, ref int index, int length, ref object result) => groBufReader.Read(type, data, ref index, length, ref result));
-            var readerDelegate = (ReaderDelegate)reader.Invoke(null, new[] {readersFactory});
-            var readerField = context.Context.InitConstField(Type, 0, readerDelegate);
+            var customSerializerField = context.Context.InitConstField(Type, 0, customSerializer);
             var il = context.Il;
 
             context.IncreaseIndexBy1(); // index = index + 1
@@ -38,15 +38,18 @@ namespace GroBuf.Readers
             context.AssertLength(); // stack: []
 
             var local = il.DeclareLocal(typeof(object));
-            context.LoadField(readerField); // stack: [readerDelegate]
-            context.LoadData(); // stack: [readerDelegate, data]
-            context.LoadIndexByRef(); // stack: [readerDelegate, data, ref index]
-            context.LoadDataLength(); // stack: [readerDelegate, data, ref index, length]
+            context.LoadField(customSerializerField); // stack: [customSerializer]
+            context.LoadData(); // stack: [customSerializer, data]
+            context.LoadIndexByRef(); // stack: [customSerializer, data, ref index]
+            context.LoadDataLength(); // stack: [customSerializer, data, ref index, length]
             if(!Type.IsValueType)
-                context.LoadResultByRef(); // stack: [readerDelegate, data, ref index, length, ref result]
+                context.LoadResultByRef(); // stack: [customSerializer, data, ref index, length, ref result]
             else
-                il.Ldloca(local); // stack: [readerDelegate, data, ref index, length, ref local]
-            il.Call(typeof(ReaderDelegate).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), typeof(ReaderDelegate)); // readerDelegate.Invoke(readerDelegate, data, ref index, length, ref local)
+                il.Ldloca(local); // stack: [customSerializer, data, ref index, length, ref local]
+            int dummy = 0;
+            object dummyObj = null;
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Read(IntPtr.Zero, ref dummy, 0, ref dummyObj)), typeof(IGroBufCustomSerializer)); // customSerializer.Read(data, ref index, length, ref local); stack: []
+
             if(Type.IsValueType)
             {
                 context.LoadResultByRef(); // stack: [ref result]
@@ -55,7 +58,5 @@ namespace GroBuf.Readers
                 il.Stobj(Type); // result = (Type)local
             }
         }
-
-        private readonly MethodInfo reader;
     }
 }

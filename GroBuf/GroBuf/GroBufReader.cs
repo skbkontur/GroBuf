@@ -12,9 +12,12 @@ namespace GroBuf
 {
     internal class GroBufReader
     {
-        public GroBufReader(IDataMembersExtractor dataMembersExtractor)
+        public GroBufReader(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> func)
         {
             this.dataMembersExtractor = dataMembersExtractor;
+            this.customSerializerCollection = customSerializerCollection;
+            this.func = func;
+            readerCollection = new ReaderCollection(customSerializerCollection, func);
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
@@ -163,29 +166,20 @@ namespace GroBuf
             il.Ldarg(2); // stack: [data, ref index, length]
             il.Ldarg(3); // stack: [data, ref index, length, ref result]
 
-            if(!type.IsValueType && type != typeof(string))
+            if(!type.IsValueType && type != typeof(string) && customSerializerCollection.Get(type, func) == null)
             {
                 il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                 il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]
                 var notNullLabel = il.DefineLabel("notNull");
                 il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, length, ref result]
                 il.Dup(); // stack: [data, ref index, length, ref result, ref result]
-                /*if(type == typeof(string))
-                    il.Emit(OpCodes.Ldstr, "");
-                else*/
                 if(type.IsArray)
                 {
                     il.Ldc_I4(0); // stack: [data, ref index, length, ref result, ref result, 0]
                     il.Newarr(type.GetElementType()); // stack: [data, ref index, length, ref result, ref result, new elementType[0]]
                 }
                 else
-                {
                     ObjectConstructionHelper.EmitConstructionOfType(type, il); // stack: [data, ref index, length, ref result, ref result, new type()]
-                    //var constructor = type.GetConstructor(Type.EmptyTypes);
-                    //if(constructor == null)
-                    //    throw new MissingConstructorException(type);
-                    //il.Emit(OpCodes.Newobj, constructor); // stack: [data, ref index, length, ref result, ref result, new type()]
-                }
                 il.Stind(typeof(object)); // result = new type(); stack: [data, ref index, length, ref result]
                 il.MarkLabel(notNullLabel);
             }
@@ -210,29 +204,20 @@ namespace GroBuf
             var local = il.DeclareLocal(type);
             if(!type.IsValueType)
             {
-                if(type != typeof(string))
+                if(type != typeof(string) && customSerializerCollection.Get(type, func) == null)
                 {
                     il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                     il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]
                     var notNullLabel = il.DefineLabel("notNull");
                     il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, length, ref result]
                     il.Dup(); // stack: [data, ref index, length, ref result, ref result]
-                    /*if(type == typeof(string))
-                        il.Emit(OpCodes.Ldstr, "");
-                    else*/
                     if(type.IsArray)
                     {
                         il.Ldc_I4(0); // stack: [data, ref index, length, ref result, ref result, 0]
                         il.Newarr(type.GetElementType()); // stack: [data, ref index, length, ref result, ref result, new elementType[0]]
                     }
                     else
-                    {
                         ObjectConstructionHelper.EmitConstructionOfType(type, il); // stack: [data, ref index, length, ref result, ref result, new type()]
-                        //var constructor = type.GetConstructor(Type.EmptyTypes);
-                        //if(constructor == null)
-                        //    throw new MissingConstructorException(type);
-                        //il.Emit(OpCodes.Newobj, constructor); // stack: [data, ref index, length, ref result, ref result, new type()]
-                    }
                     il.Stind(typeof(object)); // result = new type(); stack: [data, ref index, length, ref result]
                     il.MarkLabel(notNullLabel);
                 }
@@ -272,8 +257,10 @@ namespace GroBuf
         }
 
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> func;
 
-        private readonly IReaderCollection readerCollection = new ReaderCollection();
+        private readonly IReaderCollection readerCollection;
 
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable readers2 = new Hashtable();

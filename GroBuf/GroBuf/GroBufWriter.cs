@@ -13,10 +13,13 @@ namespace GroBuf
 {
     internal class GroBufWriter
     {
-        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, GroBufOptions options)
+        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection,  GroBufOptions options, Func<Type, IGroBufCustomSerializer> func)
         {
             this.dataMembersExtractor = dataMembersExtractor;
+            this.customSerializerCollection = customSerializerCollection;
             this.options = options;
+            sizeCounterCollection = new SizeCounterCollection(customSerializerCollection, func);
+            writerCollection = new WriterCollection(customSerializerCollection, func);
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
@@ -244,6 +247,7 @@ namespace GroBuf
         }
 
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly GroBufOptions options;
 
         private readonly Hashtable writersAndSizeCounters = new Hashtable();
@@ -253,8 +257,8 @@ namespace GroBuf
         private readonly object writersAndSizeCountersLock = new object();
         private readonly object writersLock = new object();
         private readonly object countersLock = new object();
-        private readonly IWriterCollection writerCollection = new WriterCollection();
-        private readonly ISizeCounterCollection sizeCounterCollection = new SizeCounterCollection();
+        private readonly IWriterCollection writerCollection;
+        private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly AssemblyBuilder assembly;
         private readonly ModuleBuilder module;
     }

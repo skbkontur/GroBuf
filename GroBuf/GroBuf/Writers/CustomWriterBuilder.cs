@@ -1,28 +1,28 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+
+using GrEmit.Utils;
 
 namespace GroBuf.Writers
 {
     internal class CustomWriterBuilder : WriterBuilderBase
     {
-        public CustomWriterBuilder(Type type, MethodInfo writer)
+        private readonly IGroBufCustomSerializer customSerializer;
+
+        public CustomWriterBuilder(Type type, IGroBufCustomSerializer customSerializer)
             : base(type)
         {
-            this.writer = writer;
+            this.customSerializer = customSerializer;
         }
 
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
         {
-            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("writer_" + Type.Name + "_" + Guid.NewGuid(), typeof(WriterDelegate))});
+            context.SetFields(Type, new[] { new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer)) });
         }
 
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
-            var groBufWriter = context.Context.GroBufWriter;
-            Func<Type, WriterDelegate> writersFactory = type => ((object o, bool empty, IntPtr result, ref int index) => groBufWriter.Write(type, o, empty, result, ref index));
-            var writerDelegate = (WriterDelegate)writer.Invoke(null, new[] {writersFactory});
-            var writerField = context.Context.InitConstField(Type, 0, writerDelegate);
+            var customSerializerField = context.Context.InitConstField(Type, 0, customSerializer);
             var il = context.Il;
 
             var length = context.LocalInt;
@@ -35,15 +35,16 @@ namespace GroBuf.Writers
             il.Add(); // stack: [ref index, index + 5]
             il.Stind(typeof(int)); // index = index + 5; stack: []
 
-            context.LoadField(writerField); // stack: [writerDelegate]
-            context.LoadObj(); // stack: [writerDelegate, obj]
+            context.LoadField(customSerializerField); // stack: [customSerializer]
+            context.LoadObj(); // stack: [customSerializer, obj]
             if(Type.IsValueType)
-                il.Box(Type); // stack: [writerDelegate, (object)obj]
-            context.LoadWriteEmpty(); // stack: [writerDelegate, (object)obj, writeEmpty]
-            context.LoadResult(); // stack: [writerDelegate, (object)obj, writeEmpty, result]
-            context.LoadIndexByRef(); // stack: [writerDelegate, (object)obj, writeEmpty, result, ref index]
-            il.Call(typeof(WriterDelegate).GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), typeof(WriterDelegate)); // stack: [writerDelegate.Invoke((object)obj, writeEmpty, result, ref index)]
-
+                il.Box(Type); // stack: [customSerializer, (object)obj]
+            context.LoadWriteEmpty(); // stack: [customSerializer, (object)obj, writeEmpty]
+            context.LoadResult(); // stack: [customSerializer, (object)obj, writeEmpty, result]
+            context.LoadIndexByRef(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index]
+            int dummy = 0;
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy)), typeof(IGroBufCustomSerializer)); // customSerializer.Write((object)obj, writeEmpty, result, ref index); stack: []
+            
             context.LoadIndex(); // stack: [index]
             il.Ldloc(start); // stack: [index, start]
             il.Sub(); // stack: [index - start]
@@ -75,6 +76,5 @@ namespace GroBuf.Writers
             il.MarkLabel(doneLabel);
         }
 
-        private readonly MethodInfo writer;
     }
 }

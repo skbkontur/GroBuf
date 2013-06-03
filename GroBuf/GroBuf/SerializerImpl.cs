@@ -5,12 +5,48 @@ using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {
+    internal class InternalSerializer : IGroBufCustomSerializer
+    {
+        private readonly GroBufWriter groBufWriter;
+        private readonly GroBufReader groBufReader;
+        private readonly Type type;
+
+        public InternalSerializer(GroBufWriter groBufWriter, GroBufReader groBufReader, Type type)
+        {
+            this.groBufWriter = groBufWriter;
+            this.groBufReader = groBufReader;
+            this.type = type;
+        }
+
+        public object Create()
+        {
+            throw new NotImplementedException();
+        }
+
+        public int CountSize(object obj, bool writeEmpty)
+        {
+            return groBufWriter.GetSize(type, obj, writeEmpty);
+        }
+
+        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index)
+        {
+            groBufWriter.Write(type, obj, writeEmpty, result, ref index);
+        }
+
+        public void Read(IntPtr data, ref int index, int length, ref object result)
+        {
+            groBufReader.Read(type, data, ref index, length, ref result);
+        }
+    }
+
     public class SerializerImpl
     {
-        public SerializerImpl(IDataMembersExtractor dataMembersExtractor, GroBufOptions options = GroBufOptions.None)
+        public SerializerImpl(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection = null, GroBufOptions options = GroBufOptions.None)
         {
-            writer = new GroBufWriter(dataMembersExtractor, options);
-            reader = new GroBufReader(dataMembersExtractor);
+            customSerializerCollection = customSerializerCollection ?? new DefaultGroBufCustomSerializerCollection();
+            Func<Type, IGroBufCustomSerializer> func = type => new InternalSerializer(writer, reader, type);
+            writer = new GroBufWriter(dataMembersExtractor, customSerializerCollection, options, func);
+            reader = new GroBufReader(dataMembersExtractor, customSerializerCollection, func);
         }
 
         public int GetSize<T>(T obj)

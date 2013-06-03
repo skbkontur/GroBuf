@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 
 using GrEmit;
+using GrEmit.Utils;
 
 namespace GroBuf.Readers
 {
@@ -31,6 +32,16 @@ namespace GroBuf.Readers
                 if(type.IsValueType)
                     il.Unbox_Any(type);
             }
+        }
+
+        public static Func<object> ConstructType(Type type)
+        {
+            return EmitHelpers.EmitDynamicMethod<Func<object>>("Construct_" + type.Name + "_" + Guid.NewGuid(), type.Module, il => EmitCode(type, il));
+        }
+
+        private static void EmitCode(Type type, GroboIL groboIl)
+        {
+            EmitConstructionOfType(type, groboIl);
         }
 
         private static readonly MethodInfo getTypeFromHandle;
