@@ -79,7 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestCustomReadWriteInterface.cs" />
-    <Compile Include="QxxTest.cs" />
+    <Compile Include="SerializeInterfaceTest.cs" />
     <Compile Include="TestList.cs" />
     <Compile Include="TestNonPublicFields.cs" />
     <Compile Include="TestChangeType.cs" />

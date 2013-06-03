@@ -9,7 +9,7 @@ using NUnit.Framework;
 namespace GroBuf.Tests
 {
     [TestFixture]
-    public class QxxTest
+    public class SerializeInterfaceTest
     {
         [SetUp]
         public void SetUp()
@@ -18,9 +18,12 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestInterfaceFail()
+        public void TestInterfaceArray()
         {
-            serializer.Serialize(new I1[] {new C1 {Data = 1}});
+            byte[] serialize = serializer.Serialize(new I1[] {new C1 {Data = 2}});
+            var deserialize = serializer.Deserialize<C1[]>(serialize);
+            Assert.AreEqual(1, deserialize.Length);
+            Assert.AreEqual(2, deserialize[0].Data);
         }
 
         public class AllPropertiesExtractor : IDataMembersExtractor
