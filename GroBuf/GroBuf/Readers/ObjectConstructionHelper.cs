@@ -42,6 +42,7 @@ namespace GroBuf.Readers
         private static void EmitCode(Type type, GroboIL groboIl)
         {
             EmitConstructionOfType(type, groboIl);
+            groboIl.Ret();
         }
 
         private static readonly MethodInfo getTypeFromHandle;
