@@ -1,16 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
-        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
-        private readonly Func<Type, IGroBufCustomSerializer> factory;
-
         public WriterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
         {
             this.customSerializerCollection = customSerializerCollection;
@@ -39,9 +34,9 @@ namespace GroBuf.Writers
         {
             IWriterBuilder writerBuilder;
             var customSerializer = customSerializerCollection.Get(type, factory);
-            if (customSerializer != null)
+            if(customSerializer != null)
                 writerBuilder = new CustomWriterBuilder(type, customSerializer);
-            else if (type == typeof(string))
+            else if(type == typeof(string))
                 writerBuilder = new StringWriterBuilder();
             else if(type == typeof(DateTime))
                 writerBuilder = new DateTimeWriterBuilder();
@@ -67,6 +62,9 @@ namespace GroBuf.Writers
                 writerBuilder = new ClassWriterBuilder(type);
             return writerBuilder;
         }
+
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
 
         private readonly Hashtable writerBuilders = new Hashtable();
         private readonly object writerBuildersLock = new object();

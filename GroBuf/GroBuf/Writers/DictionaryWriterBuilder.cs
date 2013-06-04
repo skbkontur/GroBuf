@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -98,7 +97,6 @@ namespace GroBuf.Writers
             il.Dup(); // stack: [size, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, count, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [size]
-
 
 //            context.LoadObj(); // stack: [obj]
 //            var keyValueType = typeof(KeyValuePair<,>).MakeGenericType(Type.GetGenericArguments());

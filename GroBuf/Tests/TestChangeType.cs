@@ -5,8 +5,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestChangeType
     {
-        private Serializer serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -72,8 +70,10 @@ namespace GroBuf.Tests
             public string S { get; set; }
         }
 
-        public class TestClassADerived: TestClassA
+        public class TestClassADerived : TestClassA
         {
         }
+
+        private Serializer serializer;
     }
 }

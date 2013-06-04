@@ -83,7 +83,9 @@
     <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />
     <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
     <Compile Include="DefaultGroBufCustomSerializerCollection.cs" />
+    <Compile Include="EmptyGroBufCustomSerializerCollection.cs" />
     <Compile Include="GroBufCustomSerializationAttribute.cs" />
+    <Compile Include="GroBufCustomSerializerByAttribute.cs" />
     <Compile Include="GroBufOptions.cs" />
     <Compile Include="GroBufRandom.cs" />
     <Compile Include="GroBufReader.cs" />
@@ -96,6 +98,7 @@
     <Compile Include="GroBufWriterAttribute.cs" />
     <Compile Include="HashCalculator.cs" />
     <Compile Include="IGroBufCustomSerializer.cs" />
+    <Compile Include="IGroBufCustomSerializerCollection.cs" />
     <Compile Include="MissingConstructorException.cs" />
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />

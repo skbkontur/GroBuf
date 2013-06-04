@@ -1,16 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 
 namespace GroBuf.SizeCounters
 {
     internal class SizeCounterCollection : ISizeCounterCollection
     {
-        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
-        private readonly Func<Type, IGroBufCustomSerializer> factory;
-
         public SizeCounterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
         {
             this.customSerializerCollection = customSerializerCollection;
@@ -67,6 +62,9 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new ClassSizeCounterBuilder(type);
             return sizeCounterBuilder;
         }
+
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
 
         private readonly Hashtable sizeCounterBuilders = new Hashtable();
         private readonly object sizeCounterBuildersLock = new object();

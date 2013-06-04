@@ -16,17 +16,4 @@ namespace GroBuf
 
         public Type CustomSerializerType { get; private set; }
     }
-
-    public interface IGroBufCustomSerializerCollection
-    {
-        IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory);
-    }
-
-    public class EmptyGroBufCustomSerializerCollection : IGroBufCustomSerializerCollection
-    {
-        public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory)
-        {
-            return null;
-        }
-    }
 }

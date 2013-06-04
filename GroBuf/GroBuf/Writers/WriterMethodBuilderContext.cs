@@ -158,7 +158,7 @@ namespace GroBuf.Writers
         public void CallWriter(Type type)
         {
             var counter = Context.GetWriter(type);
-            if (counter.Pointer != IntPtr.Zero)
+            if(counter.Pointer != IntPtr.Zero)
                 Il.Ldc_IntPtr(counter.Pointer);
             else
             {
@@ -166,7 +166,7 @@ namespace GroBuf.Writers
                 Il.Ldc_I4(counter.Index);
                 Il.Ldelem(typeof(IntPtr));
             }
-            Il.Calli(CallingConventions.Standard, typeof(void), new[] { type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType() });
+            Il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()});
         }
 
         public WriterTypeBuilderContext Context { get; private set; }

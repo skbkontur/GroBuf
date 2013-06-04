@@ -13,7 +13,7 @@ namespace GroBuf
 {
     internal class GroBufWriter
     {
-        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection,  GroBufOptions options, Func<Type, IGroBufCustomSerializer> func)
+        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, GroBufOptions options, Func<Type, IGroBufCustomSerializer> func)
         {
             this.dataMembersExtractor = dataMembersExtractor;
             this.customSerializerCollection = customSerializerCollection;

@@ -24,7 +24,7 @@ namespace GroBuf.Tests.TestData.Orders
         [DataMember]
         [ProtoMember(4)]
         public bool?[] SpecialServiceDescription { get; set; }
-        
+
         [DataMember]
         [ProtoMember(5)]
         public Guid Id { get; set; }

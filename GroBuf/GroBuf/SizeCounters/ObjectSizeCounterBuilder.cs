@@ -80,7 +80,7 @@ namespace GroBuf.SizeCounters
 //                il.Castclass(type); // stack: [(type)obj]
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
             var counter = context.Context.GetCounter(type).Pointer;
-            if (counter == IntPtr.Zero)
+            if(counter == IntPtr.Zero)
                 throw new InvalidOperationException("Attempt to call method at Zero pointer");
             il.Ldc_IntPtr(counter);
             il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)}); // stack: [count<type>((type)obj, writeEmpty)]

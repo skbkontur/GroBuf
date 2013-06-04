@@ -1,19 +1,14 @@
 ﻿using System;
-using System.Text;
 
 using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
-
-using System.Linq;
 
 namespace GroBuf.Tests
 {
     [TestFixture]
     public class TestDateTime
     {
-        private SerializerImpl serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -173,5 +168,6 @@ namespace GroBuf.Tests
             public string Z { get; set; }
         }
 
+        private SerializerImpl serializer;
     }
 }

@@ -2,10 +2,9 @@
 using System.Runtime.InteropServices;
 
 using GroBuf.DataMembersExtracters;
+using GroBuf.Tests.TestTools;
 
 using NUnit.Framework;
-
-using GroBuf.Tests.TestTools;
 
 namespace GroBuf.Tests
 {
@@ -23,7 +22,7 @@ namespace GroBuf.Tests
         {
             var a = new A {B = new C {Z = "zzz"}};
             var size = serializer.GetSize(a);
-            Assert.AreEqual((1+4+8)+(1+4+2)+(1+4+8+1+4+6)+5, size);
+            Assert.AreEqual((1 + 4 + 8) + (1 + 4 + 2) + (1 + 4 + 8 + 1 + 4 + 6) + 5, size);
         }
 
         [Test]
@@ -31,13 +30,13 @@ namespace GroBuf.Tests
         {
             var a = new A {B = new C {Z = "zzz"}};
             var data = serializer.Serialize(a);
-            Assert.AreEqual((1+4+8)+(1+4+2)+(1+4+8+1+4+6)+5, data.Length);
+            Assert.AreEqual((1 + 4 + 8) + (1 + 4 + 2) + (1 + 4 + 8 + 1 + 4 + 6) + 5, data.Length);
         }
 
         [Test]
         public void TestReaderC()
         {
-            var a = new A {B = new C {Z = "zzz"}, ArrB = new BB[] {new C{Z = "qxx"}, new D{Z = 123}}};
+            var a = new A {B = new C {Z = "zzz"}, ArrB = new BB[] {new C {Z = "qxx"}, new D {Z = 123}}};
             var data = serializer.Serialize(a);
             var za = serializer.Deserialize<A>(data);
             za.AssertEqualsTo(a);
@@ -46,7 +45,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestReaderD()
         {
-            var a = new A { B = new D { Z = 146 }, ArrB = new BB[] { new C { Z = "qxx" }, new D { Z = 123 } } };
+            var a = new A {B = new D {Z = 146}, ArrB = new BB[] {new C {Z = "qxx"}, new D {Z = 123}}};
             var data = serializer.Serialize(a);
             var za = serializer.Deserialize<A>(data);
             za.AssertEqualsTo(a);
@@ -125,10 +124,6 @@ namespace GroBuf.Tests
 
         public struct Date
         {
-            public int Year { get; set; }
-            public int Month { get; set; }
-            public int Day { get; set; }
-
             [GroBufSizeCounter]
             public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory)
             {
@@ -159,6 +154,10 @@ namespace GroBuf.Tests
                                index += 8;
                            };
             }
+
+            public int Year { get; set; }
+            public int Month { get; set; }
+            public int Day { get; set; }
         }
 
         private SerializerImpl serializer;

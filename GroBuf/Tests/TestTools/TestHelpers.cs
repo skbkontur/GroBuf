@@ -39,14 +39,14 @@ namespace GroBuf.Tests.TestTools
                 isNull[i] = CanBeNull(properties[i].PropertyType) && random.Next(101) > fillRate;
             for(int index = 0; index < properties.Length; index++)
             {
-                if (isNull[index]) continue;
+                if(isNull[index]) continue;
                 PropertyInfo property = properties[index];
                 Type propertyType = property.PropertyType;
                 MethodInfo setter = property.GetSetMethod();
                 if(!propertyType.IsArray)
                 {
                     if(IsALeaf(propertyType))
-                        setter.Invoke(obj, new[] { GetRandomValue(propertyType, random, stringsLength) });
+                        setter.Invoke(obj, new[] {GetRandomValue(propertyType, random, stringsLength)});
                     else
                     {
                         ConstructorInfo constructorInfo = typeConstructorCache.Get(propertyType);

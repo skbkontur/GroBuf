@@ -38,7 +38,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestArray()
         {
-            var o = new A { S = "zzz", B = new B { S = new object[] {(byte)100, "qxx"} } };
+            var o = new A {S = "zzz", B = new B {S = new object[] {(byte)100, "qxx"}}};
             byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual("zzz", oo.S);
@@ -63,7 +63,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestBad2()
         {
-            var o = new Az { S = "zzz", B = new Bz { S = new Cz { S = 100 } }, Z = "qxx" };
+            var o = new Az {S = "zzz", B = new Bz {S = new Cz {S = 100}}, Z = "qxx"};
             byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual("zzz", oo.S);
@@ -78,11 +78,6 @@ namespace GroBuf.Tests
             public object Z { get; set; }
         }
 
-        public struct B
-        {
-            public object S { get; set; }
-        }
-
         public class Az
         {
             public object S { get; set; }
@@ -90,14 +85,19 @@ namespace GroBuf.Tests
             public string Z { get; set; }
         }
 
-        public struct Bz
-        {
-            public Cz S { get; set; }
-        }
-
         public class Cz
         {
             public byte S { get; set; }
+        }
+
+        public struct B
+        {
+            public object S { get; set; }
+        }
+
+        public struct Bz
+        {
+            public Cz S { get; set; }
         }
 
         private SerializerImpl serializer;

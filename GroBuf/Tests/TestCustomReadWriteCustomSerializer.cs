@@ -4,8 +4,6 @@ using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
-using GroBuf.Tests.TestTools;
-
 namespace GroBuf.Tests
 {
     [TestFixture]
@@ -29,7 +27,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test2()
         {
-            var o = new C2<int> { Arr = new I1<int>[] { new C1<int> { Data = 42 } } };
+            var o = new C2<int> {Arr = new I1<int>[] {new C1<int> {Data = 42}}};
             var data = serializer.Serialize(o);
             var oo = serializer.Deserialize<C2<int>>(data);
             Assert.IsNotNull(oo.Arr);
@@ -37,12 +35,9 @@ namespace GroBuf.Tests
             Assert.AreEqual(42, oo.Arr[0].Data);
         }
 
-        private interface I1<T>
-        {
-            T Data { get; set; }
-        }
+        private SerializerImpl serializer;
 
-        private class C1<T>: I1<T>
+        private class C1<T> : I1<T>
         {
             public T Data { get; set; }
         }
@@ -52,7 +47,7 @@ namespace GroBuf.Tests
             public I1<T>[] Arr { get; set; }
         }
 
-        private class GroBufCustomSerializerCollection: IGroBufCustomSerializerCollection
+        private class GroBufCustomSerializerCollection : IGroBufCustomSerializerCollection
         {
             public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory)
             {
@@ -62,11 +57,8 @@ namespace GroBuf.Tests
             }
         }
 
-        private class GroBufCustomSerializer: IGroBufCustomSerializer
+        private class GroBufCustomSerializer : IGroBufCustomSerializer
         {
-            private readonly Type argumentType;
-            private readonly Func<Type, IGroBufCustomSerializer> factory;
-
             public GroBufCustomSerializer(Type declaredType, Func<Type, IGroBufCustomSerializer> factory)
             {
                 argumentType = declaredType.GetGenericArguments()[0];
@@ -89,8 +81,14 @@ namespace GroBuf.Tests
                 result = Activator.CreateInstance(resultType);
                 factory(resultType).Read(data, ref index, length, ref result);
             }
+
+            private readonly Type argumentType;
+            private readonly Func<Type, IGroBufCustomSerializer> factory;
         }
 
-        private SerializerImpl serializer;
+        private interface I1<T>
+        {
+            T Data { get; set; }
+        }
     }
 }

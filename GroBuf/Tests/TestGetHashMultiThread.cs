@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 using NUnit.Framework;
@@ -13,7 +12,7 @@ namespace GroBuf.Tests
         public void Test()
         {
             wasBug = false;
-            Parallel.Invoke(Zzz,Zzz,Zzz,Zzz,Zzz,Zzz,Zzz);
+            Parallel.Invoke(Zzz, Zzz, Zzz, Zzz, Zzz, Zzz, Zzz);
             Assert.IsFalse(wasBug);
         }
 

@@ -64,7 +64,6 @@ namespace GroBuf.Tests
 
         public class C
         {
-            
         }
 
         private SerializerImpl serializer;

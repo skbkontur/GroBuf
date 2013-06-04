@@ -76,10 +76,10 @@ namespace GroBuf.Writers
         private static KeyValuePair<Delegate, IntPtr> GetWriter(WriterTypeBuilderContext context, Type type)
         {
             var method = new DynamicMethod("CastTo_" + type.Name + "_AndWrite_" + Guid.NewGuid(), typeof(void),
-                                                          new[]
-                                                              {
-                                                                  typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()
-                                                              }, context.Module, true);
+                                           new[]
+                                               {
+                                                   typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()
+                                               }, context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(0); // stack: [obj]
             if(type.IsValueType)
@@ -90,10 +90,10 @@ namespace GroBuf.Writers
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
             var writer = context.GetWriter(type).Pointer;
-            if (writer == IntPtr.Zero)
+            if(writer == IntPtr.Zero)
                 throw new InvalidOperationException();
             il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] { type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType() }); // write<type>((type)obj, writeEmpty, result, ref index)
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}); // write<type>((type)obj, writeEmpty, result, ref index)
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(WriterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
@@ -101,11 +101,11 @@ namespace GroBuf.Writers
 
         private static readonly MethodInfo getTypeMethod = ((MethodCallExpression)((Expression<Func<object, Type>>)(obj => obj.GetType())).Body).Method;
         private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufTypeCodeMap.GetTypeCode(type))).Body).Method;
-        private static readonly Type[] primitiveTypes = new[]
-                {
-                    typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                    typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
-                };
 
+        private static readonly Type[] primitiveTypes = new[]
+            {
+                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
+                typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+            };
     }
 }

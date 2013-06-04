@@ -89,14 +89,14 @@ namespace GroBuf.Writers
 
         public void SetWriterMethod(Type type, DynamicMethod method)
         {
-            if (writers[type] != null)
+            if(writers[type] != null)
                 throw new InvalidOperationException();
-            writers[type] = new CompiledDynamicMethod { Method = method, Index = writers.Count };
+            writers[type] = new CompiledDynamicMethod {Method = method, Index = writers.Count};
         }
 
         public void SetWriterPointer(Type type, IntPtr writerPointer, Delegate writer)
         {
-            if (writers[type] == null)
+            if(writers[type] == null)
                 throw new InvalidOperationException();
             var compiledDynamicMethod = (CompiledDynamicMethod)writers[type];
             compiledDynamicMethod.Pointer = writerPointer;
@@ -110,7 +110,7 @@ namespace GroBuf.Writers
             {
                 writerCollection.GetWriterBuilder(type).BuildWriter(this);
                 writer = (CompiledDynamicMethod)writers[type];
-                if (writer == null)
+                if(writer == null)
                     throw new InvalidOperationException();
             }
             return writer;
@@ -122,7 +122,7 @@ namespace GroBuf.Writers
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {
-            var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] { typeof(T) }, Module);
+            var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] {typeof(T)}, Module);
             var il = new GroboIL(method);
             il.Ldarg(0);
             il.Stfld(field);

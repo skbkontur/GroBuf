@@ -7,20 +7,11 @@ namespace GroBuf
 {
     internal class InternalSerializer : IGroBufCustomSerializer
     {
-        private readonly GroBufWriter groBufWriter;
-        private readonly GroBufReader groBufReader;
-        private readonly Type type;
-
         public InternalSerializer(GroBufWriter groBufWriter, GroBufReader groBufReader, Type type)
         {
             this.groBufWriter = groBufWriter;
             this.groBufReader = groBufReader;
             this.type = type;
-        }
-
-        public object Create()
-        {
-            throw new NotImplementedException();
         }
 
         public int CountSize(object obj, bool writeEmpty)
@@ -37,6 +28,15 @@ namespace GroBuf
         {
             groBufReader.Read(type, data, ref index, length, ref result);
         }
+
+        public object Create()
+        {
+            throw new NotImplementedException();
+        }
+
+        private readonly GroBufWriter groBufWriter;
+        private readonly GroBufReader groBufReader;
+        private readonly Type type;
     }
 
     public class SerializerImpl

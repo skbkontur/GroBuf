@@ -46,6 +46,8 @@ namespace GroBuf
         public static readonly int[] Lengths = BuildLengths();
 
         public static readonly Func<DynamicMethod, IntPtr> ExtractDynamicMethodPointer = EmitDynamicMethodPointerExtractor();
+        public static readonly HashCalculator HashCalculator = new HashCalculator(Seed, 1000);
+        public const int Seed = 314159265; //NOTE не менять !!!
 
         private static Func<DynamicMethod, IntPtr> EmitDynamicMethodPointerExtractor()
         {
@@ -86,10 +88,6 @@ namespace GroBuf
             }
             return lengths;
         }
-
-        public const int Seed = 314159265; //NOTE не менять !!!
-
-        public static readonly HashCalculator HashCalculator = new HashCalculator(Seed, 1000);
 
         private static readonly object dummy = new object();
     }

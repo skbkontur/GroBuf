@@ -7,8 +7,6 @@ namespace GroBuf.SizeCounters
 {
     internal class CustomSizeCounterBuilder : SizeCounterBuilderBase
     {
-        private readonly IGroBufCustomSerializer customSerializer;
-
         public CustomSizeCounterBuilder(Type type, IGroBufCustomSerializer customSerializer)
             : base(type)
         {
@@ -17,7 +15,7 @@ namespace GroBuf.SizeCounters
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
         {
-            context.SetFields(Type, new[] { new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer)) });
+            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer))});
         }
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
@@ -42,5 +40,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(5); // stack: [size, 5]
             il.Add(); // stack: [size + 5]
         }
+
+        private readonly IGroBufCustomSerializer customSerializer;
     }
 }

@@ -7,8 +7,6 @@ namespace GroBuf.Readers
 {
     internal class CustomReaderBuilder : ReaderBuilderBase
     {
-        private readonly IGroBufCustomSerializer customSerializer;
-
         public CustomReaderBuilder(Type type, IGroBufCustomSerializer customSerializer)
             : base(type)
         {
@@ -17,7 +15,7 @@ namespace GroBuf.Readers
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
         {
-            context.SetFields(Type, new[] { new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer)) });
+            context.SetFields(Type, new[] {new KeyValuePair<string, Type>("customSerializer_" + Type.Name + "_" + Guid.NewGuid(), typeof(IGroBufCustomSerializer))});
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
@@ -58,5 +56,7 @@ namespace GroBuf.Readers
                 il.Stobj(Type); // result = (Type)local
             }
         }
+
+        private readonly IGroBufCustomSerializer customSerializer;
     }
 }

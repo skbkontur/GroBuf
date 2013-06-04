@@ -13,7 +13,7 @@ namespace GroBuf.Tests.TestTools
         public static string ObjectToString<T>(this T instance)
         {
             Type type = typeof(T);
-            if (type.IsInterface)
+            if(type.IsInterface)
                 type = instance.GetType();
             var builder = new StringBuilder();
             using(XmlWriter writer = XmlWriter.Create(builder, new XmlWriterSettings {Indent = true, OmitXmlDeclaration = true}))
@@ -94,7 +94,7 @@ namespace GroBuf.Tests.TestTools
 
             private static string FindSimpleValue(Type type, object value)
             {
-                if (type == typeof(char) && (char)value == (char)0)
+                if(type == typeof(char) && (char)value == (char)0)
                     return "0x0000";
                 if(type.IsEnum || type.IsPrimitive || value is string || value is Guid || value is IPEndPoint || value is decimal)
                     return value.ToString();

@@ -59,7 +59,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(2, list2.Count);
             Assert.AreEqual("1", list2[0]);
             Assert.AreEqual("2", list2[1]);
-            list = new List<string>{"3"};
+            list = new List<string> {"3"};
             buf = serializer.Serialize(list);
             serializer.Deserialize(buf, ref list2);
             Assert.AreEqual(2, list2.Count);
@@ -72,7 +72,7 @@ namespace GroBuf.Tests
             Assert.AreEqual("3", list2[0]);
             Assert.AreEqual("2", list2[1]);
             Assert.AreEqual("4", list2[2]);
-            list = new List<string>{"5", "6", "7", "8"};
+            list = new List<string> {"5", "6", "7", "8"};
             buf = serializer.Serialize(list);
             serializer.Deserialize(buf, ref list2);
             Assert.AreEqual(4, list2.Count);
@@ -91,7 +91,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(2, list2.Count);
             Assert.AreEqual(1, list2[0]);
             Assert.AreEqual(2, list2[1]);
-            list = new List<int>{3};
+            list = new List<int> {3};
             buf = serializer.Serialize(list);
             serializer.Deserialize(buf, ref list2);
             Assert.AreEqual(2, list2.Count);
@@ -104,7 +104,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(3, list2[0]);
             Assert.AreEqual(2, list2[1]);
             Assert.AreEqual(4, list2[2]);
-            list = new List<int>{5, 6, 7, 8};
+            list = new List<int> {5, 6, 7, 8};
             buf = serializer.Serialize(list);
             serializer.Deserialize(buf, ref list2);
             Assert.AreEqual(4, list2.Count);
@@ -131,11 +131,11 @@ namespace GroBuf.Tests
             buf = serializer.Serialize(list2);
             list = serializer.Deserialize<List<int>>(buf);
             Assert.AreEqual(100, list.Count);
-            for (int i = 1; i <= 100; ++i)
+            for(int i = 1; i <= 100; ++i)
                 Assert.AreEqual(i, list2[i - 1]);
             list.RemoveRange(10, 90);
             Assert.AreEqual(10, list.Count);
-            for (int i = 1; i <= 10; ++i)
+            for(int i = 1; i <= 10; ++i)
                 Assert.AreEqual(i, list2[i - 1]);
         }
 
@@ -157,7 +157,7 @@ namespace GroBuf.Tests
             var elapsed = stopwatch.Elapsed;
             Console.WriteLine("Size computing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " size computations per second)");
             stopwatch = Stopwatch.StartNew();
-            for (int iter = 0; iter < iterations; ++iter)
+            for(int iter = 0; iter < iterations; ++iter)
             {
                 stream.Position = 0;
                 stream.SetLength(0);
@@ -167,7 +167,7 @@ namespace GroBuf.Tests
             Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
             var buf = serializer.Serialize(list);
             stopwatch = Stopwatch.StartNew();
-            for (int iter = 0; iter < iterations; ++iter)
+            for(int iter = 0; iter < iterations; ++iter)
             {
                 stream.Position = 0;
                 stream.SetLength(0);
@@ -192,7 +192,7 @@ namespace GroBuf.Tests
 
             const int iterations = 10000;
             var stopwatch = Stopwatch.StartNew();
-            for (int iter = 0; iter < iterations; ++iter)
+            for(int iter = 0; iter < iterations; ++iter)
             {
                 stream.Position = 0;
                 stream.SetLength(0);

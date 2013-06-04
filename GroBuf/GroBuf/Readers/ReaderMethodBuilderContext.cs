@@ -238,7 +238,7 @@ namespace GroBuf.Readers
         public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
         {
             var counter = context.GetReader(type);
-            if (counter.Pointer != IntPtr.Zero)
+            if(counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
             else
             {
@@ -246,7 +246,7 @@ namespace GroBuf.Readers
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
             }
-            il.Calli(CallingConventions.Standard, typeof(void), new[] { typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType() });
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()});
         }
 
         public void CallReader(Type type)

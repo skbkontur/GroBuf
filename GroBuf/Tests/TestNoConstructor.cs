@@ -29,9 +29,7 @@ namespace GroBuf.Tests
             var cNoConstructor = serializer.Deserialize<CNoConstructorCopy>(bytes);
             Stopwatch w = Stopwatch.StartNew();
             for(int i = 0; i < iterations; i++)
-            {
                 cNoConstructor = serializer.Deserialize<CNoConstructorCopy>(bytes);
-            }
             Console.WriteLine("total ms: " + w.ElapsedMilliseconds);
             Console.WriteLine(cNoConstructor.A);
             Assert.AreEqual(2, cNoConstructor.A);
@@ -44,9 +42,7 @@ namespace GroBuf.Tests
             var cNoConstructor = serializer.Deserialize<CNoConstructor>(bytes);
             Stopwatch w = Stopwatch.StartNew();
             for(int i = 0; i < iterations; i++)
-            {
                 cNoConstructor = serializer.Deserialize<CNoConstructor>(bytes);
-            }
             Console.WriteLine("total ms: " + w.ElapsedMilliseconds);
             Console.WriteLine(cNoConstructor.A);
             Assert.AreEqual(2, cNoConstructor.A);

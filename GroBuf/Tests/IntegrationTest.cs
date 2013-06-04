@@ -11,8 +11,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class IntegrationTest
     {
-        private Serializer serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -26,7 +24,7 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
             datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
-            for (int i = 1; i < datas.Length; ++i)
+            for(int i = 1; i < datas.Length; ++i)
                 datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
 
             var messages = new byte[numberOfMessages][];
@@ -37,22 +35,11 @@ namespace GroBuf.Tests
             for(int i = 0; i < messages.Length; ++i)
                 deserializedMessages[i] = serializer.Deserialize<Orders>(messages[i]) ?? new Orders();
 
-            for (int i = 0; i < numberOfMessages; ++i)
+            for(int i = 0; i < numberOfMessages; ++i)
             {
                 TestHelpers.Extend(deserializedMessages[i]);
                 TestHelpers.Extend(datas[i]);
                 deserializedMessages[i].AssertEqualsTo(datas[i]);
-            }
-        }
-
-        private volatile bool stop;
-
-        private void Collect()
-        {
-            while(!stop)
-            {
-                Thread.Sleep(100);
-                GC.Collect();
             }
         }
 
@@ -63,7 +50,7 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
             datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
-            for (int i = 1; i < datas.Length; ++i)
+            for(int i = 1; i < datas.Length; ++i)
                 datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
 
             stop = false;
@@ -81,5 +68,16 @@ namespace GroBuf.Tests
             stop = true;
         }
 
+        private void Collect()
+        {
+            while(!stop)
+            {
+                Thread.Sleep(100);
+                GC.Collect();
+            }
+        }
+
+        private Serializer serializer;
+        private volatile bool stop;
     }
 }

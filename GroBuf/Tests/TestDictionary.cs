@@ -11,8 +11,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestDictionary
     {
-        private SerializerImpl serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -30,7 +28,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestWrite()
         {
-            var dict = new Dictionary<string, int> { { "1", 1 }, { "2", 2 } };
+            var dict = new Dictionary<string, int> {{"1", 1}, {"2", 2}};
             var buf = serializer.Serialize(dict);
             Console.WriteLine(buf.Length);
         }
@@ -38,7 +36,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestRead()
         {
-            var dict = new Dictionary<string, int> { { "1", 1 }, { "2", 2 } };
+            var dict = new Dictionary<string, int> {{"1", 1}, {"2", 2}};
             var buf = serializer.Serialize(dict);
             var dict2 = serializer.Deserialize<Dictionary<string, int>>(buf);
             Assert.AreEqual(2, dict2.Count);
@@ -67,10 +65,12 @@ namespace GroBuf.Tests
             Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
             var buf = serializer.Serialize(dict);
             stopwatch = Stopwatch.StartNew();
-            for (int iter = 0; iter < iterations; ++iter)
+            for(int iter = 0; iter < iterations; ++iter)
                 serializer.Deserialize<Dictionary<int, int>>(buf);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
+
+        private SerializerImpl serializer;
     }
 }

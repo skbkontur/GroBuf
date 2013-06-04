@@ -6,9 +6,6 @@ namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
-        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
-        private readonly Func<Type, IGroBufCustomSerializer> factory;
-
         public ReaderCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
         {
             this.customSerializerCollection = customSerializerCollection;
@@ -37,9 +34,9 @@ namespace GroBuf.Readers
         {
             IReaderBuilder readerBuilder;
             var customSerializer = customSerializerCollection.Get(type, factory);
-            if (customSerializer != null)
+            if(customSerializer != null)
                 readerBuilder = new CustomReaderBuilder(type, customSerializer);
-            else if (type == typeof(string))
+            else if(type == typeof(string))
                 readerBuilder = new StringReaderBuilder();
             else if(type == typeof(DateTime))
                 readerBuilder = new DateTimeReaderBuilder();
@@ -65,6 +62,9 @@ namespace GroBuf.Readers
                 readerBuilder = new ClassReaderBuilder(type);
             return readerBuilder;
         }
+
+        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
 
         private readonly Hashtable readerBuilders = new Hashtable();
         private readonly object readerBuildersLock = new object();
