@@ -23,7 +23,7 @@ namespace GroBuf.Writers
             context.LoadObj(); // stack: [obj]
             context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
             context.LoadObj(); // stack: [obj]
-            context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod(), Type); // stack: [obj.Length]
+            context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Length]
             context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
             context.Il.MarkLabel(emptyLabel);
             return true;
@@ -46,7 +46,7 @@ namespace GroBuf.Writers
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [obj]
-            context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod(), Type); // stack: [obj.Count]
+            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
             il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
             context.IncreaseIndexBy4(); // index = index + 4
 

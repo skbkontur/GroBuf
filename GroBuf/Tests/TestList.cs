@@ -185,7 +185,7 @@ namespace GroBuf.Tests
             var stream = new MemoryStream(128 * 1024);
 
             Console.WriteLine(serializer.GetSize(list));
-            serializer.Deserialize<Dictionary<int, int>>(serializer.Serialize(list));
+            serializer.Deserialize<List<int>>(serializer.Serialize(list));
             var stopwatch = Stopwatch.StartNew();
             const int iterations = 1000000;
             for(int iter = 0; iter < iterations; ++iter)
@@ -208,6 +208,44 @@ namespace GroBuf.Tests
                 stream.Position = 0;
                 stream.SetLength(0);
                 serializer.Deserialize<List<int>>(buf);
+            }
+            elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
+        }
+
+        [Test]
+        public void TestPerformanceGuid()
+        {
+            var list = new List<Guid>();
+            for(int i = 0; i < 10000; ++i)
+                list.Add(Guid.NewGuid());
+
+            var stream = new MemoryStream(128 * 1024);
+
+            Console.WriteLine(serializer.GetSize(list));
+            serializer.Deserialize<List<Guid>>(serializer.Serialize(list));
+            var stopwatch = Stopwatch.StartNew();
+            const int iterations = 10000;
+            for(int iter = 0; iter < iterations; ++iter)
+                serializer.GetSize(list);
+            var elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Size computing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " size computations per second)");
+            stopwatch = Stopwatch.StartNew();
+            for(int iter = 0; iter < iterations; ++iter)
+            {
+                stream.Position = 0;
+                stream.SetLength(0);
+                serializer.Serialize(list);
+            }
+            elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
+            var buf = serializer.Serialize(list);
+            stopwatch = Stopwatch.StartNew();
+            for(int iter = 0; iter < iterations; ++iter)
+            {
+                stream.Position = 0;
+                stream.SetLength(0);
+                serializer.Deserialize<List<Guid>>(buf);
             }
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");

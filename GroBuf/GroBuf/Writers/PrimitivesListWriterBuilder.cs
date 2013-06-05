@@ -43,8 +43,7 @@ namespace GroBuf.Writers
         protected override unsafe void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
-            var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType.MakeArrayType());
-            context.WriteTypeCode(typeCode);
+            context.WriteTypeCode(GroBufTypeCodeMap.GetTypeCode(elementType.MakeArrayType()));
             var size = il.DeclareLocal(typeof(int));
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]

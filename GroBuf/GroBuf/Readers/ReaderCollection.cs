@@ -54,6 +54,8 @@ namespace GroBuf.Readers
                 readerBuilder = new ArrayReaderBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 readerBuilder = new DictionaryReaderBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))
+                readerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IReaderBuilder)new PrimitivesHashSetReaderBuilder(type) : new HashSetReaderBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 readerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IReaderBuilder)new PrimitivesListReaderBuilder(type) : new ListReaderBuilder(type);
             else if(type == typeof(object))
