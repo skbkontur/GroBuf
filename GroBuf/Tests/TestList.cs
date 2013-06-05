@@ -140,6 +140,42 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestCompatibilityWithArray()
+        {
+            var list = new List<string> {"1", "2"};
+            var data = serializer.Serialize(list);
+            var array = serializer.Deserialize<string[]>(data);
+            Assert.AreEqual(2, array.Length);
+            Assert.AreEqual("1", array[0]);
+            Assert.AreEqual("2", array[1]);
+            array = new[] {"3", "2", "1"};
+            data = serializer.Serialize(array);
+            list = serializer.Deserialize<List<string>>(data);
+            Assert.AreEqual(3, list.Count);
+            Assert.AreEqual("3", list[0]);
+            Assert.AreEqual("2", list[1]);
+            Assert.AreEqual("1", list[2]);
+        }
+
+        [Test]
+        public void TestCompatibilityWithArrayPrimitives()
+        {
+            var list = new List<int> {1, 2};
+            var data = serializer.Serialize(list);
+            var array = serializer.Deserialize<int[]>(data);
+            Assert.AreEqual(2, array.Length);
+            Assert.AreEqual(1, array[0]);
+            Assert.AreEqual(2, array[1]);
+            array = new[] {3, 2, 1};
+            data = serializer.Serialize(array);
+            list = serializer.Deserialize<List<int>>(data);
+            Assert.AreEqual(3, list.Count);
+            Assert.AreEqual(3, list[0]);
+            Assert.AreEqual(2, list[1]);
+            Assert.AreEqual(1, list[2]);
+        }
+
+        [Test]
         public void TestPerformance()
         {
             var list = new List<int>();

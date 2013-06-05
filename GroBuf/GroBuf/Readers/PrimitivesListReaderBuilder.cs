@@ -27,7 +27,7 @@ namespace GroBuf.Readers
         protected override unsafe void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
-            context.AssertTypeCode(GroBufTypeCodeMap.GetTypeCode(Type));
+            context.AssertTypeCode(GroBufTypeCodeMap.GetTypeCode(elementType.MakeArrayType()));
 
             var il = context.Il;
             var size = il.DeclareLocal(typeof(int));
