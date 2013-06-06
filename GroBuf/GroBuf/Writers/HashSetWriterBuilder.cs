@@ -18,13 +18,18 @@ namespace GroBuf.Writers
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
-            context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -49,7 +54,10 @@ namespace GroBuf.Writers
             il.Stloc(count); // count = obj.Count; stack: [&result[index]]
             il.Ldloc(count); // stack: [&result[index], count]
             il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
-            context.IncreaseIndexBy4(); // index = index + 4
+            context.IncreaseIndexBy4(); // index = index + 4; stack: []
+
+            il.Ldloc(count); // stack: [count]
+            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: []
 
             context.LoadObj(); // stack: [obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());

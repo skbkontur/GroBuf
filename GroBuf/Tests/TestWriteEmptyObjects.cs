@@ -60,6 +60,28 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestEmptyHashSet()
+        {
+            var a = new A {StringHashSet = new HashSet<string>()};
+            var data = serializer.Serialize(a);
+            var aa = serializer.Deserialize<A>(data);
+            Assert.IsNotNull(aa);
+            Assert.IsNotNull(aa.StringHashSet);
+            Assert.AreEqual(0, aa.StringHashSet.Count);
+        }
+
+        [Test]
+        public void TestEmptyPrimitivesHashSet()
+        {
+            var a = new A { IntHashSet = new HashSet<int>() };
+            var data = serializer.Serialize(a);
+            var aa = serializer.Deserialize<A>(data);
+            Assert.IsNotNull(aa);
+            Assert.IsNotNull(aa.IntHashSet);
+            Assert.AreEqual(0, aa.IntHashSet.Count);
+        }
+
+        [Test]
         public void TestEmptyClass()
         {
             var b = new B {A = new A()};
@@ -95,6 +117,8 @@ namespace GroBuf.Tests
             public int[] Ints { get; set; }
             public List<string> StringList { get; set; }
             public List<int> IntList { get; set; }
+            public HashSet<string> StringHashSet { get; set; }
+            public HashSet<int> IntHashSet { get; set; }
         }
 
         private class B
