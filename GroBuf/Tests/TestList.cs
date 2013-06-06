@@ -158,7 +158,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestCompatibilityWithArrayPrimitives()
+        public void TestCompatibilityWithArrayOfPrimitives()
         {
             var list = new List<int> {1, 2};
             var data = serializer.Serialize(list);

@@ -72,6 +72,42 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestCompatibilityWithArray()
+        {
+            var hashSet = new HashSet<string> { "1", "2" };
+            var data = serializer.Serialize(hashSet);
+            var array = serializer.Deserialize<string[]>(data);
+            Assert.AreEqual(2, array.Length);
+            Assert.AreEqual("1", array[0]);
+            Assert.AreEqual("2", array[1]);
+            array = new[] { "3", "2", "1" };
+            data = serializer.Serialize(array);
+            hashSet = serializer.Deserialize<HashSet<string>>(data);
+            Assert.AreEqual(3, hashSet.Count);
+            Assert.IsTrue(hashSet.Contains("1"));
+            Assert.IsTrue(hashSet.Contains("2"));
+            Assert.IsTrue(hashSet.Contains("3"));
+        }
+
+        [Test]
+        public void TestCompatibilityWithArrayOfPrimitives()
+        {
+            var hashSet = new HashSet<int> { 1, 2 };
+            var data = serializer.Serialize(hashSet);
+            var array = serializer.Deserialize<int[]>(data);
+            Assert.AreEqual(2, array.Length);
+            Assert.AreEqual(1, array[0]);
+            Assert.AreEqual(2, array[1]);
+            array = new[] { 3, 2, 1 };
+            data = serializer.Serialize(array);
+            hashSet = serializer.Deserialize<HashSet<int>>(data);
+            Assert.AreEqual(3, hashSet.Count);
+            Assert.IsTrue(hashSet.Contains(1));
+            Assert.IsTrue(hashSet.Contains(2));
+            Assert.IsTrue(hashSet.Contains(3));
+        }
+
+        [Test]
         public void TestPerformance()
         {
             var hashSet = new HashSet<int>();
