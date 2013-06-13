@@ -6,34 +6,38 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterCollection : ISizeCounterCollection
     {
-        public SizeCounterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
+        public SizeCounterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
             this.customSerializerCollection = customSerializerCollection;
             this.factory = factory;
+            this.baseFactory = baseFactory;
         }
 
-        public ISizeCounterBuilder GetSizeCounterBuilder(Type type)
+        public ISizeCounterBuilder GetSizeCounterBuilder(Type type, bool ignoreCustomSerialization)
         {
-            var sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[type];
+            var key = new KeyValuePair<Type, bool>(type, ignoreCustomSerialization);
+            var sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[key];
             if(sizeCounterBuilder == null)
             {
                 lock(sizeCounterBuildersLock)
                 {
-                    sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[type];
+                    sizeCounterBuilder = (ISizeCounterBuilder)sizeCounterBuilders[key];
                     if(sizeCounterBuilder == null)
                     {
-                        sizeCounterBuilder = GetSizeCounterBuilderInternal(type);
-                        sizeCounterBuilders[type] = sizeCounterBuilder;
+                        sizeCounterBuilder = GetSizeCounterBuilderInternal(type, ignoreCustomSerialization);
+                        sizeCounterBuilders[key] = sizeCounterBuilder;
                     }
                 }
             }
             return sizeCounterBuilder;
         }
 
-        private ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type)
+        private ISizeCounterBuilder GetSizeCounterBuilderInternal(Type type, bool ignoreCustomSerialization)
         {
             ISizeCounterBuilder sizeCounterBuilder;
-            var customSerializer = customSerializerCollection.Get(type, factory);
+            IGroBufCustomSerializer customSerializer = null;
+            if(!ignoreCustomSerialization)
+                customSerializer = customSerializerCollection.Get(type, factory, baseFactory(type));
             if(customSerializer != null)
                 sizeCounterBuilder = new CustomSizeCounterBuilder(type, customSerializer);
             else if(type == typeof(string))
@@ -67,6 +71,7 @@ namespace GroBuf.SizeCounters
 
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly Func<Type, IGroBufCustomSerializer> factory;
+        private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
 
         private readonly Hashtable sizeCounterBuilders = new Hashtable();
         private readonly object sizeCounterBuildersLock = new object();

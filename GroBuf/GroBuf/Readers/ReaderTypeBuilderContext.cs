@@ -13,12 +13,13 @@ namespace GroBuf.Readers
 {
     internal class ReaderConstantsBuilderContext
     {
-        public ReaderConstantsBuilderContext(GroBufReader groBufReader, TypeBuilder constantsBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
+        public ReaderConstantsBuilderContext(GroBufReader groBufReader, TypeBuilder constantsBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
         {
             GroBufReader = groBufReader;
             ConstantsBuilder = constantsBuilder;
             this.readerCollection = readerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
+            this.ignoreCustomSerialization = ignoreCustomSerialization;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -36,7 +37,7 @@ namespace GroBuf.Readers
         public void BuildConstants(Type type)
         {
             if(hashtable[type] == null)
-                readerCollection.GetReaderBuilder(type).BuildConstants(this);
+                readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildConstants(this);
         }
 
         public Dictionary<Type, string[]> GetFields()
@@ -51,11 +52,12 @@ namespace GroBuf.Readers
 
         private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly bool ignoreCustomSerialization;
     }
 
     internal class ReaderTypeBuilderContext
     {
-        public ReaderTypeBuilderContext(GroBufReader groBufReader, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
+        public ReaderTypeBuilderContext(GroBufReader groBufReader, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
         {
             GroBufReader = groBufReader;
             Module = module;
@@ -63,6 +65,7 @@ namespace GroBuf.Readers
             this.fields = fields;
             this.readerCollection = readerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
+            this.ignoreCustomSerialization = ignoreCustomSerialization;
             Lengths = typeof(GroBufHelpers).GetField("Lengths", BindingFlags.Static | BindingFlags.Public);
         }
 
@@ -109,7 +112,7 @@ namespace GroBuf.Readers
             var reader = (CompiledDynamicMethod)readers[type];
             if(reader == null)
             {
-                readerCollection.GetReaderBuilder(type).BuildReader(this);
+                readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildReader(this);
                 reader = (CompiledDynamicMethod)readers[type];
                 if(reader == null)
                     throw new InvalidOperationException();
@@ -136,6 +139,7 @@ namespace GroBuf.Readers
         private readonly Dictionary<Type, FieldInfo[]> fields;
         private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly bool ignoreCustomSerialization;
 
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable initializers = new Hashtable();

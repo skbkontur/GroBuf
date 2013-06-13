@@ -49,30 +49,31 @@ namespace GroBuf.Tests
 
         private class GroBufCustomSerializerCollection : IGroBufCustomSerializerCollection
         {
-            public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory)
+            public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer)
             {
                 if(declaredType.IsGenericType && declaredType.GetGenericTypeDefinition() == typeof(I1<>))
-                    return new GroBufCustomSerializer(declaredType, factory);
+                    return new GroBufCustomSerializer(declaredType, factory, baseSerializer);
                 return null;
             }
         }
 
         private class GroBufCustomSerializer : IGroBufCustomSerializer
         {
-            public GroBufCustomSerializer(Type declaredType, Func<Type, IGroBufCustomSerializer> factory)
+            public GroBufCustomSerializer(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer)
             {
                 argumentType = declaredType.GetGenericArguments()[0];
                 this.factory = factory;
+                this.baseSerializer = baseSerializer;
             }
 
             public int CountSize(object obj, bool writeEmpty)
             {
-                return factory(obj.GetType()).CountSize(obj, writeEmpty);
+                return baseSerializer.CountSize(obj, writeEmpty);
             }
 
             public void Write(object obj, bool writeEmpty, IntPtr result, ref int index)
             {
-                factory(obj.GetType()).Write(obj, writeEmpty, result, ref index);
+                baseSerializer.Write(obj, writeEmpty, result, ref index);
             }
 
             public void Read(IntPtr data, ref int index, int length, ref object result)
@@ -84,6 +85,7 @@ namespace GroBuf.Tests
 
             private readonly Type argumentType;
             private readonly Func<Type, IGroBufCustomSerializer> factory;
+            private readonly IGroBufCustomSerializer baseSerializer;
         }
 
         private interface I1<T>

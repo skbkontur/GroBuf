@@ -6,7 +6,7 @@ namespace GroBuf
 {
     public class DefaultGroBufCustomSerializerCollection : IGroBufCustomSerializerCollection
     {
-        public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory)
+        public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer)
         {
             var attribute = declaredType.GetCustomAttributes(typeof(GroBufCustomSerializationAttribute), false).FirstOrDefault() as GroBufCustomSerializationAttribute;
             if(attribute == null) return null;
@@ -22,13 +22,13 @@ namespace GroBuf
                 throw new MissingMethodException("Missing grobuf custom reader for type '" + customSerializerType + "'");
             var sizeCounterDelegate = (SizeCounterDelegate)customSizeCounter.Invoke(
                 null,
-                new object[] {(Func<Type, SizeCounterDelegate>)(type => ((o, empty) => factory(type).CountSize(o, empty)))});
+                new object[] {(Func<Type, SizeCounterDelegate>)(type => ((o, empty) => factory(type).CountSize(o, empty))), (SizeCounterDelegate)(baseSerializer.CountSize)});
             var writerDelegate = (WriterDelegate)writer.Invoke(
                 null,
-                new object[] {(Func<Type, WriterDelegate>)(type => ((object o, bool empty, IntPtr result, ref int index) => factory(type).Write(o, empty, result, ref index)))});
+                new object[] {(Func<Type, WriterDelegate>)(type => ((object o, bool empty, IntPtr result, ref int index) => factory(type).Write(o, empty, result, ref index))), (WriterDelegate)(baseSerializer.Write)});
             var readerDelegate = (ReaderDelegate)reader.Invoke(
                 null,
-                new object[] {(Func<Type, ReaderDelegate>)(type => ((IntPtr data, ref int index, int length, ref object result) => factory(type).Read(data, ref index, length, ref result)))});
+                new object[] {(Func<Type, ReaderDelegate>)(type => ((IntPtr data, ref int index, int length, ref object result) => factory(type).Read(data, ref index, length, ref result))), (ReaderDelegate)(baseSerializer.Read)});
             return new GroBufCustomSerializerByAttribute(sizeCounterDelegate, writerDelegate, readerDelegate);
         }
     }

@@ -12,12 +12,13 @@ namespace GroBuf
 {
     internal class GroBufReader
     {
-        public GroBufReader(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> func)
+        public GroBufReader(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
             this.dataMembersExtractor = dataMembersExtractor;
             this.customSerializerCollection = customSerializerCollection;
-            this.func = func;
-            readerCollection = new ReaderCollection(customSerializerCollection, func);
+            this.factory = factory;
+            this.baseFactory = baseFactory;
+            readerCollection = new ReaderCollection(customSerializerCollection, factory, baseFactory);
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
@@ -58,7 +59,12 @@ namespace GroBuf
 
         public void Read<T>(IntPtr data, ref int index, int length, ref T result)
         {
-            GetReader<T>()(data, ref index, length, ref result);
+            Read(false, data, ref index, length, ref result);
+        }
+
+        public void Read<T>(bool ignoreCustomSerialization, IntPtr data, ref int index, int length, ref T result)
+        {
+            GetReader<T>(ignoreCustomSerialization)(data, ref index, length, ref result);
         }
 
         public unsafe void Read(Type type, byte[] data, ref object result)
@@ -97,68 +103,76 @@ namespace GroBuf
 
         public void Read(Type type, IntPtr data, ref int index, int length, ref object result)
         {
-            GetReader(type)(data, ref index, length, ref result);
+            Read(type, false, data, ref index, length, ref result);
         }
 
-        private ReaderDelegate<T> GetReader<T>()
+        public void Read(Type type, bool ignoreCustomSerialization, IntPtr data, ref int index, int length, ref object result)
         {
+            GetReader(type, ignoreCustomSerialization)(data, ref index, length, ref result);
+        }
+
+        private ReaderDelegate<T> GetReader<T>(bool ignoreCustomSerialization)
+        {
+            var hashtable = ignoreCustomSerialization ? readers4 : readers;
             var type = typeof(T);
-            var reader = (ReaderDelegate<T>)readers[type];
+            var reader = (ReaderDelegate<T>)hashtable[type];
             if(reader == null)
             {
                 lock(readersLock)
                 {
-                    reader = (ReaderDelegate<T>)readers[type];
+                    reader = (ReaderDelegate<T>)hashtable[type];
                     if(reader == null)
                     {
-                        reader = BuildReader<T>();
-                        readers[type] = reader;
+                        reader = BuildReader<T>(ignoreCustomSerialization);
+                        hashtable[type] = reader;
                     }
                 }
             }
             return reader;
         }
 
-        private ReaderDelegate GetReader(Type type)
+        private ReaderDelegate GetReader(Type type, bool ignoreCustomSerialization)
         {
-            var reader = (ReaderDelegate)readers2[type];
+            var hashtable = ignoreCustomSerialization ? readers3 : readers2;
+            var reader = (ReaderDelegate)hashtable[type];
             if(reader == null)
             {
                 lock(readersLock)
                 {
-                    reader = (ReaderDelegate)readers2[type];
+                    reader = (ReaderDelegate)hashtable[type];
                     if(reader == null)
                     {
-                        reader = BuildReader(type);
-                        readers2[type] = reader;
+                        reader = BuildReader(type, ignoreCustomSerialization);
+                        hashtable[type] = reader;
                     }
                 }
             }
             return reader;
         }
 
-        private IntPtr GetReadMethod(Type type)
+        private IntPtr GetReadMethod(Type type, bool ignoreCustomSerialization)
         {
-            var readMethod = (IntPtr?)readMethods[type];
+            var hashtable = ignoreCustomSerialization ? readMethods2 : readMethods;
+            var readMethod = (IntPtr?)hashtable[type];
             if(readMethod == null)
             {
                 lock(readMethodsLock)
                 {
-                    readMethod = (IntPtr?)readMethods[type];
+                    readMethod = (IntPtr?)hashtable[type];
                     if(readMethod == null)
                     {
-                        readMethod = new ReaderTypeBuilder(this, module, readerCollection, dataMembersExtractor).BuildReader(type);
-                        readMethods[type] = readMethod;
+                        readMethod = new ReaderTypeBuilder(this, module, readerCollection, dataMembersExtractor).BuildReader(type, ignoreCustomSerialization);
+                        hashtable[type] = readMethod;
                     }
                 }
             }
             return readMethod.Value;
         }
 
-        private ReaderDelegate<T> BuildReader<T>()
+        private ReaderDelegate<T> BuildReader<T>(bool ignoreCustomSerialization)
         {
             var type = typeof(T);
-            var reader = GetReadMethod(type);
+            var reader = GetReadMethod(type, ignoreCustomSerialization);
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [data]
@@ -166,7 +180,7 @@ namespace GroBuf
             il.Ldarg(2); // stack: [data, ref index, length]
             il.Ldarg(3); // stack: [data, ref index, length, ref result]
 
-            if(!type.IsValueType && type != typeof(string) && customSerializerCollection.Get(type, func) == null)
+            if(!type.IsValueType && type != typeof(string) && customSerializerCollection.Get(type, factory, baseFactory(type)) == null)
             {
                 il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                 il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]
@@ -191,9 +205,9 @@ namespace GroBuf
             return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));
         }
 
-        private ReaderDelegate BuildReader(Type type)
+        private ReaderDelegate BuildReader(Type type, bool ignoreCustomSerialization)
         {
-            var reader = GetReadMethod(type);
+            var reader = GetReadMethod(type, ignoreCustomSerialization);
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), typeof(object).MakeByRefType()}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [data]
@@ -204,7 +218,7 @@ namespace GroBuf
             var local = il.DeclareLocal(type);
             if(!type.IsValueType)
             {
-                if(type != typeof(string) && customSerializerCollection.Get(type, func) == null)
+                if(type != typeof(string) && customSerializerCollection.Get(type, factory, baseFactory(type)) == null)
                 {
                     il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                     il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]
@@ -258,13 +272,17 @@ namespace GroBuf
 
         private readonly IDataMembersExtractor dataMembersExtractor;
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
-        private readonly Func<Type, IGroBufCustomSerializer> func;
+        private readonly Func<Type, IGroBufCustomSerializer> factory;
+        private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
 
         private readonly IReaderCollection readerCollection;
 
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable readers2 = new Hashtable();
+        private readonly Hashtable readers3 = new Hashtable();
+        private readonly Hashtable readers4 = new Hashtable();
         private readonly Hashtable readMethods = new Hashtable();
+        private readonly Hashtable readMethods2 = new Hashtable();
         private readonly object readersLock = new object();
         private readonly object readMethodsLock = new object();
         private readonly AssemblyBuilder assembly;

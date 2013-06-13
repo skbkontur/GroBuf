@@ -4,6 +4,6 @@ namespace GroBuf.Readers
 {
     internal interface IReaderCollection
     {
-        IReaderBuilder GetReaderBuilder(Type type);
+        IReaderBuilder GetReaderBuilder(Type type, bool ignoreCustomSerialization);
     }
 }

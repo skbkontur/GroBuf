@@ -6,34 +6,38 @@ namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
-        public ReaderCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
+        public ReaderCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
             this.customSerializerCollection = customSerializerCollection;
             this.factory = factory;
+            this.baseFactory = baseFactory;
         }
 
-        public IReaderBuilder GetReaderBuilder(Type type)
+        public IReaderBuilder GetReaderBuilder(Type type, bool ignoreCustomSerialization)
         {
-            var readerBuilder = (IReaderBuilder)readerBuilders[type];
+            var key = new KeyValuePair<Type, bool>(type, ignoreCustomSerialization);
+            var readerBuilder = (IReaderBuilder)readerBuilders[key];
             if(readerBuilder == null)
             {
                 lock(readerBuildersLock)
                 {
-                    readerBuilder = (IReaderBuilder)readerBuilders[type];
+                    readerBuilder = (IReaderBuilder)readerBuilders[key];
                     if(readerBuilder == null)
                     {
-                        readerBuilder = GetReaderBuilderInternal(type);
-                        readerBuilders[type] = readerBuilder;
+                        readerBuilder = GetReaderBuilderInternal(type, ignoreCustomSerialization);
+                        readerBuilders[key] = readerBuilder;
                     }
                 }
             }
             return readerBuilder;
         }
 
-        private IReaderBuilder GetReaderBuilderInternal(Type type)
+        private IReaderBuilder GetReaderBuilderInternal(Type type, bool ignoreCustomSerialization)
         {
             IReaderBuilder readerBuilder;
-            var customSerializer = customSerializerCollection.Get(type, factory);
+            IGroBufCustomSerializer customSerializer = null;
+            if(!ignoreCustomSerialization)
+                customSerializer = customSerializerCollection.Get(type, factory, baseFactory(type));
             if(customSerializer != null)
                 readerBuilder = new CustomReaderBuilder(type, customSerializer);
             else if(type == typeof(string))
@@ -67,6 +71,7 @@ namespace GroBuf.Readers
 
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly Func<Type, IGroBufCustomSerializer> factory;
+        private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
 
         private readonly Hashtable readerBuilders = new Hashtable();
         private readonly object readerBuildersLock = new object();

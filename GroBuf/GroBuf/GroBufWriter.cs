@@ -13,13 +13,12 @@ namespace GroBuf
 {
     internal class GroBufWriter
     {
-        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, GroBufOptions options, Func<Type, IGroBufCustomSerializer> func)
+        public GroBufWriter(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, GroBufOptions options, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
             this.dataMembersExtractor = dataMembersExtractor;
-            this.customSerializerCollection = customSerializerCollection;
             this.options = options;
-            sizeCounterCollection = new SizeCounterCollection(customSerializerCollection, func);
-            writerCollection = new WriterCollection(customSerializerCollection, func);
+            sizeCounterCollection = new SizeCounterCollection(customSerializerCollection, factory, baseFactory);
+            writerCollection = new WriterCollection(customSerializerCollection, factory, baseFactory);
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
@@ -31,20 +30,34 @@ namespace GroBuf
 
         public void Write<T>(T obj, IntPtr result)
         {
-            int index = 0;
-            GetWriterAndSizeCounter<T>().Item1(obj, true, result, ref index);
+            Write(false, obj, result);
         }
 
-        public unsafe void Write<T>(T obj, byte[] result, ref int index)
+        public void Write<T>(bool ignoreCustomSerialization, T obj, IntPtr result)
+        {
+            int index = 0;
+            GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item1(obj, true, result, ref index);
+        }
+
+        public void Write<T>(T obj, byte[] result, ref int index)
+        {
+            Write(false, obj, result, ref index);
+        }
+
+        public unsafe void Write<T>(bool ignoreCustomSerialization, T obj, byte[] result, ref int index)
         {
             fixed(byte* r = &result[0])
-                GetWriterAndSizeCounter<T>().Item1(obj, true, (IntPtr)r, ref index);
+                GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item1(obj, true, (IntPtr)r, ref index);
         }
 
-        // TODO: decimal
-        public unsafe byte[] Write<T>(T obj)
+        public byte[] Write<T>(T obj)
         {
-            var writerAndCounter = GetWriterAndSizeCounter<T>();
+            return Write(false, obj);
+        }
+
+        public unsafe byte[] Write<T>(bool ignoreCustomSerialization, T obj)
+        {
+            var writerAndCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
             var size = writerAndCounter.Item2(obj, true);
             var result = new byte[size];
             int index = 0;
@@ -60,25 +73,44 @@ namespace GroBuf
 
         public void Write(Type type, object obj, IntPtr result)
         {
-            int index = 0;
-            GetWriterAndSizeCounter(type).Item1(obj, true, result, ref index);
+            Write(type, false, obj, result);
         }
 
-        public unsafe void Write(Type type, object obj, byte[] result, ref int index)
+        public void Write(Type type, bool ignoreCustomSerialization, object obj, IntPtr result)
+        {
+            int index = 0;
+            GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, result, ref index);
+        }
+
+        public void Write(Type type, object obj, byte[] result, ref int index)
+        {
+            Write(type, false, obj, result, ref index);
+        }
+
+        public unsafe void Write(Type type, bool ignoreCustomSerialization, object obj, byte[] result, ref int index)
         {
             fixed(byte* r = &result[0])
-                GetWriterAndSizeCounter(type).Item1(obj, true, (IntPtr)r, ref index);
+                GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, (IntPtr)r, ref index);
         }
 
         public void Write(Type type, object obj, bool writeEmpty, IntPtr result, ref int index)
         {
-            GetWriterAndSizeCounter(type).Item1(obj, writeEmpty, result, ref index);
+            Write(type, false, obj, writeEmpty, result, ref index);
         }
 
-        // TODO: decimal
-        public unsafe byte[] Write(Type type, object obj)
+        public void Write(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty, IntPtr result, ref int index)
         {
-            var writerAndCounter = GetWriterAndSizeCounter(type);
+            GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, writeEmpty, result, ref index);
+        }
+
+        public byte[] Write(Type type, object obj)
+        {
+            return Write(type, false, obj);
+        }
+
+        public unsafe byte[] Write(Type type, bool ignoreCustomSerialization, object obj)
+        {
+            var writerAndCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
             var size = writerAndCounter.Item2(obj, true);
             var result = new byte[size];
             int index = 0;
@@ -89,75 +121,88 @@ namespace GroBuf
 
         public int GetSize(Type type, object obj, bool writeEmpty)
         {
-            return GetWriterAndSizeCounter(type).Item2(obj, writeEmpty);
+            return GetSize(type, false, obj, writeEmpty);
+        }
+
+        public int GetSize(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty)
+        {
+            return GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item2(obj, writeEmpty);
         }
 
         public GroBufOptions Options { get { return options; } }
 
         private int GetSize<T>(T obj, bool writeEmpty)
         {
-            return GetWriterAndSizeCounter<T>().Item2(obj, writeEmpty);
+            return GetSize(false, obj, writeEmpty);
         }
 
-        private Tuple<WriterDelegate, SizeCounterDelegate> GetWriterAndSizeCounter(Type type)
+        private int GetSize<T>(bool ignoreCustomSerialization, T obj, bool writeEmpty)
         {
-            var writerAndSizeCounter = (Tuple<WriterDelegate, SizeCounterDelegate>)writersAndSizeCounters2[type];
+            return GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty);
+        }
+
+        private Tuple<WriterDelegate, SizeCounterDelegate> GetWriterAndSizeCounter(Type type, bool ignoreCustomSerialization)
+        {
+            var hashtable = ignoreCustomSerialization ? writersAndSizeCounters3 : writersAndSizeCounters2;
+            var writerAndSizeCounter = (Tuple<WriterDelegate, SizeCounterDelegate>)hashtable[type];
             if(writerAndSizeCounter == null)
             {
                 lock(writersAndSizeCountersLock)
                 {
-                    writerAndSizeCounter = (Tuple<WriterDelegate, SizeCounterDelegate>)writersAndSizeCounters2[type];
+                    writerAndSizeCounter = (Tuple<WriterDelegate, SizeCounterDelegate>)hashtable[type];
                     if(writerAndSizeCounter == null)
                     {
-                        writerAndSizeCounter = new Tuple<WriterDelegate, SizeCounterDelegate>(BuildWriter(type), BuildCounter(type));
-                        writersAndSizeCounters2[type] = writerAndSizeCounter;
+                        writerAndSizeCounter = new Tuple<WriterDelegate, SizeCounterDelegate>(BuildWriter(type, ignoreCustomSerialization), BuildCounter(type, ignoreCustomSerialization));
+                        hashtable[type] = writerAndSizeCounter;
                     }
                 }
             }
             return writerAndSizeCounter;
         }
 
-        private Tuple<WriterDelegate<T>, SizeCounterDelegate<T>> GetWriterAndSizeCounter<T>()
+        private Tuple<WriterDelegate<T>, SizeCounterDelegate<T>> GetWriterAndSizeCounter<T>(bool ignoreCustomSerialization)
         {
+            var hashtable = ignoreCustomSerialization ? writersAndSizeCounters4 : writersAndSizeCounters;
             var type = typeof(T);
-            var writerAndSizeCounter = (Tuple<WriterDelegate<T>, SizeCounterDelegate<T>>)writersAndSizeCounters[type];
+            var writerAndSizeCounter = (Tuple<WriterDelegate<T>, SizeCounterDelegate<T>>)hashtable[type];
             if(writerAndSizeCounter == null)
             {
                 lock(writersAndSizeCountersLock)
                 {
-                    writerAndSizeCounter = (Tuple<WriterDelegate<T>, SizeCounterDelegate<T>>)writersAndSizeCounters[type];
+                    writerAndSizeCounter = (Tuple<WriterDelegate<T>, SizeCounterDelegate<T>>)hashtable[type];
                     if(writerAndSizeCounter == null)
                     {
-                        writerAndSizeCounter = new Tuple<WriterDelegate<T>, SizeCounterDelegate<T>>(BuildWriter<T>(), BuildCounter<T>());
-                        writersAndSizeCounters[type] = writerAndSizeCounter;
+                        writerAndSizeCounter = new Tuple<WriterDelegate<T>, SizeCounterDelegate<T>>(BuildWriter<T>(ignoreCustomSerialization), BuildCounter<T>(ignoreCustomSerialization));
+                        hashtable[type] = writerAndSizeCounter;
                     }
                 }
             }
             return writerAndSizeCounter;
         }
 
-        private IntPtr GetWriter(Type type)
+        private IntPtr GetWriter(Type type, bool ignoreCustomSerialization)
         {
-            var writer = (IntPtr?)writers[type];
+            var hashtable = ignoreCustomSerialization ? writers2 : writers;
+            var writer = (IntPtr?)hashtable[type];
             if(writer == null)
             {
                 lock(writersLock)
                 {
-                    writer = (IntPtr?)writers[type];
+                    writer = (IntPtr?)hashtable[type];
                     if(writer == null)
                     {
-                        writer = new WriterTypeBuilder(this, module, writerCollection, dataMembersExtractor).BuildWriter(type);
-                        writers[type] = writer;
+                        writer = new WriterTypeBuilder(this, module, writerCollection, dataMembersExtractor).BuildWriter(type, ignoreCustomSerialization);
+                        hashtable[type] = writer;
                     }
                 }
             }
             return writer.Value;
         }
 
-        private WriterDelegate<T> BuildWriter<T>()
+        private WriterDelegate<T> BuildWriter<T>(bool ignoreCustomSerialization)
         {
             var type = typeof(T);
-            IntPtr writer = GetWriter(type);
+            IntPtr writer = GetWriter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}, module, true);
             var il = new GroboIL(dynamicMethod);
@@ -172,9 +217,9 @@ namespace GroBuf
             return (WriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(WriterDelegate<T>));
         }
 
-        private WriterDelegate BuildWriter(Type type)
+        private WriterDelegate BuildWriter(Type type, bool ignoreCustomSerialization)
         {
-            IntPtr writer = GetWriter(type);
+            IntPtr writer = GetWriter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()}, module, true);
             var il = new GroboIL(dynamicMethod);
@@ -193,28 +238,29 @@ namespace GroBuf
             return (WriterDelegate)dynamicMethod.CreateDelegate(typeof(WriterDelegate));
         }
 
-        private IntPtr GetCounter(Type type)
+        private IntPtr GetCounter(Type type, bool ignoreCustomSerialization)
         {
-            var counter = (IntPtr?)counters[type];
+            var hashtable = ignoreCustomSerialization ? counters2 : counters;
+            var counter = (IntPtr?)hashtable[type];
             if(counter == null)
             {
                 lock(countersLock)
                 {
-                    counter = (IntPtr?)counters[type];
+                    counter = (IntPtr?)hashtable[type];
                     if(counter == null)
                     {
-                        counter = new SizeCounterTypeBuilder(this, module, sizeCounterCollection, dataMembersExtractor).BuildSizeCounter(type);
-                        counters[type] = counter;
+                        counter = new SizeCounterTypeBuilder(this, module, sizeCounterCollection, dataMembersExtractor).BuildSizeCounter(type, ignoreCustomSerialization);
+                        hashtable[type] = counter;
                     }
                 }
             }
             return counter.Value;
         }
 
-        private SizeCounterDelegate<T> BuildCounter<T>()
+        private SizeCounterDelegate<T> BuildCounter<T>(bool ignoreCustomSerialization)
         {
             var type = typeof(T);
-            IntPtr counter = GetCounter(type);
+            IntPtr counter = GetCounter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {type, typeof(bool)}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
@@ -227,9 +273,9 @@ namespace GroBuf
             return (SizeCounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate<T>));
         }
 
-        private SizeCounterDelegate BuildCounter(Type type)
+        private SizeCounterDelegate BuildCounter(Type type, bool ignoreCustomSerialization)
         {
-            IntPtr counter = GetCounter(type);
+            IntPtr counter = GetCounter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {typeof(object), typeof(bool)}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
@@ -247,13 +293,16 @@ namespace GroBuf
         }
 
         private readonly IDataMembersExtractor dataMembersExtractor;
-        private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly GroBufOptions options;
 
         private readonly Hashtable writersAndSizeCounters = new Hashtable();
         private readonly Hashtable writersAndSizeCounters2 = new Hashtable();
+        private readonly Hashtable writersAndSizeCounters3 = new Hashtable();
+        private readonly Hashtable writersAndSizeCounters4 = new Hashtable();
         private readonly Hashtable writers = new Hashtable();
+        private readonly Hashtable writers2 = new Hashtable();
         private readonly Hashtable counters = new Hashtable();
+        private readonly Hashtable counters2 = new Hashtable();
         private readonly object writersAndSizeCountersLock = new object();
         private readonly object writersLock = new object();
         private readonly object countersLock = new object();

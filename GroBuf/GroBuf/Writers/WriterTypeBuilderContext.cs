@@ -13,12 +13,13 @@ namespace GroBuf.Writers
 {
     internal class WriterConstantsBuilderContext
     {
-        public WriterConstantsBuilderContext(GroBufWriter groBufWriter, TypeBuilder constantsBuilder, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor)
+        public WriterConstantsBuilderContext(GroBufWriter groBufWriter, TypeBuilder constantsBuilder, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
         {
             GroBufWriter = groBufWriter;
             ConstantsBuilder = constantsBuilder;
             this.writerCollection = writerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
+            this.ignoreCustomSerialization = ignoreCustomSerialization;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -36,7 +37,7 @@ namespace GroBuf.Writers
         public void BuildConstants(Type type)
         {
             if(hashtable[type] == null)
-                writerCollection.GetWriterBuilder(type).BuildConstants(this);
+                writerCollection.GetWriterBuilder(type, ignoreCustomSerialization).BuildConstants(this);
         }
 
         public Dictionary<Type, string[]> GetFields()
@@ -51,11 +52,12 @@ namespace GroBuf.Writers
 
         private readonly IWriterCollection writerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly bool ignoreCustomSerialization;
     }
 
     internal class WriterTypeBuilderContext
     {
-        public WriterTypeBuilderContext(GroBufWriter groBufWriter, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor)
+        public WriterTypeBuilderContext(GroBufWriter groBufWriter, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IWriterCollection writerCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
         {
             GroBufWriter = groBufWriter;
             Module = module;
@@ -63,6 +65,7 @@ namespace GroBuf.Writers
             this.fields = fields;
             this.writerCollection = writerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
+            this.ignoreCustomSerialization = ignoreCustomSerialization;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -108,7 +111,7 @@ namespace GroBuf.Writers
             var writer = (CompiledDynamicMethod)writers[type];
             if(writer == null)
             {
-                writerCollection.GetWriterBuilder(type).BuildWriter(this);
+                writerCollection.GetWriterBuilder(type, ignoreCustomSerialization).BuildWriter(this);
                 writer = (CompiledDynamicMethod)writers[type];
                 if(writer == null)
                     throw new InvalidOperationException();
@@ -133,6 +136,7 @@ namespace GroBuf.Writers
 
         private readonly IWriterCollection writerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly bool ignoreCustomSerialization;
         private readonly Dictionary<Type, FieldInfo[]> fields;
 
         private readonly Hashtable writers = new Hashtable();

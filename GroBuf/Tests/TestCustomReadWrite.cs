@@ -60,6 +60,48 @@ namespace GroBuf.Tests
             zdate.AssertEqualsTo(date);
         }
 
+        [Test]
+        public void TestBase()
+        {
+            var z = new Z {X = 5, S = "zzz"};
+            var data = serializer.Serialize(z);
+            var zz = serializer.Deserialize<Z>(data);
+            Assert.AreEqual(5, zz.X);
+            Assert.AreEqual("5", zz.S);
+        }
+
+        [GroBufCustomSerialization]
+        public class Z
+        {
+            [GroBufSizeCounter]
+            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
+            {
+                return baseSizeCounter;
+            }
+
+            [GroBufWriter]
+            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
+            {
+                return baseWriter;
+            }
+
+            [GroBufReader]
+            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
+            {
+                return (IntPtr data, ref int index, int length, ref object result) =>
+                           {
+                               baseReader(data, ref index, length, ref result);
+                               var z = result as Z;
+                               if(z != null)
+                                   z.S = z.X.ToString();
+                               return;
+                           };
+            }
+
+            public int X { get; set; }
+            public string S;
+        }
+
         public class A
         {
             public BB B { get; set; }
@@ -70,7 +112,7 @@ namespace GroBuf.Tests
         public abstract class B
         {
             [GroBufSizeCounter]
-            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory)
+            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
                 return (o, writeEmpty) =>
                            {
@@ -80,7 +122,7 @@ namespace GroBuf.Tests
             }
 
             [GroBufWriter]
-            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory)
+            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
                 return (object o, bool writeEmpty, IntPtr result, ref int index) =>
                            {
@@ -91,7 +133,7 @@ namespace GroBuf.Tests
             }
 
             [GroBufReader]
-            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory)
+            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
                 return (IntPtr data, ref int index, int length, ref object result) =>
                            {
@@ -125,13 +167,13 @@ namespace GroBuf.Tests
         public struct Date
         {
             [GroBufSizeCounter]
-            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory)
+            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
                 return (o, writeEmpty) => 8;
             }
 
             [GroBufWriter]
-            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory)
+            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
                 return (object o, bool writeEmpty, IntPtr result, ref int index) =>
                            {
@@ -143,7 +185,7 @@ namespace GroBuf.Tests
             }
 
             [GroBufReader]
-            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory)
+            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
                 return (IntPtr data, ref int index, int length, ref object result) =>
                            {

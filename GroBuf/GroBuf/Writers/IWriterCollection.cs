@@ -4,6 +4,6 @@ namespace GroBuf.Writers
 {
     internal interface IWriterCollection
     {
-        IWriterBuilder GetWriterBuilder(Type type);
+        IWriterBuilder GetWriterBuilder(Type type, bool ignoreCustomSerialization);
     }
 }

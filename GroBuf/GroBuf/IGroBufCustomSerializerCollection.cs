@@ -4,6 +4,6 @@ namespace GroBuf
 {
     public interface IGroBufCustomSerializerCollection
     {
-        IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory);
+        IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer);
     }
 }

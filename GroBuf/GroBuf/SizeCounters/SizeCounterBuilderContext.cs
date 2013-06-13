@@ -13,12 +13,13 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterConstantsBuilderContext
     {
-        public SizeCounterConstantsBuilderContext(GroBufWriter groBufWriter, TypeBuilder constantsBuilder, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
+        public SizeCounterConstantsBuilderContext(GroBufWriter groBufWriter, TypeBuilder constantsBuilder, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
         {
             GroBufWriter = groBufWriter;
             ConstantsBuilder = constantsBuilder;
             this.sizeCounterCollection = sizeCounterCollection;
             this.dataMembersExtractor = dataMembersExtractor;
+            this.ignoreCustomSerialization = ignoreCustomSerialization;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -36,7 +37,7 @@ namespace GroBuf.SizeCounters
         public void BuildConstants(Type type)
         {
             if(hashtable[type] == null)
-                sizeCounterCollection.GetSizeCounterBuilder(type).BuildConstants(this);
+                sizeCounterCollection.GetSizeCounterBuilder(type, ignoreCustomSerialization).BuildConstants(this);
         }
 
         public Dictionary<Type, string[]> GetFields()
@@ -51,11 +52,12 @@ namespace GroBuf.SizeCounters
 
         private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly bool ignoreCustomSerialization;
     }
 
     internal class SizeCounterBuilderContext
     {
-        public SizeCounterBuilderContext(GroBufWriter groBufWriter, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
+        public SizeCounterBuilderContext(GroBufWriter groBufWriter, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerializatoin)
         {
             GroBufWriter = groBufWriter;
             Module = module;
@@ -63,6 +65,7 @@ namespace GroBuf.SizeCounters
             this.fields = fields;
             this.sizeCounterCollection = sizeCounterCollection;
             this.dataMembersExtractor = dataMembersExtractor;
+            this.ignoreCustomSerializatoin = ignoreCustomSerializatoin;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -108,7 +111,7 @@ namespace GroBuf.SizeCounters
             var sizeCounter = (CompiledDynamicMethod)sizeCounters[type];
             if(sizeCounter == null)
             {
-                sizeCounterCollection.GetSizeCounterBuilder(type).BuildSizeCounter(this);
+                sizeCounterCollection.GetSizeCounterBuilder(type, ignoreCustomSerializatoin).BuildSizeCounter(this);
                 sizeCounter = (CompiledDynamicMethod)sizeCounters[type];
                 if(sizeCounter == null)
                     throw new InvalidOperationException();
@@ -134,6 +137,7 @@ namespace GroBuf.SizeCounters
         private readonly Dictionary<Type, FieldInfo[]> fields;
         private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly bool ignoreCustomSerializatoin;
 
         private readonly Hashtable sizeCounters = new Hashtable();
         private readonly Hashtable initializers = new Hashtable();

@@ -23,7 +23,7 @@ namespace GroBuf.SizeCounters
                     new KeyValuePair<string, Type>("counters_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
                     new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[]))
                 });
-            Array.ForEach(primitiveTypes, context.BuildConstants);
+            Array.ForEach(primitiveTypes, type => context.BuildConstants(type));
         }
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)

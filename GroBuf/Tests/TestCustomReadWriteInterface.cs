@@ -59,7 +59,7 @@ namespace GroBuf.Tests
         public class B
         {
             [GroBufSizeCounter]
-            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory)
+            public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
                 return (o, writeEmpty) =>
                            {
@@ -69,7 +69,7 @@ namespace GroBuf.Tests
             }
 
             [GroBufWriter]
-            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory)
+            public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
                 return (object o, bool writeEmpty, IntPtr result, ref int index) =>
                            {
@@ -80,7 +80,7 @@ namespace GroBuf.Tests
             }
 
             [GroBufReader]
-            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory)
+            public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
                 return (IntPtr data, ref int index, int length, ref object result) =>
                            {

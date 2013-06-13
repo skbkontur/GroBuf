@@ -6,34 +6,38 @@ namespace GroBuf.Writers
 {
     internal class WriterCollection : IWriterCollection
     {
-        public WriterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory)
+        public WriterCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
             this.customSerializerCollection = customSerializerCollection;
             this.factory = factory;
+            this.baseFactory = baseFactory;
         }
 
-        public IWriterBuilder GetWriterBuilder(Type type)
+        public IWriterBuilder GetWriterBuilder(Type type, bool ignoreCustomSerialization)
         {
-            var writerBuilder = (IWriterBuilder)writerBuilders[type];
+            var key = new KeyValuePair<Type, bool>(type, ignoreCustomSerialization);
+            var writerBuilder = (IWriterBuilder)writerBuilders[key];
             if(writerBuilder == null)
             {
                 lock(writerBuildersLock)
                 {
-                    writerBuilder = (IWriterBuilder)writerBuilders[type];
+                    writerBuilder = (IWriterBuilder)writerBuilders[key];
                     if(writerBuilder == null)
                     {
-                        writerBuilder = GetWriterBuilderInternal(type);
-                        writerBuilders[type] = writerBuilder;
+                        writerBuilder = GetWriterBuilderInternal(type, ignoreCustomSerialization);
+                        writerBuilders[key] = writerBuilder;
                     }
                 }
             }
             return writerBuilder;
         }
 
-        private IWriterBuilder GetWriterBuilderInternal(Type type)
+        private IWriterBuilder GetWriterBuilderInternal(Type type, bool ignoreCustomSerialization)
         {
             IWriterBuilder writerBuilder;
-            var customSerializer = customSerializerCollection.Get(type, factory);
+            IGroBufCustomSerializer customSerializer = null;
+            if(!ignoreCustomSerialization)
+                customSerializer = customSerializerCollection.Get(type, factory, baseFactory(type));
             if(customSerializer != null)
                 writerBuilder = new CustomWriterBuilder(type, customSerializer);
             else if(type == typeof(string))
@@ -67,6 +71,7 @@ namespace GroBuf.Writers
 
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly Func<Type, IGroBufCustomSerializer> factory;
+        private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
 
         private readonly Hashtable writerBuilders = new Hashtable();
         private readonly object writerBuildersLock = new object();

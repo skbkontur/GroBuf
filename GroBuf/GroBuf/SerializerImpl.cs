@@ -7,36 +7,33 @@ namespace GroBuf
 {
     internal class InternalSerializer : IGroBufCustomSerializer
     {
-        public InternalSerializer(GroBufWriter groBufWriter, GroBufReader groBufReader, Type type)
+        public InternalSerializer(GroBufWriter groBufWriter, GroBufReader groBufReader, Type type, bool ignoreCustomSerializer)
         {
             this.groBufWriter = groBufWriter;
             this.groBufReader = groBufReader;
             this.type = type;
+            this.ignoreCustomSerializer = ignoreCustomSerializer;
         }
 
         public int CountSize(object obj, bool writeEmpty)
         {
-            return groBufWriter.GetSize(type, obj, writeEmpty);
+            return groBufWriter.GetSize(type, ignoreCustomSerializer, obj, writeEmpty);
         }
 
         public void Write(object obj, bool writeEmpty, IntPtr result, ref int index)
         {
-            groBufWriter.Write(type, obj, writeEmpty, result, ref index);
+            groBufWriter.Write(type, ignoreCustomSerializer, obj, writeEmpty, result, ref index);
         }
 
         public void Read(IntPtr data, ref int index, int length, ref object result)
         {
-            groBufReader.Read(type, data, ref index, length, ref result);
-        }
-
-        public object Create()
-        {
-            throw new NotImplementedException();
+            groBufReader.Read(type, ignoreCustomSerializer, data, ref index, length, ref result);
         }
 
         private readonly GroBufWriter groBufWriter;
         private readonly GroBufReader groBufReader;
         private readonly Type type;
+        private readonly bool ignoreCustomSerializer;
     }
 
     public class SerializerImpl
@@ -44,9 +41,10 @@ namespace GroBuf
         public SerializerImpl(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection = null, GroBufOptions options = GroBufOptions.None)
         {
             customSerializerCollection = customSerializerCollection ?? new DefaultGroBufCustomSerializerCollection();
-            Func<Type, IGroBufCustomSerializer> func = type => new InternalSerializer(writer, reader, type);
-            writer = new GroBufWriter(dataMembersExtractor, customSerializerCollection, options, func);
-            reader = new GroBufReader(dataMembersExtractor, customSerializerCollection, func);
+            Func<Type, IGroBufCustomSerializer> factory = type => new InternalSerializer(writer, reader, type, false);
+            Func<Type, IGroBufCustomSerializer> baseFactory = type => new InternalSerializer(writer, reader, type, true);
+            writer = new GroBufWriter(dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
+            reader = new GroBufReader(dataMembersExtractor, customSerializerCollection, factory, baseFactory);
         }
 
         public int GetSize<T>(T obj)
