@@ -77,6 +77,17 @@ namespace GroBuf.Readers
             il.Ldloc(value);
             il.Call(Type.GetMethod("Add"), Type);
 
+            if(!keyType.IsValueType)
+            {
+                il.Ldnull(keyType);
+                il.Stloc(key);
+            }
+            if(!valueType.IsValueType)
+            {
+                il.Ldnull(valueType);
+                il.Stloc(value);
+            }
+
             il.Ldloc(i); // stack: [i]
             il.Ldc_I4(1); // stack: [i, 1]
             il.Add(); // stack: [i + 1]

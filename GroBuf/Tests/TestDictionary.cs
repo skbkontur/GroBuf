@@ -45,6 +45,19 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestArray()
+        {
+            var zzz = new Zzz();
+            zzz.Properties.Add("zzz", serializer.Serialize(true));
+            zzz.Properties.Add("qxx", serializer.Serialize(false));
+            var data = serializer.Serialize(zzz);
+            var zzz3 = serializer.Deserialize<Zzz>(data);
+            Assert.AreEqual(2, zzz3.Properties.Count);
+            Assert.AreEqual(true, serializer.Deserialize<bool>(zzz3.Properties["zzz"]));
+            Assert.AreEqual(false, serializer.Deserialize<bool>(zzz3.Properties["qxx"]));
+        }
+
+        [Test]
         public void TestPerformance()
         {
             var dict = new Dictionary<int, int>();
@@ -69,6 +82,16 @@ namespace GroBuf.Tests
                 serializer.Deserialize<Dictionary<int, int>>(buf);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
+        }
+
+        public class Zzz
+        {
+            public Zzz()
+            {
+                Properties = new Dictionary<string, byte[]>();
+            }
+
+            public Dictionary<string, byte[]> Properties { get; set; }
         }
 
         private SerializerImpl serializer;
