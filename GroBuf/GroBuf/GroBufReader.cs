@@ -38,15 +38,24 @@ namespace GroBuf
             }
         }
 
-        public unsafe T Read<T>(byte[] data, ref int index)
+        public T Read<T>(byte[] data, ref int index)
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+            return Read<T>(data, ref index, data.Length);
+        }
+
+        public unsafe T Read<T>(byte[] data, ref int index, int length)
         {
             if(data == null)
                 throw new ArgumentNullException("data");
             if(data.Length == 0)
                 throw new ArgumentException("Cannot read data from empty array");
+            if(length > data.Length)
+                throw new ArgumentOutOfRangeException("length");
             T result = default(T);
             fixed(byte* d = &data[0])
-                Read((IntPtr)d, ref index, data.Length, ref result);
+                Read((IntPtr)d, ref index, length, ref result);
             return result;
         }
 
@@ -55,6 +64,12 @@ namespace GroBuf
             T result = default(T);
             Read(data, ref result);
             return result;
+        }
+
+        public T Read<T>(byte[] data, int length)
+        {
+            int index = 0;
+            return Read<T>(data, ref index, length);
         }
 
         public void Read<T>(IntPtr data, ref int index, int length, ref T result)
@@ -82,15 +97,24 @@ namespace GroBuf
             }
         }
 
-        public unsafe object Read(Type type, byte[] data, ref int index)
+        public object Read(Type type, byte[] data, ref int index)
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+            return Read(type, data, ref index, data.Length);
+        }
+
+        public unsafe object Read(Type type, byte[] data, ref int index, int length)
         {
             if(data == null)
                 throw new ArgumentNullException("data");
             if(data.Length == 0)
                 throw new ArgumentException("Cannot read data from empty array");
+            if(length > data.Length)
+                throw new ArgumentOutOfRangeException("length");
             object result = null;
             fixed(byte* d = &data[0])
-                Read(type, (IntPtr)d, ref index, data.Length, ref result);
+                Read(type, (IntPtr)d, ref index, length, ref result);
             return result;
         }
 
@@ -99,6 +123,12 @@ namespace GroBuf
             object result = null;
             Read(type, data, ref result);
             return result;
+        }
+
+        public object Read(Type type, byte[] data, int length)
+        {
+            int index = 0;
+            return Read(type, data, ref index, length);
         }
 
         public void Read(Type type, IntPtr data, ref int index, int length, ref object result)

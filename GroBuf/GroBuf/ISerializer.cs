@@ -9,6 +9,8 @@ namespace GroBuf
         byte[] Serialize<T>(T obj);
         T Deserialize<T>(byte[] data);
         T Deserialize<T>(byte[] data, ref int index);
+        T Deserialize<T>(byte[] data, int length);
+        T Deserialize<T>(byte[] data, ref int index, int length);
         void Merge<T>(T from, ref T to);
         TTo ChangeType<TFrom, TTo>(TFrom obj);
         T Copy<T>(T obj);
@@ -18,6 +20,8 @@ namespace GroBuf
         byte[] Serialize(Type type, object obj);
         object Deserialize(Type type, byte[] data);
         object Deserialize(Type type, byte[] data, ref int index);
+        object Deserialize(Type type, byte[] data, int length);
+        object Deserialize(Type type, byte[] data, ref int index, int length);
         object ChangeType(Type from, Type to, object obj);
         object Copy(Type type, object obj);
     }

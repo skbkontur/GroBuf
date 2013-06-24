@@ -72,6 +72,16 @@ namespace GroBuf
             return reader.Read<T>(data, ref index);
         }
 
+        public T Deserialize<T>(byte[] data, int length)
+        {
+            return reader.Read<T>(data, length);
+        }
+
+        public T Deserialize<T>(byte[] data, ref int index, int length)
+        {
+            return reader.Read<T>(data, ref index, length);
+        }
+
         public void Deserialize<T>(byte[] data, ref T result)
         {
             reader.Read(data, ref result);
@@ -100,6 +110,16 @@ namespace GroBuf
         public object Deserialize(Type type, byte[] data, ref int index)
         {
             return reader.Read(type, data, ref index);
+        }
+
+        public object Deserialize(Type type, byte[] data, int length)
+        {
+            return reader.Read(type, data, length);
+        }
+
+        public object Deserialize(Type type, byte[] data, ref int index, int length)
+        {
+            return reader.Read(type, data, ref index, length);
         }
 
         public void Merge<T>(T from, ref T to)

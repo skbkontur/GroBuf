@@ -36,6 +36,16 @@ namespace GroBuf
             return impl.Deserialize<T>(data, ref index);
         }
 
+        public T Deserialize<T>(byte[] data, int length)
+        {
+            return impl.Deserialize<T>(data, length);
+        }
+
+        public T Deserialize<T>(byte[] data, ref int index, int length)
+        {
+            return impl.Deserialize<T>(data, ref index, length);
+        }
+
         public void Merge<T>(T from, ref T to)
         {
             impl.Merge(from, ref to);
@@ -74,6 +84,16 @@ namespace GroBuf
         public object Deserialize(Type type, byte[] data, ref int index)
         {
             return impl.Deserialize(type, data, ref index);
+        }
+
+        public object Deserialize(Type type, byte[] data, int length)
+        {
+            return impl.Deserialize(type, data, length);
+        }
+
+        public object Deserialize(Type type, byte[] data, ref int index, int length)
+        {
+            return impl.Deserialize(type, data, ref index, length);
         }
 
         public object ChangeType(Type from, Type to, object obj)
