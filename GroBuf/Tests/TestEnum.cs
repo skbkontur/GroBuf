@@ -70,7 +70,7 @@ namespace GroBuf.Tests
         {
             byte[] data = serializer.Serialize(new PrintParameters {});
             var oo = serializer.Deserialize<PrintParameters>(data);
-            Assert.AreEqual(0, oo.PrintType);
+            Assert.AreEqual((KopfPrintType)0, oo.PrintType);
         }
 
         [Test]
@@ -78,7 +78,7 @@ namespace GroBuf.Tests
         {
             byte[] data = serializer.Serialize(new PrintParameters2 {});
             var oo = serializer.Deserialize<PrintParameters2>(data);
-            Assert.AreEqual(0, oo.PrintType);
+            Assert.AreEqual((KopfPrintType2)0, oo.PrintType);
         }
 
         [Test]
