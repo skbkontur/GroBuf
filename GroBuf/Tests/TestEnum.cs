@@ -17,7 +17,7 @@ namespace GroBuf.Tests
         public void TestSerializeDeserialize()
         {
             var o = Enum1.Million;
-            var data = serializer.Serialize(o);
+            byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Enum1>(data);
             Assert.AreEqual(o, oo);
         }
@@ -26,15 +26,15 @@ namespace GroBuf.Tests
         public void TestSerializeEnumAsInt()
         {
             var o = (Enum1)200;
-            var data = serializer.Serialize(o);
+            byte[] data = serializer.Serialize(o);
             Assert.AreEqual(200, serializer.Deserialize<int>(data));
         }
 
         [Test]
         public void TestDeserializeIntAsEnum()
         {
-            var o = 123456789;
-            var data = serializer.Serialize(o);
+            int o = 123456789;
+            byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Enum1>(data);
             Assert.AreEqual((Enum1)123456789, oo);
             o = (int)Enum1.Thousand;
@@ -46,8 +46,8 @@ namespace GroBuf.Tests
         [Test]
         public void TestDeserializeStringAsEnum()
         {
-            var o = Enum1.Thousand.ToString();
-            var data = serializer.Serialize(o);
+            string o = Enum1.Thousand.ToString();
+            byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Enum1>(data);
             Assert.AreEqual(Enum1.Thousand, oo);
             o = "zzz";
@@ -60,16 +60,32 @@ namespace GroBuf.Tests
         public void EnumItemAdded()
         {
             var o = Enum2_Old.Seven;
-            var data = serializer.Serialize(o);
+            byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Enum2_New>(data);
             Assert.AreEqual(Enum2_New.Seven, oo);
+        }
+
+        [Test]
+        public void EnumEnumBug1()
+        {
+            byte[] data = serializer.Serialize(new PrintParameters {});
+            var oo = serializer.Deserialize<PrintParameters>(data);
+            Assert.AreEqual(0, oo.PrintType);
+        }
+
+        [Test]
+        public void EnumEnumBug2()
+        {
+            byte[] data = serializer.Serialize(new PrintParameters2 {});
+            var oo = serializer.Deserialize<PrintParameters2>(data);
+            Assert.AreEqual(0, oo.PrintType);
         }
 
         [Test]
         public void TestMultipleItemsHasSameValue()
         {
             var o = Enum3.Одиннадцать;
-            var data = serializer.Serialize(o);
+            byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Enum3>(data);
             Assert.IsTrue(oo == Enum3.Eleven || oo == Enum3.Одиннадцать);
         }
@@ -135,5 +151,27 @@ namespace GroBuf.Tests
         }
 
         private SerializerImpl serializer;
+
+        private class PrintParameters
+        {
+            public KopfPrintType PrintType { get; set; }
+        }
+
+        private class PrintParameters2
+        {
+            public KopfPrintType2 PrintType { get; set; }
+        }
+
+        private enum KopfPrintType
+        {
+            Pdf = 1,
+            Excel = 2
+        }
+
+        private enum KopfPrintType2
+        {
+            Pdf = 4,
+            Excel = 5
+        }
     }
 }
