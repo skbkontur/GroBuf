@@ -13,13 +13,12 @@ namespace GroBuf.Readers
 {
     internal class ReaderConstantsBuilderContext
     {
-        public ReaderConstantsBuilderContext(GroBufReader groBufReader, TypeBuilder constantsBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
+        public ReaderConstantsBuilderContext(GroBufReader groBufReader, TypeBuilder constantsBuilder, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
         {
             GroBufReader = groBufReader;
             ConstantsBuilder = constantsBuilder;
             this.readerCollection = readerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
-            this.ignoreCustomSerialization = ignoreCustomSerialization;
         }
 
         public MemberInfo[] GetDataMembers(Type type)
@@ -34,7 +33,7 @@ namespace GroBuf.Readers
                 ConstantsBuilder.DefineField(field.Key, field.Value, FieldAttributes.Public | FieldAttributes.Static);
         }
 
-        public void BuildConstants(Type type)
+        public void BuildConstants(Type type, bool ignoreCustomSerialization = false)
         {
             if(hashtable[type] == null)
                 readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildConstants(this);
@@ -52,12 +51,11 @@ namespace GroBuf.Readers
 
         private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
-        private readonly bool ignoreCustomSerialization;
     }
 
     internal class ReaderTypeBuilderContext
     {
-        public ReaderTypeBuilderContext(GroBufReader groBufReader, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor, bool ignoreCustomSerialization)
+        public ReaderTypeBuilderContext(GroBufReader groBufReader, ModuleBuilder module, Type constantsType, Dictionary<Type, FieldInfo[]> fields, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
         {
             GroBufReader = groBufReader;
             Module = module;
@@ -65,7 +63,6 @@ namespace GroBuf.Readers
             this.fields = fields;
             this.readerCollection = readerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
-            this.ignoreCustomSerialization = ignoreCustomSerialization;
             Lengths = typeof(GroBufHelpers).GetField("Lengths", BindingFlags.Static | BindingFlags.Public);
         }
 
@@ -107,7 +104,7 @@ namespace GroBuf.Readers
             compiledDynamicMethod.Delegate = reader;
         }
 
-        public CompiledDynamicMethod GetReader(Type type)
+        public CompiledDynamicMethod GetReader(Type type, bool ignoreCustomSerialization = false)
         {
             var reader = (CompiledDynamicMethod)readers[type];
             if(reader == null)
@@ -139,7 +136,6 @@ namespace GroBuf.Readers
         private readonly Dictionary<Type, FieldInfo[]> fields;
         private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
-        private readonly bool ignoreCustomSerialization;
 
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable initializers = new Hashtable();

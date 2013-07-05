@@ -210,7 +210,7 @@ namespace GroBuf
             il.Ldarg(2); // stack: [data, ref index, length]
             il.Ldarg(3); // stack: [data, ref index, length, ref result]
 
-            if(!type.IsValueType && type != typeof(string) && customSerializerCollection.Get(type, factory, baseFactory(type)) == null)
+            if(!type.IsValueType && type != typeof(string) && (ignoreCustomSerialization || customSerializerCollection.Get(type, factory, baseFactory(type)) == null))
             {
                 il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                 il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]
@@ -248,7 +248,7 @@ namespace GroBuf
             var local = il.DeclareLocal(type);
             if(!type.IsValueType)
             {
-                if(type != typeof(string) && customSerializerCollection.Get(type, factory, baseFactory(type)) == null)
+                if(type != typeof(string) && (ignoreCustomSerialization || customSerializerCollection.Get(type, factory, baseFactory(type)) == null))
                 {
                     il.Dup(); // stack: [data, ref index, length, ref result, ref result]
                     il.Ldind(typeof(object)); // stack: [data, ref index, length, ref result, result]

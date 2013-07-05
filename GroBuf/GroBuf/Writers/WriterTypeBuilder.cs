@@ -22,12 +22,12 @@ namespace GroBuf.Writers
             var constantsBuilder = module.DefineType(type.Name + "_GroBufWriter_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
             constantsBuilder.DefineField("pointers", typeof(IntPtr[]), FieldAttributes.Private | FieldAttributes.Static);
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
-            var constantsBuilderContext = new WriterConstantsBuilderContext(GroBufWriter, constantsBuilder, writerCollection, dataMembersExtractor, ignoreCustomSerialization);
-            constantsBuilderContext.BuildConstants(type);
+            var constantsBuilderContext = new WriterConstantsBuilderContext(GroBufWriter, constantsBuilder, writerCollection, dataMembersExtractor);
+            constantsBuilderContext.BuildConstants(type, ignoreCustomSerialization);
             var constantsType = constantsBuilder.CreateType();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
-            var context = new WriterTypeBuilderContext(GroBufWriter, module, constantsType, fields, writerCollection, dataMembersExtractor, ignoreCustomSerialization);
-            var writer = context.GetWriter(type);
+            var context = new WriterTypeBuilderContext(GroBufWriter, module, constantsType, fields, writerCollection, dataMembersExtractor);
+            var writer = context.GetWriter(type, ignoreCustomSerialization);
 
             var initializer = BuildInitializer(constantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic), constantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
 
