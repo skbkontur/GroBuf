@@ -59,27 +59,6 @@ namespace GroBuf.Tests
             Assert.AreEqual(2, list2.Count);
             Assert.AreEqual("1", list2[0]);
             Assert.AreEqual("2", list2[1]);
-            list = new List<string> {"3"};
-            buf = serializer.Serialize(list);
-            serializer.Deserialize(buf, ref list2);
-            Assert.AreEqual(2, list2.Count);
-            Assert.AreEqual("3", list2[0]);
-            Assert.AreEqual("2", list2[1]);
-            list2[0] = "1";
-            list2.Add("4");
-            serializer.Deserialize(buf, ref list2);
-            Assert.AreEqual(3, list2.Count);
-            Assert.AreEqual("3", list2[0]);
-            Assert.AreEqual("2", list2[1]);
-            Assert.AreEqual("4", list2[2]);
-            list = new List<string> {"5", "6", "7", "8"};
-            buf = serializer.Serialize(list);
-            serializer.Deserialize(buf, ref list2);
-            Assert.AreEqual(4, list2.Count);
-            Assert.AreEqual("5", list2[0]);
-            Assert.AreEqual("6", list2[1]);
-            Assert.AreEqual("7", list2[2]);
-            Assert.AreEqual("8", list2[3]);
         }
 
         [Test]
@@ -91,27 +70,6 @@ namespace GroBuf.Tests
             Assert.AreEqual(2, list2.Count);
             Assert.AreEqual(1, list2[0]);
             Assert.AreEqual(2, list2[1]);
-            list = new List<int> {3};
-            buf = serializer.Serialize(list);
-            serializer.Deserialize(buf, ref list2);
-            Assert.AreEqual(2, list2.Count);
-            Assert.AreEqual(3, list2[0]);
-            Assert.AreEqual(2, list2[1]);
-            list2[0] = 1;
-            list2.Add(4);
-            serializer.Deserialize(buf, ref list2);
-            Assert.AreEqual(3, list2.Count);
-            Assert.AreEqual(3, list2[0]);
-            Assert.AreEqual(2, list2[1]);
-            Assert.AreEqual(4, list2[2]);
-            list = new List<int> {5, 6, 7, 8};
-            buf = serializer.Serialize(list);
-            serializer.Deserialize(buf, ref list2);
-            Assert.AreEqual(4, list2.Count);
-            Assert.AreEqual(5, list2[0]);
-            Assert.AreEqual(6, list2[1]);
-            Assert.AreEqual(7, list2[2]);
-            Assert.AreEqual(8, list2[3]);
         }
 
         [Test]

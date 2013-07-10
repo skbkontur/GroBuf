@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System.Collections.Generic;
+
+using GroBuf.DataMembersExtracters;
 using GroBuf.Tests.TestTools;
 
 using NUnit.Framework;
@@ -40,6 +42,48 @@ namespace GroBuf.Tests
             second = new[] {5, 6, 7};
             serializer.Merge(first, ref second);
             second.AssertEqualsTo(new[] {1, 2, 3, 4});
+        }
+
+        [Test]
+        public void TestList1()
+        {
+            var first = new List<int?> {1, null};
+            var second = new List<int?> {2, 3, 5};
+            serializer.Merge(first, ref second);
+            Assert.AreEqual(3, second.Count);
+            Assert.AreEqual(1, second[0]);
+            Assert.AreEqual(3, second[1]);
+            Assert.AreEqual(5, second[2]);
+
+            first = new List<int?> {1, null, 3, 4};
+            second = new List<int?> {5, 6, 7};
+            serializer.Merge(first, ref second);
+            Assert.AreEqual(4, second.Count);
+            Assert.AreEqual(1, second[0]);
+            Assert.AreEqual(6, second[1]);
+            Assert.AreEqual(3, second[2]);
+            Assert.AreEqual(4, second[3]);
+        }
+
+        [Test]
+        public void TestList2()
+        {
+            var first = new List<int> {1, 2};
+            var second = new List<int> {2, 3, 5};
+            serializer.Merge(first, ref second);
+            Assert.AreEqual(3, second.Count);
+            Assert.AreEqual(1, second[0]);
+            Assert.AreEqual(2, second[1]);
+            Assert.AreEqual(5, second[2]);
+
+            first = new List<int> {1, 2, 3, 4};
+            second = new List<int> {5, 6, 7};
+            serializer.Merge(first, ref second);
+            Assert.AreEqual(4, second.Count);
+            Assert.AreEqual(1, second[0]);
+            Assert.AreEqual(2, second[1]);
+            Assert.AreEqual(3, second[2]);
+            Assert.AreEqual(4, second[3]);
         }
 
         [Test]

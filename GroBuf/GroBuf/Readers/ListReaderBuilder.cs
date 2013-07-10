@@ -44,30 +44,41 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Stloc(length); // length = array length; stack: []
 
-            var createArrayLabel = il.DefineLabel("createArray");
-            context.LoadResult(Type); // stack: [result]
-            il.Brfalse(createArrayLabel); // if(result == null) goto createArray;
-            context.LoadResult(Type); // stack: [result]
-            il.Ldfld(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result._items]
-            il.Ldlen(); // stack: [result._items.Length]
-            il.Ldloc(length); // stack: [result._items.Length, length]
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            {
+                var createArrayLabel = il.DefineLabel("createArray");
+                context.LoadResult(Type); // stack: [result]
+                il.Brfalse(createArrayLabel); // if(result == null) goto createArray;
+                context.LoadResult(Type); // stack: [result]
+                il.Ldfld(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result._items]
+                il.Ldlen(); // stack: [result._items.Length]
+                il.Ldloc(length); // stack: [result._items.Length, length]
 
-            var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-            il.Bge(typeof(int), arrayCreatedLabel); // if(result._items.Length >= length) goto arrayCreated;
+                var arrayCreatedLabel = il.DefineLabel("arrayCreated");
+                il.Bge(typeof(int), arrayCreatedLabel); // if(result._items.Length >= length) goto arrayCreated;
 
-            context.LoadResult(Type); // stack: [result]
-            il.Ldflda(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [ref result._items]
-            il.Ldloc(length); // stack: [ref result, length]
-            il.Call(resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result._items, length)
-            il.Br(arrayCreatedLabel); // goto arrayCreated
+                context.LoadResult(Type); // stack: [result]
+                il.Ldflda(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [ref result._items]
+                il.Ldloc(length); // stack: [ref result, length]
+                il.Call(resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result._items, length)
+                il.Br(arrayCreatedLabel); // goto arrayCreated
 
-            il.MarkLabel(createArrayLabel);
-            context.LoadResultByRef(); // stack: [ref result]
-            il.Ldloc(length); // stack: [ref result, length]
-            il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new List(length)]
-            il.Stind(Type); // result = new List(length); stack: []
+                il.MarkLabel(createArrayLabel);
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(length); // stack: [ref result, length]
+                il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new List(length)]
+                il.Stind(Type); // result = new List(length); stack: []
 
-            il.MarkLabel(arrayCreatedLabel);
+                il.MarkLabel(arrayCreatedLabel);
+            }
+            else
+            {
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(length); // stack: [ref result, length]
+                il.Newobj(Type.GetConstructor(new[] { typeof(int) })); // stack: [ref result, new List(length)]
+                il.Stind(Type); // result = new List(length); stack: []
+            }
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -98,10 +109,13 @@ namespace GroBuf.Readers
             il.Ldloc(length); // stack: [i, length]
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
 
-            context.LoadResult(Type); // stack: [result]
-            il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result.Count]
-            il.Ldloc(length); // stack: [result.Count, length]
-            il.Bge(typeof(int), doneLabel); // if(result.Count >= length) goto done; stack: []
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            {
+                context.LoadResult(Type); // stack: [result]
+                il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result.Count]
+                il.Ldloc(length); // stack: [result.Count, length]
+                il.Bge(typeof(int), doneLabel); // if(result.Count >= length) goto done; stack: []
+            }
             context.LoadResult(Type); // stack: [result]
             il.Ldloc(length); // stack: [result.Count, length]
             il.Stfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // result._size = length; stack: []
