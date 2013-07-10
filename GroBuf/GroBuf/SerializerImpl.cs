@@ -44,7 +44,7 @@ namespace GroBuf
             Func<Type, IGroBufCustomSerializer> factory = type => new InternalSerializer(writer, reader, type, false);
             Func<Type, IGroBufCustomSerializer> baseFactory = type => new InternalSerializer(writer, reader, type, true);
             writer = new GroBufWriter(dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
-            reader = new GroBufReader(dataMembersExtractor, customSerializerCollection, factory, baseFactory);
+            reader = new GroBufReader(dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
         }
 
         public int GetSize<T>(T obj)

@@ -194,12 +194,12 @@ namespace GroBuf.Readers
             il.Ldarg(0); // stack: [data]
             il.Ldarg(1); // stack: [data, ref index]
             il.Ldarg(2); // stack: [data, ref index, dataLength]
-            il.Ldarg(3); // stack: [data, ref index, dataLength, ref result]
-            if(!Type.IsValueType)
-                il.Ldind(typeof(object)); // stack: [data, ref index, dataLength, result]
             switch(member.MemberType)
             {
             case MemberTypes.Field:
+                il.Ldarg(3); // stack: [data, ref index, dataLength, ref result]
+                if(!Type.IsValueType)
+                    il.Ldind(typeof(object)); // stack: [data, ref index, dataLength, result]
                 var field = (FieldInfo)member;
                 il.Ldflda(field); // stack: [data, ref index, dataLength, ref result.field]
                 ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, dataLength, ref result.field); stack: []
@@ -207,11 +207,17 @@ namespace GroBuf.Readers
             case MemberTypes.Property:
                 var property = (PropertyInfo)member;
                 var propertyValue = il.DeclareLocal(property.PropertyType);
-                MethodInfo getter = property.GetGetMethod(true);
-                if(getter == null)
-                    throw new MissingMethodException(Type.Name, property.Name + "_get");
-                il.Call(getter, Type); // stack: [ data, ref index, dataLength, result.property]
-                il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index, dataLength]
+                if (context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+                {
+                    MethodInfo getter = property.GetGetMethod(true);
+                    if(getter == null)
+                        throw new MissingMethodException(Type.Name, property.Name + "_get");
+                    il.Ldarg(3); // stack: [data, ref index, dataLength, ref result]
+                    if (!Type.IsValueType)
+                        il.Ldind(typeof(object)); // stack: [data, ref index, dataLength, result]
+                    il.Call(getter, Type); // stack: [ data, ref index, dataLength, result.property]
+                    il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index, dataLength]
+                }
                 il.Ldloca(propertyValue); // stack: [data, ref index, dataLength, ref propertyValue]
                 ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, dataLength, ref propertyValue); stack: []
                 il.Ldarg(3); // stack: [ref result]

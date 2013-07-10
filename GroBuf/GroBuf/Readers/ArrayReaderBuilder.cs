@@ -47,27 +47,37 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Stloc(length); // length = array length; stack: []
 
-            var createArrayLabel = il.DefineLabel("createArray");
-            context.LoadResult(Type); // stack: [result]
-            il.Brfalse(createArrayLabel); // if(result == null) goto createArray;
-            context.LoadResult(Type); // stack: [result]
-            il.Ldlen(); // stack: [result.Length]
-            il.Ldloc(length); // stack: [result.Length, length]
-            var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-            il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            {
+                var createArrayLabel = il.DefineLabel("createArray");
+                context.LoadResult(Type); // stack: [result]
+                il.Brfalse(createArrayLabel); // if(result == null) goto createArray;
+                context.LoadResult(Type); // stack: [result]
+                il.Ldlen(); // stack: [result.Length]
+                il.Ldloc(length); // stack: [result.Length, length]
+                var arrayCreatedLabel = il.DefineLabel("arrayCreated");
+                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
 
-            context.LoadResultByRef(); // stack: [ref result]
-            il.Ldloc(length); // stack: [ref result, length]
-            il.Call(resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, length)
-            il.Br(arrayCreatedLabel); // goto arrayCreated
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(length); // stack: [ref result, length]
+                il.Call(resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, length)
+                il.Br(arrayCreatedLabel); // goto arrayCreated
 
-            il.MarkLabel(createArrayLabel);
-            context.LoadResultByRef(); // stack: [ref result]
-            il.Ldloc(length); // stack: [ref result, length]
-            il.Newarr(elementType); // stack: [ref result, new type[length]]
-            il.Stind(typeof(object)); // result = new type[length]; stack: []
+                il.MarkLabel(createArrayLabel);
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(length); // stack: [ref result, length]
+                il.Newarr(elementType); // stack: [ref result, new type[length]]
+                il.Stind(typeof(object)); // result = new type[length]; stack: []
 
-            il.MarkLabel(arrayCreatedLabel);
+                il.MarkLabel(arrayCreatedLabel);
+            }
+            else
+            {
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(length); // stack: [ref result, length]
+                il.Newarr(elementType); // stack: [ref result, new type[length]]
+                il.Stind(typeof(object)); // result = new type[length]; stack: []
+            }
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []

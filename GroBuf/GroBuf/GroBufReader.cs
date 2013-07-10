@@ -12,10 +12,11 @@ namespace GroBuf
 {
     internal class GroBufReader
     {
-        public GroBufReader(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
+        public GroBufReader(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, GroBufOptions options, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
             this.dataMembersExtractor = dataMembersExtractor;
             this.customSerializerCollection = customSerializerCollection;
+            this.options = options;
             this.factory = factory;
             this.baseFactory = baseFactory;
             readerCollection = new ReaderCollection(customSerializerCollection, factory, baseFactory);
@@ -40,7 +41,7 @@ namespace GroBuf
 
         public T Read<T>(byte[] data, ref int index)
         {
-            if (data == null)
+            if(data == null)
                 throw new ArgumentNullException("data");
             return Read<T>(data, ref index, data.Length);
         }
@@ -99,7 +100,7 @@ namespace GroBuf
 
         public object Read(Type type, byte[] data, ref int index)
         {
-            if (data == null)
+            if(data == null)
                 throw new ArgumentNullException("data");
             return Read(type, data, ref index, data.Length);
         }
@@ -140,6 +141,8 @@ namespace GroBuf
         {
             GetReader(type, ignoreCustomSerialization)(data, ref index, length, ref result);
         }
+
+        public GroBufOptions Options { get { return options; } }
 
         private ReaderDelegate<T> GetReader<T>(bool ignoreCustomSerialization)
         {
@@ -302,6 +305,7 @@ namespace GroBuf
 
         private readonly IDataMembersExtractor dataMembersExtractor;
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
+        private readonly GroBufOptions options;
         private readonly Func<Type, IGroBufCustomSerializer> factory;
         private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
 
