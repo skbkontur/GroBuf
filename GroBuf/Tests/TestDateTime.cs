@@ -116,6 +116,18 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestLocalOldFormat()
+        {
+            var data = new byte[10];
+            data[0] = (byte)GroBufTypeCode.DateTimeOld;
+            Array.Copy(BitConverter.GetBytes(1234567891234 | long.MinValue), 0, data, 1, 8);
+            data[9] = (byte)DateTimeKind.Local;
+            var o = serializer.Deserialize<DateTime>(data);
+            Assert.AreEqual(DateTimeKind.Local, o.Kind);
+            Assert.AreEqual(1234567891234, o.Ticks);
+        }
+
+        [Test]
         public void TestUnspecified()
         {
             var o = new DateTime(12735641765, DateTimeKind.Unspecified);

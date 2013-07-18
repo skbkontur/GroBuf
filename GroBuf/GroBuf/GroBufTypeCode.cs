@@ -57,7 +57,7 @@
         Boolean = 17,
 
         [DataLength(-2)]
-        DateTime = 18,
+        DateTimeOld = 18,
 
         [DataLength(-1)]
         Int8Array = 19,
@@ -94,6 +94,9 @@
 
         [DataLength(-1)]
         Dictionary = 30,
+
+        [DataLength(8)]
+        DateTimeNew = 31,
 
         [DataLength(-1)]
         CustomData = 255

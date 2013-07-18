@@ -179,9 +179,9 @@ namespace GroBuf.Readers
 
             // todo: сделать switch
             Il.Ldloc(TypeCode); // stack: [ref index, index, TypeCode]
-            Il.Ldc_I4((int)GroBufTypeCode.DateTime); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTime]
+            Il.Ldc_I4((int)GroBufTypeCode.DateTimeOld); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTimeOld]
             var notDateTimeLabel = Il.DefineLabel("notDateTime");
-            Il.Bne(notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTime) goto notDateTime; stack: [ref index, index]
+            Il.Bne(notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTimeOld) goto notDateTime; stack: [ref index, index]
             Il.Ldc_I4(8); // stack: [ref index, index, 8]
             AssertLength();
             GoToCurrentLocation(); // stack: [ref index, index, &data[index]]

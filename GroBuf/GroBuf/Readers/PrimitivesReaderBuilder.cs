@@ -58,7 +58,7 @@ namespace GroBuf.Readers
                     GroBufTypeCode.Int32, GroBufTypeCode.UInt32,
                     GroBufTypeCode.Int64, GroBufTypeCode.UInt64,
                     GroBufTypeCode.Single, GroBufTypeCode.Double,
-                    GroBufTypeCode.Boolean, GroBufTypeCode.DateTime,
+                    GroBufTypeCode.Boolean, GroBufTypeCode.DateTimeNew,
                     GroBufTypeCode.Decimal
                 })
                 result[(int)typeCode] = BuildPrimitiveValueReader(context, typeCode);
@@ -235,11 +235,11 @@ namespace GroBuf.Readers
                 il.Conv_U2();
                 break;
             case GroBufTypeCode.Int32:
-                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTime)
+                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTimeNew)
                     il.Conv_I4();
                 break;
             case GroBufTypeCode.UInt32:
-                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTime)
+                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTimeNew)
                     il.Conv_U4();
                 break;
             case GroBufTypeCode.Int64:
@@ -252,7 +252,7 @@ namespace GroBuf.Readers
                 }
                 break;
             case GroBufTypeCode.UInt64:
-                if(typeCode != GroBufTypeCode.Int64 && typeCode != GroBufTypeCode.DateTime)
+                if(typeCode != GroBufTypeCode.Int64 && typeCode != GroBufTypeCode.DateTimeNew)
                 {
                     if(typeCode == GroBufTypeCode.Int8 || typeCode == GroBufTypeCode.Int16 || typeCode == GroBufTypeCode.Int32)
                         il.Conv_I8();
@@ -285,7 +285,7 @@ namespace GroBuf.Readers
                     il.Newobj(decimalByUIntConstructor);
                     break;
                 case GroBufTypeCode.Int64:
-                case GroBufTypeCode.DateTime:
+                case GroBufTypeCode.DateTimeNew:
                     il.Newobj(decimalByLongConstructor);
                     break;
                 case GroBufTypeCode.UInt64:
@@ -330,7 +330,7 @@ namespace GroBuf.Readers
                 il.Ldind(typeof(uint));
                 break;
             case GroBufTypeCode.Int64:
-            case GroBufTypeCode.DateTime:
+            case GroBufTypeCode.DateTimeNew:
                 il.Ldind(typeof(long));
                 break;
             case GroBufTypeCode.UInt64:
