@@ -57,6 +57,11 @@ namespace GroBuf
             writer.Write(obj, result, ref index);
         }
 
+        public void Serialize<T>(T obj, IntPtr result, ref int index)
+        {
+            writer.Write(obj, result, ref index);
+        }
+
         public byte[] Serialize<T>(T obj)
         {
             return writer.Write(obj);
@@ -82,9 +87,9 @@ namespace GroBuf
             return reader.Read<T>(data, ref index, length);
         }
 
-        public void Deserialize<T>(byte[] data, ref T result)
+        public T Deserialize<T>(IntPtr data, ref int index, int length)
         {
-            reader.Read(data, ref result);
+            return reader.Read<T>(data, ref index, length);
         }
 
         public int GetSize(Type type, object obj)
@@ -93,6 +98,11 @@ namespace GroBuf
         }
 
         public void Serialize(Type type, object obj, byte[] result, ref int index)
+        {
+            writer.Write(type, obj, result, ref index);
+        }
+
+        public void Serialize(Type type, object obj, IntPtr result, ref int index)
         {
             writer.Write(type, obj, result, ref index);
         }
@@ -118,6 +128,11 @@ namespace GroBuf
         }
 
         public object Deserialize(Type type, byte[] data, ref int index, int length)
+        {
+            return reader.Read(type, data, ref index, length);
+        }
+
+        public object Deserialize(Type type, IntPtr data, ref int index, int length)
         {
             return reader.Read(type, data, ref index, length);
         }

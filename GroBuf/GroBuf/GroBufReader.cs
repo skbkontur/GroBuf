@@ -24,6 +24,14 @@ namespace GroBuf
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
         }
 
+        public void Read<T>(IntPtr data, ref T result, int length)
+        {
+            if (data == IntPtr.Zero)
+                throw new ArgumentNullException("data");
+            int index = 0;
+            Read(data, ref index, length, ref result);
+        }
+
         public unsafe void Read<T>(byte[] data, ref T result)
         {
             if(data == null)
@@ -78,6 +86,13 @@ namespace GroBuf
             Read(false, data, ref index, length, ref result);
         }
 
+        public T Read<T>(IntPtr data, ref int index, int length)
+        {
+            T result = default(T);
+            Read(data, ref index, length, ref result);
+            return result;
+        }
+
         public void Read<T>(bool ignoreCustomSerialization, IntPtr data, ref int index, int length, ref T result)
         {
             GetReader<T>(ignoreCustomSerialization)(data, ref index, length, ref result);
@@ -116,6 +131,15 @@ namespace GroBuf
             object result = null;
             fixed(byte* d = &data[0])
                 Read(type, (IntPtr)d, ref index, length, ref result);
+            return result;
+        }
+
+        public object Read(Type type, IntPtr data, ref int index, int length)
+        {
+            if (data == IntPtr.Zero)
+                throw new ArgumentNullException("data");
+            object result = null;
+            Read(type, data, ref index, length, ref result);
             return result;
         }
 

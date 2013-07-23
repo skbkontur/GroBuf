@@ -1,3 +1,7 @@
+using System;
+using System.Diagnostics;
+using System.Text;
+
 using NUnit.Framework;
 
 namespace GroBuf.Tests
@@ -9,6 +13,30 @@ namespace GroBuf.Tests
         public void SetUp()
         {
             serializer = new Serializer();
+        }
+
+        [Test]
+        public void TestPerformance()
+        {
+            const int length = 32;
+            var arr = new char[length];
+            for (int i = 0; i < length; ++i)
+                arr[i] = (char)('a' + i % 26);
+            var s = new string(arr);
+            byte[] data = serializer.Serialize(s);
+            var buf = Encoding.UTF8.GetBytes(s);
+            const int iterations = 100000;
+            long size = 0;
+            var stopwatch = Stopwatch.StartNew();
+            for(int i = 0; i < iterations; ++i)
+            {
+                //data = Encoding.UTF8.GetBytes(s);//serializer.Serialize(s);
+                s = Encoding.UTF8.GetString(buf);
+                size += s.Length;
+            }
+            var elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
+            Console.WriteLine("Size: " + ((double)size) / iterations + " bytes");
         }
 
         [Test]

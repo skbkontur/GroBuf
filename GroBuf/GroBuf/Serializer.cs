@@ -26,6 +26,11 @@ namespace GroBuf
             return impl.Serialize(obj);
         }
 
+        public void Serialize(Type obj, IntPtr result, ref int index)
+        {
+            impl.Serialize(obj, result, ref index);
+        }
+
         public T Deserialize<T>(byte[] data)
         {
             return impl.Deserialize<T>(data);
@@ -42,6 +47,11 @@ namespace GroBuf
         }
 
         public T Deserialize<T>(byte[] data, ref int index, int length)
+        {
+            return impl.Deserialize<T>(data, ref index, length);
+        }
+
+        public T Deserialize<T>(IntPtr data, ref int index, int length)
         {
             return impl.Deserialize<T>(data, ref index, length);
         }
@@ -71,6 +81,11 @@ namespace GroBuf
             impl.Serialize(type, obj, result, ref index);
         }
 
+        public void Serialize(Type type, object obj, IntPtr result, ref int index)
+        {
+            impl.Serialize(type, obj, result, ref index);
+        }
+
         public byte[] Serialize(Type type, object obj)
         {
             return impl.Serialize(type, obj);
@@ -94,6 +109,11 @@ namespace GroBuf
         public object Deserialize(Type type, byte[] data, ref int index, int length)
         {
             return impl.Deserialize(type, data, ref index, length);
+        }
+
+        public object Deserialize(Type type, IntPtr result, ref int index, int length)
+        {
+            return impl.Deserialize(type, result, ref index, length);
         }
 
         public object ChangeType(Type from, Type to, object obj)

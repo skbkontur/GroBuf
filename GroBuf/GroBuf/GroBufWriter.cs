@@ -44,6 +44,11 @@ namespace GroBuf
             Write(false, obj, result, ref index);
         }
 
+        public void Write<T>(T obj, IntPtr result, ref int index)
+        {
+            GetWriterAndSizeCounter<T>(false).Item1(obj, true, result, ref index);
+        }
+
         public unsafe void Write<T>(bool ignoreCustomSerialization, T obj, byte[] result, ref int index)
         {
             fixed(byte* r = &result[0])
@@ -80,6 +85,11 @@ namespace GroBuf
         {
             int index = 0;
             GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, result, ref index);
+        }
+
+        public void Write(Type type, object obj, IntPtr result, ref int index)
+        {
+            GetWriterAndSizeCounter(type, false).Item1(obj, true, result, ref index);
         }
 
         public void Write(Type type, object obj, byte[] result, ref int index)
