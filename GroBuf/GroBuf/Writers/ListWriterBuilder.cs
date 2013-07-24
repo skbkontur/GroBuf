@@ -45,11 +45,7 @@ namespace GroBuf.Writers
             var count = il.DeclareLocal(typeof(int));
             context.LoadObj(); // stack: [obj]
             il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
-            il.Stloc(count); // count = obj.Count
-
-            il.Ldloc(count); // stack: [count]
-            var doneLabel = il.DefineLabel("done");
-            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: []
+            il.Stloc(count); // count = obj.Count; stack: []
 
             var items = il.DeclareLocal(elementType.MakeArrayType());
             context.LoadObj(); // stack: [obj]
@@ -63,6 +59,10 @@ namespace GroBuf.Writers
             il.Ldloc(count); // stack: [&result[index], count]
             il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
             context.IncreaseIndexBy4(); // index = index + 4
+
+            var writeDataLengthLabel = il.DefineLabel("writeDataLength");
+            il.Ldloc(count); // stack: [length]
+            il.Brfalse(writeDataLengthLabel); // if(length == 0) goto writeDataLength; stack: []
 
             var i = il.DeclareLocal(typeof(int));
             il.Ldc_I4(0); // stack: [0]
@@ -84,6 +84,7 @@ namespace GroBuf.Writers
             il.Stloc(i); // i = i + 1; stack: [count, i]
             il.Bgt(typeof(int), cycleStart); // if(count > i) goto cycleStart; stack: []
 
+            il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]
             il.Ldloc(start); // stack: [result, start]
             il.Add(); // stack: [result + start]
@@ -93,8 +94,6 @@ namespace GroBuf.Writers
             il.Ldc_I4(4); // stack: [result + start, index - start, 4]
             il.Sub(); // stack: [result + start, index - start - 4]
             il.Stind(typeof(int)); // *(int*)(result + start) = index - start - 4
-
-            il.MarkLabel(doneLabel);
         }
 
         private readonly Type elementType;

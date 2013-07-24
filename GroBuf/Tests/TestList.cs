@@ -261,6 +261,24 @@ namespace GroBuf.Tests
             Assert.AreEqual(index, size);
         }
 
+        [Test]
+        public void TestPrimitivesListGetSizeBug()
+        {
+            serializer = new SerializerImpl(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
+            var contract = new BadContract
+                {
+                    IntList = new List<int>()
+                };
+            byte[] serialized = serializer.Serialize(contract);
+            int size = serializer.GetSize(contract);
+            Assert.AreEqual(serialized.Length, size);
+
+            int index = 0;
+            var dst = new byte[size];
+            serializer.Serialize(contract, dst, ref index);
+            Assert.AreEqual(index, size);
+        }
+
         private SerializerImpl serializer;
 
         private class Item
@@ -270,6 +288,7 @@ namespace GroBuf.Tests
         private class BadContract
         {
             public List<Item> List { get; set; }
+            public List<int> IntList { get; set; }
         }
     }
 }
