@@ -99,6 +99,7 @@
     <Compile Include="HashCalculator.cs" />
     <Compile Include="IGroBufCustomSerializer.cs" />
     <Compile Include="IGroBufCustomSerializerCollection.cs" />
+    <Compile Include="InternalSerializer.cs" />
     <Compile Include="MissingConstructorException.cs" />
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
@@ -120,6 +121,7 @@
     <Compile Include="Readers\ObjectReaderBuilder.cs" />
     <Compile Include="Readers\PrimitivesReaderBuilder.cs" />
     <Compile Include="Readers\ReaderBuilderBase.cs" />
+    <Compile Include="Readers\ReaderConstantsBuilderContext.cs" />
     <Compile Include="Readers\ReaderMethodBuilderContext.cs" />
     <Compile Include="Readers\StringReaderBuilder.cs" />
     <Compile Include="Readers\ReaderCollection.cs" />
@@ -147,6 +149,7 @@
     <Compile Include="SizeCounters\PrimitivesSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\SizeCounterBuilderBase.cs" />
     <Compile Include="SizeCounters\SizeCounterCollection.cs" />
+    <Compile Include="SizeCounters\SizeCounterConstantsBuilderContext.cs" />
     <Compile Include="SizeCounters\SizeCounterMethodBuilderContext.cs" />
     <Compile Include="SizeCounters\SizeCounterTypeBuilder.cs" />
     <Compile Include="SizeCounters\SizeCounterBuilderContext.cs" />
@@ -176,6 +179,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GroBufTypeCode.cs" />
     <Compile Include="Writers\StringWriterBuilder.cs" />
+    <Compile Include="Writers\WriterConstantsBuilderContext.cs" />
     <Compile Include="Writers\WriterTypeBuilderContext.cs" />
     <Compile Include="Writers\WriterBuilderBase.cs" />
     <Compile Include="Writers\WriterMethodBuilderContext.cs" />
