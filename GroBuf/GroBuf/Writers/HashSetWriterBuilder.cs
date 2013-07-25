@@ -42,7 +42,6 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.Array);
-            var doneLabel = il.DefineLabel("done");
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Stloc(start); // start = index
@@ -56,8 +55,9 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
 
-            il.Ldloc(count); // stack: [count]
-            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: []
+            var writeDataLengthLabel = il.DefineLabel("writeDataLength");
+            il.Ldloc(count); // stack: [length]
+            il.Brfalse(writeDataLengthLabel); // if(length == 0) goto writeDataLength; stack: []
 
             context.LoadObj(); // stack: [obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
@@ -96,6 +96,7 @@ namespace GroBuf.Writers
             il.Stloc(i); // i = i + 1; stack: [count, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: []
 
+            il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]
             il.Ldloc(start); // stack: [result, start]
             il.Add(); // stack: [result + start]
@@ -105,8 +106,6 @@ namespace GroBuf.Writers
             il.Ldc_I4(4); // stack: [result + start, index - start, 4]
             il.Sub(); // stack: [result + start, index - start - 4]
             il.Stind(typeof(int)); // *(int*)(result + start) = index - start - 4
-
-            il.MarkLabel(doneLabel);
         }
 
         private readonly Type elementType;

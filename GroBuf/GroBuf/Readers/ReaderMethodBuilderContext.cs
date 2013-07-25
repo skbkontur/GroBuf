@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 
 using GrEmit;
+using GrEmit.Utils;
 
 namespace GroBuf.Readers
 {
@@ -163,7 +164,10 @@ namespace GroBuf.Readers
             Il.Ldelem(typeof(int)); // stack: [lengths[typeCode]]
             var okLabel = Il.DefineLabel("ok");
             Il.Brtrue(okLabel); // if(lengths[typeCode] != 0) goto ok;
-            Il.Ldstr("Unknown type code");
+            Il.Ldstr("Unknown type code: ");
+            Il.Ldloca(TypeCode);
+            Il.Call(HackHelpers.GetMethodDefinition<byte>(x => x.ToString()), typeof(byte));
+            Il.Call(HackHelpers.GetMethodDefinition<string>(s => s + "zzz"));
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
             if(constructor == null)
                 throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));

@@ -68,6 +68,8 @@ namespace GroBuf
             int index = 0;
             fixed(byte* r = &result[0])
                 writerAndCounter.Item1(obj, true, (IntPtr)r, ref index);
+            if (index != size)
+                throw new Exception("Bug: at the end of serialization index must point at the end of array");
             return result;
         }
 
@@ -126,6 +128,8 @@ namespace GroBuf
             int index = 0;
             fixed(byte* r = &result[0])
                 writerAndCounter.Item1(obj, true, (IntPtr)r, ref index);
+            if(index != size)
+                throw new Exception("At the end of serialization index must point at the end of array");
             return result;
         }
 
