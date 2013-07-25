@@ -19,13 +19,18 @@ namespace GroBuf.Writers
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Length]
-            context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -39,26 +44,28 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.Dictionary);
-            var doneLabel = il.DefineLabel("done");
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Stloc(start); // start = index
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
-            context.LoadObj(); // stack: [obj]
-            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+            context.LoadObj(); // stack: [&result[index], obj]
+            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [&result[index], obj.Count]
+            il.Dup(); // stack: [&result[index], obj.Count, obj.Count]
+            var count = il.DeclareLocal(typeof(int));
+            il.Stloc(count); // count = obj.Count; stack: [&result[index], obj.Count]
             il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
-            context.IncreaseIndexBy4(); // index = index + 4
+            context.IncreaseIndexBy4(); // index = index + 4; stack: []
+
+            var writeDataLengthLabel = il.DefineLabel("writeDataLength");
+            il.Ldloc(count); // stack: [count]
+            il.Brfalse(writeDataLengthLabel); // if(count == 0) goto writeDataLength; stack: []
 
             context.LoadObj(); // stack: [obj]
-            var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic));
-            il.Stloc(count);
-            context.LoadObj(); // stack: [size, obj]
             var entryType = Type.GetNestedType("Entry", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var entries = il.DeclareLocal(entryType.MakeArrayType());
-            il.Ldfld(Type.GetField("entries", BindingFlags.Instance | BindingFlags.NonPublic));
-            il.Stloc(entries);
+            il.Ldfld(Type.GetField("entries", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.entries]
+            il.Stloc(entries); // entries = obj.entries; stack: []
 
             var i = il.DeclareLocal(typeof(int));
             il.Ldc_I4(0); // stack: [9, 0]
@@ -98,41 +105,7 @@ namespace GroBuf.Writers
             il.Stloc(i); // i = i + 1; stack: [size, count, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [size]
 
-//            context.LoadObj(); // stack: [obj]
-//            var keyValueType = typeof(KeyValuePair<,>).MakeGenericType(Type.GetGenericArguments());
-//            var enumeratorType = typeof(IEnumerator<>).MakeGenericType(keyValueType);
-//            var enumerator = il.DeclareLocal(enumeratorType);
-//            il.Call(typeof(IEnumerable<>).MakeGenericType(keyValueType).GetMethod("GetEnumerator"), Type); // stack: [obj.GetEnumerator()]
-//            il.Dup(); // stack: [enumerator]
-//            il.Stloc(enumerator); // enumerator = obj.GetEnumerator(); stack: [size, enumerator]
-//            il.Call(typeof(IEnumerator).GetMethod("Reset"), typeof(IEnumerator)); // enumerator.Reset(); stack: [size]
-//            var endLabel = il.DefineLabel("end");
-//            il.Ldloc(enumerator);
-//            il.Call(typeof(IEnumerator).GetMethod("MoveNext"), typeof(IEnumerator));
-//            il.Brfalse(endLabel);
-//            var cycleStartLabel = il.DefineLabel("cycleStart");
-//            il.MarkLabel(cycleStartLabel);
-//            il.Ldloc(enumerator); // stack: [size, enumerator]
-//            il.Call(enumeratorType.GetProperty("Current").GetGetMethod(), enumeratorType); // stack: [size, enumerator.Current]
-//            var current = il.DeclareLocal(keyValueType);
-//            il.Stloc(current);
-//            il.Ldloca(current);
-//            il.Call(keyValueType.GetProperty("Key").GetGetMethod(), keyValueType);
-//            il.Ldc_I4(1);
-//            context.LoadResult(); // stack: [obj[i], true, result]
-//            context.LoadIndexByRef();
-//            context.CallWriter(keyType);
-//            il.Ldloca(current);
-//            il.Call(keyValueType.GetProperty("Value").GetGetMethod(), keyValueType);
-//            il.Ldc_I4(1);
-//            context.LoadResult(); // stack: [obj[i], true, result]
-//            context.LoadIndexByRef();
-//            context.CallWriter(valueType);
-//            il.Ldloc(enumerator);
-//            il.Call(typeof(IEnumerator).GetMethod("MoveNext"), typeof(IEnumerator));
-//            il.Brtrue(cycleStartLabel);
-//            il.MarkLabel(endLabel);
-
+            il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]
             il.Ldloc(start); // stack: [result, start]
             il.Add(); // stack: [result + start]
@@ -142,8 +115,6 @@ namespace GroBuf.Writers
             il.Ldc_I4(4); // stack: [result + start, index - start, 4]
             il.Sub(); // stack: [result + start, index - start - 4]
             il.Stind(typeof(int)); // *(int*)(result + start) = index - start - 4
-
-            il.MarkLabel(doneLabel);
         }
 
         private readonly Type keyType;

@@ -25,13 +25,18 @@ namespace GroBuf.SizeCounters
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            var emptyLabel = context.Il.DefineLabel("empty");
             context.LoadObj(); // stack: [obj]
-            context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
-            context.LoadObj(); // stack: [obj]
-            context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Length]
-            context.Il.Brtrue(notEmptyLabel); // if(obj.Length != 0) goto notEmpty;
-            context.Il.MarkLabel(emptyLabel);
+            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
+            else
+            {
+                var emptyLabel = context.Il.DefineLabel("empty");
+                context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
+                context.LoadObj(); // stack: [obj]
+                context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
+                context.Il.MarkLabel(emptyLabel);
+            }
             return true;
         }
 
@@ -41,8 +46,13 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(9); // stack: [9 = size] 9 = type code + data length + dictionary count
             context.LoadObj(); // stack: [size, obj]
             var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic));
-            il.Stloc(count);
+            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.Count]
+            il.Stloc(count); // count = obj.Count; stack: [size]
+
+            var doneLabel = il.DefineLabel("done");
+            il.Ldloc(count); // stack: [size, count]
+            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: [size]
+
             context.LoadObj(); // stack: [size, obj]
             var entryType = Type.GetNestedType("Entry", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var entries = il.DeclareLocal(entryType.MakeArrayType());
@@ -84,6 +94,8 @@ namespace GroBuf.SizeCounters
             il.Dup(); // stack: [size, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, count, i]
             il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [size]
+
+            il.MarkLabel(doneLabel);
         }
 
         private readonly Type keyType;

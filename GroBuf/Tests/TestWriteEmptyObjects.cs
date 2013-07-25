@@ -82,6 +82,17 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestEmptyDictionary()
+        {
+            var a = new A {Dict = new Dictionary<int, int>()};
+            var data = serializer.Serialize(a);
+            var aa = serializer.Deserialize<A>(data);
+            Assert.IsNotNull(aa);
+            Assert.IsNotNull(aa.Dict);
+            Assert.AreEqual(0, aa.Dict.Count);
+        }
+
+        [Test]
         public void TestEmptyClass()
         {
             var b = new B {A = new A()};
@@ -119,6 +130,7 @@ namespace GroBuf.Tests
             public List<int> IntList { get; set; }
             public HashSet<string> StringHashSet { get; set; }
             public HashSet<int> IntHashSet { get; set; }
+            public Dictionary<int, int> Dict { get; set; }
         }
 
         private class B
