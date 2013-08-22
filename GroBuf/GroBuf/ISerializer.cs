@@ -7,7 +7,6 @@ namespace GroBuf
         int GetSize<T>(T obj);
         void Serialize<T>(T obj, byte[] result, ref int index);
         byte[] Serialize<T>(T obj);
-        void Serialize(Type obj, IntPtr result, ref int index);
         T Deserialize<T>(byte[] data);
         T Deserialize<T>(byte[] data, ref int index);
         T Deserialize<T>(byte[] data, int length);

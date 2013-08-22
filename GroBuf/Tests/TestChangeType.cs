@@ -8,7 +8,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new Serializer();
+            serializer = new SerializerImpl();
         }
 
         [Test]
@@ -24,6 +24,18 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestCopyGenericWriteEmptyObject()
+        {
+            var obj = new TestClassA {S = "qxx", B = new TestClassB()};
+            var copiedObj = serializer.Copy(obj);
+            Assert.IsNotNull(copiedObj);
+            Assert.AreNotSame(obj, copiedObj);
+            Assert.AreEqual("qxx", copiedObj.S);
+            Assert.IsNotNull(copiedObj.B);
+            Assert.IsNull(copiedObj.B.S);
+        }
+
+        [Test]
         public void TestCopyNonGeneric()
         {
             var obj = new TestClassA {S = "qxx", B = new TestClassB {S = "zzz"}};
@@ -33,6 +45,18 @@ namespace GroBuf.Tests
             Assert.AreEqual("qxx", copiedObj.S);
             Assert.IsNotNull(copiedObj.B);
             Assert.AreEqual("zzz", copiedObj.B.S);
+        }
+
+        [Test]
+        public void TestCopyNonGenericWriteEmptyObject()
+        {
+            var obj = new TestClassA {S = "qxx", B = new TestClassB()};
+            var copiedObj = (TestClassA)serializer.Copy(typeof(TestClassA), obj);
+            Assert.IsNotNull(copiedObj);
+            Assert.AreNotSame(obj, copiedObj);
+            Assert.AreEqual("qxx", copiedObj.S);
+            Assert.IsNotNull(copiedObj.B);
+            Assert.IsNull(copiedObj.B.S);
         }
 
         [Test]
@@ -48,6 +72,18 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestChangeTypeGenericWriteEmptyObject()
+        {
+            var obj = new TestClassA {S = "qxx", B = new TestClassB()};
+            var copiedObj = serializer.ChangeType<TestClassA, TestClassADerived>(obj);
+            Assert.IsNotNull(copiedObj);
+            Assert.AreNotSame(obj, copiedObj);
+            Assert.AreEqual("qxx", copiedObj.S);
+            Assert.IsNotNull(copiedObj.B);
+            Assert.IsNull(copiedObj.B.S);
+        }
+
+        [Test]
         public void TestChangeTypeNonGeneric()
         {
             var obj = new TestClassA {S = "qxx", B = new TestClassB {S = "zzz"}};
@@ -57,6 +93,18 @@ namespace GroBuf.Tests
             Assert.AreEqual("qxx", copiedObj.S);
             Assert.IsNotNull(copiedObj.B);
             Assert.AreEqual("zzz", copiedObj.B.S);
+        }
+
+        [Test]
+        public void TestChangeTypeNonGenericWriteEmptyObject()
+        {
+            var obj = new TestClassA {S = "qxx", B = new TestClassB()};
+            var copiedObj = (TestClassADerived)serializer.ChangeType(typeof(TestClassA), typeof(TestClassADerived), obj);
+            Assert.IsNotNull(copiedObj);
+            Assert.AreNotSame(obj, copiedObj);
+            Assert.AreEqual("qxx", copiedObj.S);
+            Assert.IsNotNull(copiedObj.B);
+            Assert.IsNull(copiedObj.B.S);
         }
 
         public class TestClassA

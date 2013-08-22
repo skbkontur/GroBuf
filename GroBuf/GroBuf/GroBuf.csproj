@@ -128,7 +128,7 @@
     <Compile Include="Readers\ReaderTypeBuilder.cs" />
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
     <Compile Include="SerializerExtensions.cs" />
-    <Compile Include="SerializerImpl.cs" />
+    <Compile Include="Serializer.cs" />
     <Compile Include="SizeCounterDelegate.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
@@ -173,7 +173,6 @@
     <Compile Include="Writers\NullableWriterBuilder.cs" />
     <Compile Include="Writers\ObjectWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesWriterBuilder.cs" />
-    <Compile Include="Serializer.cs" />
     <Compile Include="GroBufHelpers.cs" />
     <Compile Include="ISerializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

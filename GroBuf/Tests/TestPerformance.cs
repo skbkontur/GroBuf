@@ -18,7 +18,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            groBuf = new Serializer();
+            groBuf = new SerializerImpl();
             ordersXmlSerializer = new XmlSerializer(typeof(Orders));
             invoicXmlSerializer = new XmlSerializer(typeof(Invoic));
             ordersJsonSerializer = new DataContractJsonSerializer(typeof(Orders));

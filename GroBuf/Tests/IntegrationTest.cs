@@ -14,7 +14,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new Serializer();
+            serializer = new SerializerImpl();
         }
 
         [Test]

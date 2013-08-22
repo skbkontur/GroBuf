@@ -1,5 +1,8 @@
-﻿namespace GroBuf
+﻿using System;
+
+namespace GroBuf
 {
+    [Flags]
     public enum GroBufOptions
     {
         None = 0,
