@@ -5,7 +5,7 @@ using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {
-    public abstract class Serializer : ISerializer
+    public class Serializer : ISerializer
     {
         public Serializer(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection = null, GroBufOptions options = GroBufOptions.None)
         {
