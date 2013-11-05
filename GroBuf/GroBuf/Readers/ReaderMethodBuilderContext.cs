@@ -239,9 +239,24 @@ namespace GroBuf.Readers
             Il.MarkLabel(okLabel);
         }
 
-        public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
+        public static void LoadReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
         {
             var counter = context.GetReader(type);
+            il.Ldfld(context.ConstantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
+            il.Ldc_I4(counter.Index);
+            il.Ldelem(typeof(ReaderDelegate<>).MakeGenericType(type));
+        }
+
+        public void LoadReader(Type type)
+        {
+            LoadReader(Il, type, Context);
+        }
+
+        public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
+        {
+            var delegateType = typeof(ReaderDelegate<>).MakeGenericType(type);
+            il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
+            /*var counter = context.GetReader(type);
             if(counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
             else
@@ -250,7 +265,7 @@ namespace GroBuf.Readers
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
             }
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()});
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()});*/
         }
 
         public void CallReader(Type type)

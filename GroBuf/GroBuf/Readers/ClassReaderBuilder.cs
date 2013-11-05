@@ -191,6 +191,8 @@ namespace GroBuf.Readers
                                                }, context.Module, true);
             var il = new GroboIL(method);
 
+            ReaderMethodBuilderContext.LoadReader(il, member.GetMemberType(), context);
+
             il.Ldarg(0); // stack: [data]
             il.Ldarg(1); // stack: [data, ref index]
             il.Ldarg(2); // stack: [data, ref index, dataLength]

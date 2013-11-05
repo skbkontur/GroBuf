@@ -21,6 +21,9 @@ namespace GroBuf.Writers
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
+
+            context.LoadWriter(Type.GetGenericArguments()[0]);
+
             context.LoadObjByRef(); // stack: [&obj]
             il.Call(Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]

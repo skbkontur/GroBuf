@@ -74,6 +74,9 @@ namespace GroBuf.Readers
             var readAsIntLabel = il.DefineLabel("readAsInt");
             il.Bne(readAsIntLabel); // if(typeCode != GroBufTypeCode.String) goto readAsInt;
             var str = il.DeclareLocal(typeof(string));
+
+            context.LoadReader(typeof(string));
+
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
@@ -85,6 +88,9 @@ namespace GroBuf.Readers
             il.Br(parseByHashCodeLabel);
 
             il.MarkLabel(readAsIntLabel);
+
+            context.LoadReader(typeof(int));
+
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]

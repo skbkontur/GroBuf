@@ -39,6 +39,8 @@ namespace GroBuf.SizeCounters
             var dataMembers = context.Context.GetDataMembers(Type);
             foreach(var member in dataMembers)
             {
+                context.LoadSizeCounter(member.GetMemberType());
+
                 if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [size, ref obj]
                 else

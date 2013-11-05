@@ -155,9 +155,19 @@ namespace GroBuf.Writers
             IncreaseIndexBy1(); // index = index + 1
         }
 
-        public void CallWriter(Type type)
+        public void LoadWriter(Type type)
         {
             var counter = Context.GetWriter(type);
+            Il.Ldfld(Context.ConstantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
+            Il.Ldc_I4(counter.Index);
+            Il.Ldelem(typeof(WriterDelegate<>).MakeGenericType(type));
+        }
+
+        public void CallWriter(Type type)
+        {
+            var delegateType = typeof(WriterDelegate<>).MakeGenericType(type);
+            Il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
+            /*var counter = Context.GetWriter(type);
             if(counter.Pointer != IntPtr.Zero)
                 Il.Ldc_IntPtr(counter.Pointer);
             else
@@ -166,7 +176,7 @@ namespace GroBuf.Writers
                 Il.Ldc_I4(counter.Index);
                 Il.Ldelem(typeof(IntPtr));
             }
-            Il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()});
+            Il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType()});*/
         }
 
         public WriterTypeBuilderContext Context { get; private set; }

@@ -11,6 +11,19 @@ namespace GroBuf
 {
     public static class GroBufHelpers
     {
+        public static Type GetMemberType(this MemberInfo member)
+        {
+            switch (member.MemberType)
+            {
+                case MemberTypes.Property:
+                    return ((PropertyInfo)member).PropertyType;
+                case MemberTypes.Field:
+                    return ((FieldInfo)member).FieldType;
+                default:
+                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+            }
+        }
+
         public static MethodInfo GetMethod<TAttribute>(Type type)
         {
             MethodInfo result = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(TAttribute), true).Any());

@@ -21,6 +21,9 @@ namespace GroBuf.SizeCounters
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
+
+            context.LoadSizeCounter(Type.GetGenericArguments()[0]);
+
             context.LoadObjByRef(); // stack: [&obj]
             il.Call(Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]

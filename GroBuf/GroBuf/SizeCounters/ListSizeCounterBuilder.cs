@@ -61,6 +61,9 @@ namespace GroBuf.SizeCounters
             il.Stloc(i); // i = 0; stack: [9]
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
+
+            context.LoadSizeCounter(elementType);
+
             il.Ldloc(items); // stack: [size, items]
             il.Ldloc(i); // stack: [size, items, i]
             il.Ldelem(elementType);

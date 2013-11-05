@@ -50,6 +50,9 @@ namespace GroBuf.Writers
             for(int i = 0; i < dataMembers.Length; i++)
             {
                 var member = dataMembers[i];
+
+                context.LoadWriter(member.GetMemberType());
+
                 if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [ref obj]
                 else
