@@ -17,6 +17,7 @@ namespace GroBuf.Writers
 
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
+/*
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.DateTimeNew);
             context.GoToCurrentLocation(); // stack: [&result[index]]
@@ -24,8 +25,9 @@ namespace GroBuf.Writers
             il.Call(dateTimeToBinaryMethod, Type); // stack: [&result[index], obj.ToBinary()]
             il.Stind(typeof(long)); // result[index] = obj.ToBinary()
             context.IncreaseIndexBy8(); // index = index + 8
+*/
 
-            /*var il = context.Il;
+            var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.DateTimeOld);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]
@@ -51,7 +53,7 @@ namespace GroBuf.Writers
             context.GoToCurrentLocation(); // stack: [&result[index]]
             il.Ldloc(kind); // stack: [&result[index], kind]
             il.Stind(typeof(byte)); // &result[index] = (byte)kind;
-            context.IncreaseIndexBy1(); // index = index + 1*/
+            context.IncreaseIndexBy1(); // index = index + 1
         }
 
         private static readonly PropertyInfo dateTimeKindProperty = (PropertyInfo)((MemberExpression)((Expression<Func<DateTime, DateTimeKind>>)(dateTime => dateTime.Kind)).Body).Member;
