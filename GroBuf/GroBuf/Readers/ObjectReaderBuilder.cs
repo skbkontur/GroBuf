@@ -61,7 +61,7 @@ namespace GroBuf.Readers
             var result = new KeyValuePair<Delegate, IntPtr>[256];
             foreach(var type in primitiveTypes)
                 result[(int)GroBufTypeCodeMap.GetTypeCode(type)] = GetReader(context, type);
-            result[(int)GroBufTypeCode.DateTimeNew] = result[(int)GroBufTypeCode.DateTimeOld];
+            result[(int)GroBufTypeCode.DateTimeOld] = result[(int)GroBufTypeCode.DateTimeNew];
             return result;
         }
 

@@ -36,6 +36,17 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestOldDateTimeFormat()
+        {
+            var ticks = DateTime.UtcNow.Ticks;
+            var data = new byte[9];
+            data[0] = (byte)GroBufTypeCode.DateTimeOld;
+            Array.Copy(BitConverter.GetBytes(ticks), 0, data, 1, 8);
+            var result = serializer.Deserialize<object>(data);
+            Assert.AreEqual(new DateTime(ticks, DateTimeKind.Utc), result);
+        }
+
+        [Test]
         public void TestArray()
         {
             var o = new A {S = "zzz", B = new B {S = new object[] {(byte)100, "qxx"}}};
