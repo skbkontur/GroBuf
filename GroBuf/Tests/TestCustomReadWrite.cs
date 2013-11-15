@@ -14,7 +14,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
@@ -202,6 +202,6 @@ namespace GroBuf.Tests
             public int Day { get; set; }
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
     }
 }

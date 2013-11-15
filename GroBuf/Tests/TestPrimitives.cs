@@ -8,7 +8,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl();
+            serializer = new Serializer();
         }
 
         [Test]
@@ -348,6 +348,6 @@ namespace GroBuf.Tests
             return serializer.Deserialize<TOut>(serializer.Serialize(value));
         }
 
-        private Serializer serializer;
+        private SerializerBase serializer;
     }
 }

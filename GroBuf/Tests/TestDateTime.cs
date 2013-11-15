@@ -12,7 +12,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
 //        public enum TaskState
@@ -180,6 +180,6 @@ namespace GroBuf.Tests
             public string Z { get; set; }
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
     }
 }

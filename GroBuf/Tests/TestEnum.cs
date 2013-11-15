@@ -10,7 +10,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
@@ -150,7 +150,7 @@ namespace GroBuf.Tests
             Миллиард = 1000000000
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class PrintParameters
         {

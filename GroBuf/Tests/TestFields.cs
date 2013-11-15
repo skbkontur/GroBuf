@@ -10,7 +10,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new FieldsExtractor());
+            serializer = new Serializer(new FieldsExtractor());
         }
 
         [Test]
@@ -66,6 +66,6 @@ namespace GroBuf.Tests
             public readonly string S;
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
     }
 }

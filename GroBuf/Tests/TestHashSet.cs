@@ -15,7 +15,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
@@ -29,7 +29,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestWriteNotEmptyWithWriteEmptyObjects()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
+            serializer = new Serializer(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
             var arr = new[] {Guid.NewGuid(), Guid.NewGuid()};
 
             var c = new TestWithHashSet {H = new HashSet<Guid>(arr)};
@@ -42,7 +42,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestWriteEmptyWithWriteEmptyObjects()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
+            serializer = new Serializer(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
             var c = new TestWithHashSet {H = new HashSet<Guid>()};
             byte[] bytes = serializer.Serialize(c);
             var actual = serializer.Deserialize<TestWithHashSet>(bytes);
@@ -186,7 +186,7 @@ namespace GroBuf.Tests
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class TestWithHashSet
         {

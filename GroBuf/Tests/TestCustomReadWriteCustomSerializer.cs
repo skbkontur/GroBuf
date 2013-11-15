@@ -12,7 +12,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor(), new GroBufCustomSerializerCollection());
+            serializer = new Serializer(new PropertiesExtractor(), new GroBufCustomSerializerCollection());
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(42, oo.Arr[0].Data);
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class C1<T> : I1<T>
         {

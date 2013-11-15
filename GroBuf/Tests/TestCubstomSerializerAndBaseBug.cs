@@ -12,7 +12,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor(), new GroBufCustomSerializerCollection());
+            serializer = new Serializer(new PropertiesExtractor(), new GroBufCustomSerializerCollection());
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(i1.Person.Date.qxx, deserialize.Person.Date.qxx);
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class DateGroBufCustomSerializer : IGroBufCustomSerializer
         {

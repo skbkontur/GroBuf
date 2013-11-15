@@ -8,7 +8,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl();
+            serializer = new Serializer();
         }
 
         [Test]
@@ -33,6 +33,6 @@ namespace GroBuf.Tests
             public int[] Ints { get; set; }
         }
 
-        private Serializer serializer;
+        private SerializerBase serializer;
     }
 }

@@ -14,7 +14,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new AllPropertiesExtractor());
+            serializer = new Serializer(new AllPropertiesExtractor());
         }
 
         [Test]
@@ -34,7 +34,7 @@ namespace GroBuf.Tests
             }
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class C1 : I1
         {

@@ -12,7 +12,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace GroBuf.Tests
             Assert.AreEqual("qs", actual[2].Validation.Message);
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class ValidationResult
         {

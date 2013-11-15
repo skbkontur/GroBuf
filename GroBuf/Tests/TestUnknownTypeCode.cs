@@ -5,12 +5,12 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestUnknownTypeCode
     {
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new SerializeInterfaceTest.AllPropertiesExtractor());
+            serializer = new Serializer(new SerializeInterfaceTest.AllPropertiesExtractor());
         }
 
         [Test]

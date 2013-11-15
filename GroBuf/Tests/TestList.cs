@@ -15,7 +15,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor());
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
@@ -246,7 +246,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestListGetSizeBug()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
+            serializer = new Serializer(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
             var contract = new BadContract
                 {
                     List = new List<Item>()
@@ -264,7 +264,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestPrimitivesListGetSizeBug()
         {
-            serializer = new SerializerImpl(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
+            serializer = new Serializer(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
             var contract = new BadContract
                 {
                     IntList = new List<int>()
@@ -279,7 +279,7 @@ namespace GroBuf.Tests
             Assert.AreEqual(index, size);
         }
 
-        private SerializerImpl serializer;
+        private Serializer serializer;
 
         private class Item
         {

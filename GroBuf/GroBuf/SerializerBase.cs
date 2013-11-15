@@ -5,9 +5,9 @@ using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {
-    public class Serializer : ISerializer
+    public abstract class SerializerBase : ISerializer
     {
-        public Serializer(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection = null, GroBufOptions options = GroBufOptions.None)
+        public SerializerBase(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection = null, GroBufOptions options = GroBufOptions.None)
         {
             customSerializerCollection = customSerializerCollection ?? new DefaultGroBufCustomSerializerCollection();
             Func<Type, IGroBufCustomSerializer> factory = type => new InternalSerializer(writer, reader, type, false);

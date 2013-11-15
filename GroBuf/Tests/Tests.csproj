@@ -80,7 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ImmutableObjectChangedBugTest.cs" />
-    <Compile Include="SerializerImpl.cs" />
+    <Compile Include="Serializer.cs" />
     <Compile Include="TestCubstomSerializerAndBaseBug.cs" />
     <Compile Include="TestHashSet.cs" />
     <Compile Include="ObjectConstructionHelperTest.cs" />

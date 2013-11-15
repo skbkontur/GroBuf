@@ -11,7 +11,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new SerializerImpl();
+            serializer = new Serializer();
         }
 
         [Test]
@@ -63,7 +63,7 @@ namespace GroBuf.Tests
             public int A { get; set; }
         }
 
-        private Serializer serializer;
+        private SerializerBase serializer;
         private const int iterations = 10000000;
     }
 }
