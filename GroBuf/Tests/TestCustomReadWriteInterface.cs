@@ -50,6 +50,15 @@ namespace GroBuf.Tests
             za.AssertEqualsTo(a);
         }
 
+        [Test]
+        public void TestReaderCRoot()
+        {
+            IZ z = new C{Z = "zzz"};
+            var data = serializer.Serialize(z);
+            var zz = serializer.Deserialize<IZ>(data);
+            zz.AssertEqualsTo(z);
+        }
+
         public class A
         {
             public IZ Z { get; set; }
