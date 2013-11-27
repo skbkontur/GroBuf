@@ -1,7 +1,7 @@
+bin
+obj
+[Dd]ebug
+[Rr]elease
+*.user
+*.suo
 _ReSharper.GroBuf
-GroBuf.6.0.ReSharper.user
-GroBuf.suo
-GroBuf.1.1.dotCover
-GroBuf.6.1.ReSharper
-GroBuf.6.1.ReSharper.user
-GroBuf.sln.DotSettings.user
