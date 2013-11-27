@@ -4,4 +4,6 @@ obj
 [Rr]elease
 *.user
 *.suo
+GroBuf.dll
+GroBuf.pdb
 _ReSharper.GroBuf
