@@ -46,21 +46,26 @@ namespace GroBuf.Writers
 
             context.WriteTypeCode(GroBufTypeCodeMap.GetTypeCode(elementType.MakeArrayType()));
             var size = il.DeclareLocal(typeof(int));
-            context.GoToCurrentLocation(); // stack: [&result[index]]
-            context.LoadObj(); // stack: [&result[index], obj]
+            il.Ldc_I4(4);
+            context.AssertLength();
+            context.LoadObj(); // stack: [obj]
             var count = il.DeclareLocal(typeof(int));
-            context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [&result[index], obj.Count]
-            il.Stloc(count); // count = obj.Count; stack: [&result[index]]
-            il.Ldloc(count); // stack: [&result[index], count]
-            CountArraySize(elementType, il); // stack: [&result[index], obj size]
-            il.Dup(); // stack: [&result[index], obj size, obj size]
-            il.Stloc(size); // size = obj size; stack: [&result[index], obj size]
+            context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+            il.Dup(); // stack: [obj.Count, obj.Count]
+            il.Stloc(count); // count = obj.Count; stack: [count]
+            CountArraySize(elementType, il); // stack: [obj size]
+            il.Stloc(size); // size = obj size; stack: []
+            context.GoToCurrentLocation(); // stack: [&result[index]]
+            il.Ldloc(size); // stack: [&result[index], size]
             il.Stind(typeof(int)); // result[index] = size; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
 
             il.Ldloc(size); // stack: []
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(size == 0) goto done; stack: []
+
+            il.Ldloc(size);
+            context.AssertLength();
 
             context.LoadObj(); // stack: [obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());

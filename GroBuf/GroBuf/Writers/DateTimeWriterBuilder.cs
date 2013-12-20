@@ -19,6 +19,8 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.DateTimeNew);
+            il.Ldc_I4(8);
+            context.AssertLength();
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]
             il.Call(dateTimeToBinaryMethod, Type); // stack: [&result[index], obj.ToBinary()]

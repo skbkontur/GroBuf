@@ -29,7 +29,8 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
             context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
-            context.CallWriter(Type.GetGenericArguments()[0]); // writer(obj.Value, writeEmpty, result, ref index)
+            context.LoadResultLength(); // stack: [obj.Value, writeEmpty, result, ref index, resultLength]
+            context.CallWriter(Type.GetGenericArguments()[0]); // writer(obj.Value, writeEmpty, result, ref index, resultLength)
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)

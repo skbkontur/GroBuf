@@ -27,9 +27,9 @@ namespace GroBuf
             writer.Write(obj, result, ref index);
         }
 
-        public void Serialize<T>(T obj, IntPtr result, ref int index)
+        public void Serialize<T>(T obj, IntPtr result, ref int index, int length)
         {
-            writer.Write(obj, result, ref index);
+            writer.Write(obj, result, ref index, length);
         }
 
         public byte[] Serialize<T>(T obj)
@@ -72,9 +72,9 @@ namespace GroBuf
             writer.Write(type, obj, result, ref index);
         }
 
-        public void Serialize(Type type, object obj, IntPtr result, ref int index)
+        public void Serialize(Type type, object obj, IntPtr result, ref int index, int length)
         {
-            writer.Write(type, obj, result, ref index);
+            writer.Write(type, obj, result, ref index, length);
         }
 
         public byte[] Serialize(Type type, object obj)
@@ -151,7 +151,7 @@ namespace GroBuf
                 var buf = Marshal.AllocHGlobal(size);
                 try
                 {
-                    writerWritingEmptyObjects.Write(obj, buf);
+                    writerWritingEmptyObjects.Write(obj, buf, size);
                     int index = 0;
                     reader.Read(buf, ref index, size, ref result);
                 }
@@ -177,7 +177,7 @@ namespace GroBuf
                 var buf = Marshal.AllocHGlobal(size);
                 try
                 {
-                    writerWritingEmptyObjects.Write(from, obj, buf);
+                    writerWritingEmptyObjects.Write(from, obj, buf, size);
                     int index = 0;
                     reader.Read(to, buf, ref index, size, ref result);
                 }

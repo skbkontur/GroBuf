@@ -47,6 +47,8 @@ namespace GroBuf.Writers
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Stloc(start); // start = index
+            il.Ldc_I4(8); // data length + dict size = 8
+            context.AssertLength();
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
@@ -68,47 +70,49 @@ namespace GroBuf.Writers
             il.Stloc(entries); // entries = obj.entries; stack: []
 
             var i = il.DeclareLocal(typeof(int));
-            il.Ldc_I4(0); // stack: [9, 0]
-            il.Stloc(i); // i = 0; stack: [9]
+            il.Ldc_I4(0); // stack: [0]
+            il.Stloc(i); // i = 0; stack: []
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
-            il.Ldloc(entries); // stack: [size, entries]
-            il.Ldloc(i); // stack: [size, entries, i]
-            il.Ldelema(entryType); // stack: [size, &entries[i]]
-            il.Dup(); // stack: [size, &entries[i], &entries[i]]
+            il.Ldloc(entries); // stack: [entries]
+            il.Ldloc(i); // stack: [entries, i]
+            il.Ldelema(entryType); // stack: [&entries[i]]
+            il.Dup(); // stack: [&entries[i], &entries[i]]
             var entry = il.DeclareLocal(entryType.MakeByRefType());
-            il.Stloc(entry); // entry = &entries[i]; stack: [size, entry]
-            il.Ldfld(entryType.GetField("hashCode")); // stack: [size, entry.hashCode]
-            il.Ldc_I4(0); // stack: [size, entry.hashCode, 0]
+            il.Stloc(entry); // entry = &entries[i]; stack: [entry]
+            il.Ldfld(entryType.GetField("hashCode")); // stack: [entry.hashCode]
+            il.Ldc_I4(0); // stack: [entry.hashCode, 0]
             var nextLabel = il.DefineLabel("next");
-            il.Blt(typeof(int), nextLabel); // if(entry.hashCode < 0) goto next; stack: [size]
+            il.Blt(typeof(int), nextLabel); // if(entry.hashCode < 0) goto next; stack: []
             
             context.LoadWriter(keyType);
 
-            il.Ldloc(entry); // stack: [size, entry]
-            il.Ldfld(entryType.GetField("key")); // stack: [size, entry.key]
-            il.Ldc_I4(1);
-            context.LoadResult(); // stack: [obj[i], true, result]
-            context.LoadIndexByRef();
-            context.CallWriter(keyType);
+            il.Ldloc(entry); // stack: [entry]
+            il.Ldfld(entryType.GetField("key")); // stack: [entry.key]
+            il.Ldc_I4(1); // stack: [obj[i].key, true]
+            context.LoadResult(); // stack: [obj[i].key, true, result]
+            context.LoadIndexByRef(); // stack: [obj[i].key, true, result, ref index]
+            context.LoadResultLength(); // stack: [obj[i].key, true, result, ref index, resultLength]
+            context.CallWriter(keyType); // write<keyType>(obj[i].key, true, result, ref index, resultLength); stack: []
 
             context.LoadWriter(valueType);
             
-            il.Ldloc(entry); // stack: [size, entry]
-            il.Ldfld(entryType.GetField("value")); // stack: [size, entry.value]
-            il.Ldc_I4(1);
-            context.LoadResult(); // stack: [obj[i], true, result]
-            context.LoadIndexByRef();
-            context.CallWriter(valueType);
+            il.Ldloc(entry); // stack: [entry]
+            il.Ldfld(entryType.GetField("value")); // stack: [entry.value]
+            il.Ldc_I4(1); // stack: [obj[i].value, true]
+            context.LoadResult(); // stack: [obj[i].value, true, result]
+            context.LoadIndexByRef(); // stack: [obj[i].value, true, result, ref index]
+            context.LoadResultLength(); // stack: [obj[i].value, true, result, ref index, resultLength]
+            context.CallWriter(valueType); // writer<valueType>(obj[i].value, true, result, ref index, resultLength); stack: []
 
             il.MarkLabel(nextLabel);
-            il.Ldloc(count); // stack: [size, count]
-            il.Ldloc(i); // stack: [size, count, i]
-            il.Ldc_I4(1); // stack: [size, count, i, 1]
-            il.Add(); // stack: [size, count, i + 1]
-            il.Dup(); // stack: [size, count, i + 1, i + 1]
-            il.Stloc(i); // i = i + 1; stack: [size, count, i]
-            il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [size]
+            il.Ldloc(count); // stack: [ count]
+            il.Ldloc(i); // stack: [count, i]
+            il.Ldc_I4(1); // stack: [count, i, 1]
+            il.Add(); // stack: [count, i + 1]
+            il.Dup(); // stack: [count, i + 1, i + 1]
+            il.Stloc(i); // i = i + 1; stack: [count, i]
+            il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: []
 
             il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]

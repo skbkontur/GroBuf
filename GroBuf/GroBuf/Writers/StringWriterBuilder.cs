@@ -26,6 +26,8 @@ namespace GroBuf.Writers
             il.Shl(); // stack: [obj.Length << 1]
             il.Stloc(length); // length = obj.Length << 1
             context.WriteTypeCode(GroBufTypeCode.String);
+            il.Ldc_I4(4);
+            context.AssertLength();
             context.GoToCurrentLocation(); // stack: [&result[index]]
             il.Ldloc(length); // stack: [&result[index], length]
             il.Stind(typeof(int)); // result[index] = length
@@ -34,6 +36,9 @@ namespace GroBuf.Writers
             var doneLabel = il.DefineLabel("done");
             il.Ldloc(length); // stack: [length]
             il.Brfalse(doneLabel);
+
+            il.Ldloc(length);
+            context.AssertLength();
 
             context.GoToCurrentLocation(); // stack: [&result[index]]
             var str = il.DeclareLocal(typeof(string), true);

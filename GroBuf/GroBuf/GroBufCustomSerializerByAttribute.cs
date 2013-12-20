@@ -16,9 +16,9 @@ namespace GroBuf
             return sizeCounter(obj, writeEmpty);
         }
 
-        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index)
+        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
         {
-            writerDelegate(obj, writeEmpty, result, ref index);
+            writerDelegate(obj, writeEmpty, result, ref index, resultLength);
         }
 
         public void Read(IntPtr data, ref int index, int length, ref object result)

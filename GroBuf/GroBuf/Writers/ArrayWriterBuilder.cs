@@ -51,6 +51,8 @@ namespace GroBuf.Writers
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Stloc(start); // start = index
+            il.Ldc_I4(8);
+            context.AssertLength(); // 8 = data size + array length
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             il.Ldloc(length); // stack: [&result[index], length]
@@ -75,7 +77,8 @@ namespace GroBuf.Writers
             il.Ldc_I4(1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]
             context.LoadIndexByRef(); // stack: [obj[i], true, result, ref index]
-            context.CallWriter(elementType); // writer(obj[i], true, result, ref index); stack: []
+            context.LoadResultLength(); // stack: [obj[i], true, result, ref index, resultLength]
+            context.CallWriter(elementType); // writer(obj[i], true, result, ref index, resultLength); stack: []
             il.Ldloc(length); // stack: [length]
             il.Ldloc(i); // stack: [length, i]
             il.Ldc_I4(1); // stack: [length, i, 1]

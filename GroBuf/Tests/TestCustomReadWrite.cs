@@ -124,11 +124,11 @@ namespace GroBuf.Tests
             [GroBufWriter]
             public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
-                return (object o, bool writeEmpty, IntPtr result, ref int index) =>
+                return (object o, bool writeEmpty, IntPtr result, ref int index, int resultLength) =>
                            {
                                Type type = o.GetType();
-                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index);
-                               writersFactory(type)(o, writeEmpty, result, ref index);
+                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, resultLength);
+                               writersFactory(type)(o, writeEmpty, result, ref index, resultLength);
                            };
             }
 
@@ -175,7 +175,7 @@ namespace GroBuf.Tests
             [GroBufWriter]
             public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
-                return (object o, bool writeEmpty, IntPtr result, ref int index) =>
+                return (object o, bool writeEmpty, IntPtr result, ref int index, int resultLength) =>
                            {
                                var date = (Date)o;
                                var bytes = BitConverter.GetBytes(new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Utc).Ticks);

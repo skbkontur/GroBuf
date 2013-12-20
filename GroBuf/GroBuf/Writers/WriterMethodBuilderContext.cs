@@ -64,6 +64,14 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
+        /// Loads <c>length</c> onto the evaluation stack
+        /// </summary>
+        public void LoadResultLength()
+        {
+            Il.Ldarg(4);
+        }
+
+        /// <summary>
         /// Loads the specified field onto the evaluation stack
         /// </summary>
         /// <param name="field">Field to load</param>
@@ -144,11 +152,34 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
+        /// Asserts that the specified number of bytes can be written to <c>result</c> starting at <c>index</c>
+        /// <para></para>
+        /// The number of bytes must be pushed onto the evaluation stack
+        /// </summary>
+        public void AssertLength()
+        {
+            LoadIndex(); // stack: [length, index]
+            Il.Add(); // stack: [length + index]
+            LoadResultLength(); // stack: [length + index, resultLength]
+            var bigEnoughLabel = Il.DefineLabel("bigEnough");
+            Il.Ble(typeof(uint), bigEnoughLabel);
+            Il.Ldstr("Seems like the object being serialized has been changed during serialization");
+            var constructor = typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
+            if (constructor == null)
+                throw new MissingConstructorException(typeof(InvalidOperationException), typeof(string));
+            Il.Newobj(constructor);
+            Il.Throw();
+            Il.MarkLabel(bigEnoughLabel);
+        }
+
+        /// <summary>
         /// Puts the specified type code at <c>result</c>[<c>index</c>]
         /// </summary>
         /// <param name="typeCode">Type code to put</param>
         public void WriteTypeCode(GroBufTypeCode typeCode)
         {
+            Il.Ldc_I4(1);
+            AssertLength();
             GoToCurrentLocation(); // stack: [&result[index]]
             Il.Ldc_I4((int)typeCode); // stack: [&result[index], typeCode]
             Il.Stind(typeof(byte)); // result[index] = typeCode

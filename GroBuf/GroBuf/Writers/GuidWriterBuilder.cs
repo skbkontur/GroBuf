@@ -17,6 +17,8 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCode.Guid);
+            il.Ldc_I4(16);
+            context.AssertLength();
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObjByRef(); // stack: [&result[index], &obj]
             il.Ldind(typeof(long)); // stack: [&result[index], (int64)*obj]

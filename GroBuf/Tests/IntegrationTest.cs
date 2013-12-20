@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 
+using GroBuf.Tests.TestData.Desadv;
 using GroBuf.Tests.TestData.Orders;
 using GroBuf.Tests.TestTools;
 
@@ -66,6 +67,34 @@ namespace GroBuf.Tests
                 deserializedMessages[i] = serializer.Deserialize<Orders>(messages[i]);
 
             stop = true;
+        }
+
+        [Test, Ignore]
+        public void TestWithGarbageCollection2()
+        {
+            const int numberOfMessages = 1000000;
+
+            stop = false;
+            var thread = new Thread(Collect);
+            thread.Start();
+
+            for (int i = 0; i < 10; ++i )
+                new Thread(Zzz).Start(serializer);
+            Zzz(serializer);
+
+            stop = true;
+        }
+
+        private void Zzz(object param)
+        {
+            var serializer = (SerializerBase)param;
+            var random = new Random(Guid.NewGuid().GetHashCode());
+            for (int i = 0; i < 1000000; ++i)
+            {
+                var data = TestHelpers.GenerateRandomTrash<Desadv>(random, 75, 10, 2);
+                var message = serializer.Serialize(data);
+                var deserializedData = serializer.Deserialize<Desadv>(message);
+            }
         }
 
         private void Collect()

@@ -50,6 +50,8 @@ namespace GroBuf.Writers
             il.Stloc(hashCode); // hashCode = hashCodes[obj % hashCodes.Length]; stack: [hashCode]
             il.Brfalse(writeIntLabel);
             context.WriteTypeCode(GroBufTypeCode.Enum);
+            il.Ldc_I4(8);
+            context.AssertLength();
             context.GoToCurrentLocation(); // stack: [&result[index]]
             il.Ldloc(hashCode); // stack: [&result[index], hashCode]
             il.Stind(typeof(long)); // *(int64*)&result[index] = hashCode
@@ -57,6 +59,8 @@ namespace GroBuf.Writers
             il.Ret();
             il.MarkLabel(writeIntLabel);
             context.WriteTypeCode(GroBufTypeCode.Int32);
+            il.Ldc_I4(4);
+            context.AssertLength();
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
             il.Stind(typeof(int)); // result[index] = obj

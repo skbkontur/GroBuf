@@ -45,6 +45,8 @@ namespace GroBuf.Writers
             context.LoadIndex(); // stack: [index]
             var start = context.LocalInt;
             il.Stloc(start); // start = index
+            il.Ldc_I4(8);
+            context.AssertLength(); // data length + hashset size = 8
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
@@ -85,10 +87,11 @@ namespace GroBuf.Writers
 
             il.Ldloc(slot); // stack: [slot]
             il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [slot.value]
-            il.Ldc_I4(1);
+            il.Ldc_I4(1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]
-            context.LoadIndexByRef();
-            context.CallWriter(elementType);
+            context.LoadIndexByRef(); // stack: [obj[i], true, result, ref index]
+            context.LoadResultLength(); // stack: [obj[i], true, result, ref index, resultLength]
+            context.CallWriter(elementType); // write<elementType>(obj[i], true, result, ref index, resultLength)
 
             il.MarkLabel(nextLabel);
             il.Ldloc(count); // stack: [count]

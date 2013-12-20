@@ -25,7 +25,7 @@ namespace GroBuf
                 new object[] {(Func<Type, SizeCounterDelegate>)(type => ((o, empty) => factory(type).CountSize(o, empty))), (SizeCounterDelegate)(baseSerializer.CountSize)});
             var writerDelegate = (WriterDelegate)writer.Invoke(
                 null,
-                new object[] {(Func<Type, WriterDelegate>)(type => ((object o, bool empty, IntPtr result, ref int index) => factory(type).Write(o, empty, result, ref index))), (WriterDelegate)(baseSerializer.Write)});
+                new object[] {(Func<Type, WriterDelegate>)(type => ((object o, bool empty, IntPtr result, ref int index, int resultLength) => factory(type).Write(o, empty, result, ref index, resultLength))), (WriterDelegate)(baseSerializer.Write)});
             var readerDelegate = (ReaderDelegate)reader.Invoke(
                 null,
                 new object[] {(Func<Type, ReaderDelegate>)(type => ((IntPtr data, ref int index, int length, ref object result) => factory(type).Read(data, ref index, length, ref result))), (ReaderDelegate)(baseSerializer.Read)});

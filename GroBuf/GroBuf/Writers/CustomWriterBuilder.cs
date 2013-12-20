@@ -40,8 +40,9 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [customSerializer, (object)obj, writeEmpty]
             context.LoadResult(); // stack: [customSerializer, (object)obj, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index]
+            context.LoadResultLength(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index, resultLength]
             int dummy = 0;
-            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy)), typeof(IGroBufCustomSerializer)); // customSerializer.Write((object)obj, writeEmpty, result, ref index); stack: []
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy, 0)), typeof(IGroBufCustomSerializer)); // customSerializer.Write((object)obj, writeEmpty, result, ref index, resultLength); stack: []
 
             context.LoadIndex(); // stack: [index]
             il.Ldloc(start); // stack: [index, start]

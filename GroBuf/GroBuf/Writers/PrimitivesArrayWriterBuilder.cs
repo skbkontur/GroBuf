@@ -47,6 +47,10 @@ namespace GroBuf.Writers
             var typeCode = GroBufTypeCodeMap.GetTypeCode(Type);
             context.WriteTypeCode(typeCode);
             var size = il.DeclareLocal(typeof(int));
+
+            il.Ldc_I4(4);
+            context.AssertLength();
+
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
             il.Ldlen(); // stack: [&result[index], obj.Length]
@@ -60,6 +64,9 @@ namespace GroBuf.Writers
             il.Ldloc(size); // stack: [size]
             il.Brfalse(doneLabel); // if(size == 0) goto done; stack: []
 
+            il.Ldloc(size);
+            context.AssertLength();
+
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
             il.Ldc_I4(0); // stack: [&result[index], obj, 0]
@@ -69,11 +76,11 @@ namespace GroBuf.Writers
             il.Ldloc(arr); // stack: [&result[index], arr]
             il.Ldloc(size); // stack: [&result[index], arr, size]
             if(sizeof(IntPtr) == 8)
-                context.Il.Unaligned(1L);
-            context.Il.Cpblk(); // &result[index] = arr
-            context.Il.Ldc_I4(0); // stack: [0]
-            context.Il.Conv_U(); // stack: [(uint)0]
-            context.Il.Stloc(arr); // arr = (uint)0;
+                il.Unaligned(1L);
+            il.Cpblk(); // &result[index] = arr
+            il.Ldc_I4(0); // stack: [0]
+            il.Conv_U(); // stack: [(uint)0]
+            il.Stloc(arr); // arr = (uint)0;
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(size); // stack: [ref index, index, size]

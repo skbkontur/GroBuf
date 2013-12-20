@@ -44,6 +44,8 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
             context.WriteTypeCode(GroBufTypeCodeMap.GetTypeCode(elementType.MakeArrayType()));
+            il.Ldc_I4(4);
+            context.AssertLength();
             var size = il.DeclareLocal(typeof(int));
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
@@ -57,6 +59,9 @@ namespace GroBuf.Writers
             il.Ldloc(size); // stack: [size]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(size == 0) goto done; stack: []
+
+            il.Ldloc(size);
+            context.AssertLength();
 
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
