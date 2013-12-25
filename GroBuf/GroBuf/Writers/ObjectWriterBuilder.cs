@@ -108,8 +108,8 @@ namespace GroBuf.Writers
 
         private static readonly Type[] primitiveTypes = new[]
             {
-                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint),
-                typeof(long), typeof(ulong), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
+                typeof(decimal), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
             };
     }
 }

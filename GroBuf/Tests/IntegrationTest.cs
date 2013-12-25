@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 
+using GroBuf.DataMembersExtracters;
 using GroBuf.Tests.TestData.Desadv;
 using GroBuf.Tests.TestData.Orders;
 using GroBuf.Tests.TestTools;
@@ -15,7 +16,35 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new Serializer();
+            serializer = new Serializer(new PropertiesExtractor());
+        }
+
+        [Test, Ignore]
+        public void TestChangeObjectDuringSerialization()
+        {
+            var random = new Random(54717651);
+            var data = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
+            var thread = new Thread(FillWithRandomTrash);
+            thread.Start(data);
+            while(true)
+            {
+                try
+                {
+                    var serializedData = serializer.Serialize(data);
+                }
+                catch(Exception e)
+                {
+                    Console.WriteLine(e);
+                }
+            }
+        }
+
+        public void FillWithRandomTrash(object param)
+        {
+            var data = (Orders)param;
+            var random = new Random(1231241);
+            while(true)
+                TestHelpers.FillWithRandomTrash(data, random, 75, 10, 2);
         }
 
         [Test]
@@ -87,7 +116,7 @@ namespace GroBuf.Tests
 
         private void Zzz(object param)
         {
-            var serializer = (SerializerBase)param;
+            var serializer = (Serializer)param;
             var random = new Random(Guid.NewGuid().GetHashCode());
             for (int i = 0; i < 1000000; ++i)
             {
@@ -106,7 +135,7 @@ namespace GroBuf.Tests
             }
         }
 
-        private SerializerBase serializer;
+        private Serializer serializer;
         private volatile bool stop;
     }
 }

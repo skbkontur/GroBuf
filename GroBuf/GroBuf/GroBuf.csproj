@@ -128,7 +128,7 @@
     <Compile Include="Readers\ReaderTypeBuilder.cs" />
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
     <Compile Include="SerializerExtensions.cs" />
-    <Compile Include="SerializerBase.cs" />
+    <Compile Include="Serializer.cs" />
     <Compile Include="SizeCounterDelegate.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />

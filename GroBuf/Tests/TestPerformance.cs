@@ -4,6 +4,7 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Xml.Serialization;
 
+using GroBuf.DataMembersExtracters;
 using GroBuf.Tests.TestData.Invoic;
 using GroBuf.Tests.TestData.Orders;
 using GroBuf.Tests.TestTools;
@@ -18,7 +19,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            groBuf = new Serializer();
+            groBuf = new Serializer(new PropertiesExtractor());
             ordersXmlSerializer = new XmlSerializer(typeof(Orders));
             invoicXmlSerializer = new XmlSerializer(typeof(Invoic));
             ordersJsonSerializer = new DataContractJsonSerializer(typeof(Orders));
@@ -389,7 +390,7 @@ namespace GroBuf.Tests
 
         private static readonly MemoryStream stream = new MemoryStream(128 * 1024);
 
-        private SerializerBase groBuf;
+        private Serializer groBuf;
         private XmlSerializer ordersXmlSerializer;
         private XmlSerializer invoicXmlSerializer;
         private DataContractJsonSerializer ordersJsonSerializer;

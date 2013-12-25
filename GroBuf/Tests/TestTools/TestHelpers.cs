@@ -30,7 +30,7 @@ namespace GroBuf.Tests.TestTools
             return type.IsClass || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>));
         }
 
-        private static void FillWithRandomTrash(object obj, Random random, int fillRate, int stringsLength, int arraysSize)
+        public static void FillWithRandomTrash(object obj, Random random, int fillRate, int stringsLength, int arraysSize)
         {
             Type type = obj.GetType();
             PropertyInfo[] properties = typePropertiesCache.Get(type);

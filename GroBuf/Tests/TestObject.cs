@@ -36,6 +36,15 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestDecimal()
+        {
+            var o = new A {S = 123m};
+            byte[] data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<A>(data);
+            Assert.AreEqual(123m, oo.S);
+        }
+
+        [Test]
         public void TestOldDateTimeFormat()
         {
             var ticks = DateTime.UtcNow.Ticks;

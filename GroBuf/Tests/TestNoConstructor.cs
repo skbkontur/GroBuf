@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 
+using GroBuf.DataMembersExtracters;
+
 using NUnit.Framework;
 
 namespace GroBuf.Tests
@@ -11,7 +13,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new Serializer();
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
@@ -63,7 +65,7 @@ namespace GroBuf.Tests
             public int A { get; set; }
         }
 
-        private SerializerBase serializer;
+        private Serializer serializer;
         private const int iterations = 10000000;
     }
 }

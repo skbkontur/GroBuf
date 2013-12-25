@@ -1,4 +1,5 @@
-﻿using GroBuf.Tests.TestTools;
+﻿using GroBuf.DataMembersExtracters;
+using GroBuf.Tests.TestTools;
 
 using NUnit.Framework;
 
@@ -10,7 +11,7 @@ namespace GroBuf.Tests
         [SetUp]
         public void SetUp()
         {
-            serializer = new Serializer();
+            serializer = new Serializer(new PropertiesExtractor());
         }
 
         [Test]
