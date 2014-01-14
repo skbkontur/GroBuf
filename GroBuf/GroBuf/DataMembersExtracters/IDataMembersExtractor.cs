@@ -5,6 +5,6 @@ namespace GroBuf.DataMembersExtracters
 {
     public interface IDataMembersExtractor
     {
-        MemberInfo[] GetMembers(Type type);
+        Tuple<string, MemberInfo>[] GetMembers(Type type);
     }
 }

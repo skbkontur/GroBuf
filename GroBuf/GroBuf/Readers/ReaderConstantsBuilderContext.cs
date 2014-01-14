@@ -19,7 +19,7 @@ namespace GroBuf.Readers
             this.dataMembersExtractor = dataMembersExtractor;
         }
 
-        public MemberInfo[] GetDataMembers(Type type)
+        public Tuple<string, MemberInfo>[] GetDataMembers(Type type)
         {
             return dataMembersExtractor.GetMembers(type);
         }

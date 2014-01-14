@@ -16,16 +16,16 @@ namespace GroBuf.Writers
             foreach(var member in context.GetDataMembers(Type))
             {
                 Type memberType;
-                switch(member.MemberType)
+                switch(member.Item2.MemberType)
                 {
                 case MemberTypes.Property:
-                    memberType = ((PropertyInfo)member).PropertyType;
+                    memberType = ((PropertyInfo)member.Item2).PropertyType;
                     break;
                 case MemberTypes.Field:
-                    memberType = ((FieldInfo)member).FieldType;
+                    memberType = ((FieldInfo)member.Item2).FieldType;
                     break;
                 default:
-                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                    throw new NotSupportedException("Data member of type " + member.Item2.MemberType + " is not supported");
                 }
                 context.BuildConstants(memberType);
             }
@@ -45,23 +45,23 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // index = index + 5; stack: []
 
             var dataMembers = context.Context.GetDataMembers(Type);
-            var hashCodes = GroBufHelpers.CalcHashAndCheck(dataMembers.Select(member => member.Name));
+            var hashCodes = GroBufHelpers.CalcHashAndCheck(dataMembers.Select(member => member.Item1));
             var prev = il.DeclareLocal(typeof(int));
             for(int i = 0; i < dataMembers.Length; i++)
             {
                 var member = dataMembers[i];
 
-                context.LoadWriter(member.GetMemberType());
+                context.LoadWriter(member.Item2.GetMemberType());
 
                 if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [ref obj]
                 else
                     context.LoadObj(); // stack: [obj]
                 Type memberType;
-                switch(member.MemberType)
+                switch(member.Item2.MemberType)
                 {
                 case MemberTypes.Property:
-                    var property = (PropertyInfo)member;
+                    var property = (PropertyInfo)member.Item2;
                     var getter = property.GetGetMethod(true);
                     if(getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
@@ -69,12 +69,12 @@ namespace GroBuf.Writers
                     memberType = property.PropertyType;
                     break;
                 case MemberTypes.Field:
-                    var field = (FieldInfo)member;
+                    var field = (FieldInfo)member.Item2;
                     il.Ldfld(field); // stack: [obj.field]
                     memberType = field.FieldType;
                     break;
                 default:
-                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+                    throw new NotSupportedException("Data member of type " + member.Item2.MemberType + " is not supported");
                 }
                 il.Ldc_I4(0); // stack: [obj.prop, false]
                 context.LoadResult(); // stack: [obj.prop, false, result]

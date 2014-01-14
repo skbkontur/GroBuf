@@ -81,6 +81,7 @@
   <ItemGroup>
     <Compile Include="ImmutableObjectChangedBugTest.cs" />
     <Compile Include="TestCubstomSerializerAndBaseBug.cs" />
+    <Compile Include="TestDataMembersWithCustomName.cs" />
     <Compile Include="TestData\Desadv\AdditionalInformation.cs" />
     <Compile Include="TestData\Desadv\AllowanceChargeInformation.cs" />
     <Compile Include="TestData\Desadv\AllowanceOrCharge.cs" />
