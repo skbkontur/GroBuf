@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace GroBuf.DataMembersExtracters
@@ -7,7 +8,16 @@ namespace GroBuf.DataMembersExtracters
     {
         public MemberInfo[] GetMembers(Type type)
         {
-            return type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+            var result = new List<MemberInfo>();
+            GetMembers(type, result);
+            return result.ToArray();
+        }
+
+        private static void GetMembers(Type type, List<MemberInfo> members)
+        {
+            members.AddRange(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly));
+            if(type.BaseType != typeof(object))
+                GetMembers(type.BaseType, members);
         }
     }
 }
