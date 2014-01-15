@@ -7,16 +7,16 @@ namespace GroBuf.DataMembersExtracters
 {
     public class FieldsExtractor : IDataMembersExtractor
     {
-        public Tuple<string, MemberInfo>[] GetMembers(Type type)
+        public IDataMember[] GetMembers(Type type)
         {
-            var result = new List<Tuple<string, MemberInfo>>();
+            var result = new List<IDataMember>();
             GetMembers(type, result);
             return result.ToArray();
         }
 
-        private static void GetMembers(Type type, List<Tuple<string, MemberInfo>> members)
+        private static void GetMembers(Type type, List<IDataMember> members)
         {
-            members.AddRange(type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly).Select(info => new Tuple<string, MemberInfo>(info.Name, info)));
+            members.AddRange(type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly).Select(info => new DataMember(info.Name, info)));
             if (type.BaseType != typeof(object))
                 GetMembers(type.BaseType, members);
         }

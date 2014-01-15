@@ -24,7 +24,7 @@ namespace GroBuf.Readers
             Lengths = typeof(GroBufHelpers).GetField("Lengths", BindingFlags.Static | BindingFlags.Public);
         }
 
-        public Tuple<string, MemberInfo>[] GetDataMembers(Type type)
+        public IDataMember[] GetDataMembers(Type type)
         {
             return dataMembersExtractor.GetMembers(type);
         }

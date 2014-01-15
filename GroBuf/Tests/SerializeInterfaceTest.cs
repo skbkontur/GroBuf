@@ -28,9 +28,9 @@ namespace GroBuf.Tests
 
         public class AllPropertiesExtractor : IDataMembersExtractor
         {
-            public Tuple<string, MemberInfo>[] GetMembers(Type type)
+            public IDataMember[] GetMembers(Type type)
             {
-                return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(info => new Tuple<string, MemberInfo>(info.Name, info)).ToArray();
+                return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(info => new DataMember(info.Name, info)).ToArray();
             }
         }
 

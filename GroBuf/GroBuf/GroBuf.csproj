@@ -80,8 +80,10 @@
   <ItemGroup>
     <Compile Include="CompiledDynamicMethod.cs" />
     <Compile Include="DataMembersExtracters\AllFieldsExtractor.cs" />
+    <Compile Include="DataMembersExtracters\DataMember.cs" />
     <Compile Include="DataMembersExtracters\DataMembersByAttributeExtractor.cs" />
     <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />
+    <Compile Include="DataMembersExtracters\IDataMember.cs" />
     <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
     <Compile Include="DefaultGroBufCustomSerializerCollection.cs" />
     <Compile Include="EmptyGroBufCustomSerializerCollection.cs" />

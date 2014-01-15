@@ -19,7 +19,7 @@ namespace GroBuf.SizeCounters
             this.dataMembersExtractor = dataMembersExtractor;
         }
 
-        public Tuple<string, MemberInfo>[] GetDataMembers(Type type)
+        public IDataMember[] GetDataMembers(Type type)
         {
             return dataMembersExtractor.GetMembers(type);
         }

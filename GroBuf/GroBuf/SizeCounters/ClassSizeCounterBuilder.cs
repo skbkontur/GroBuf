@@ -15,16 +15,16 @@ namespace GroBuf.SizeCounters
             foreach(var member in context.GetDataMembers(Type))
             {
                 Type memberType;
-                switch(member.Item2.MemberType)
+                switch(member.Member.MemberType)
                 {
                 case MemberTypes.Property:
-                    memberType = ((PropertyInfo)member.Item2).PropertyType;
+                    memberType = ((PropertyInfo)member.Member).PropertyType;
                     break;
                 case MemberTypes.Field:
-                    memberType = ((FieldInfo)member.Item2).FieldType;
+                    memberType = ((FieldInfo)member.Member).FieldType;
                     break;
                 default:
-                    throw new NotSupportedException("Data member of type " + member.Item2.MemberType + " is not supported");
+                    throw new NotSupportedException("Data member of type " + member.Member.MemberType + " is not supported");
                 }
                 context.BuildConstants(memberType);
             }
@@ -39,17 +39,17 @@ namespace GroBuf.SizeCounters
             var dataMembers = context.Context.GetDataMembers(Type);
             foreach(var member in dataMembers)
             {
-                context.LoadSizeCounter(member.Item2.GetMemberType());
+                context.LoadSizeCounter(member.Member.GetMemberType());
 
                 if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [size, ref obj]
                 else
                     context.LoadObj(); // stack: [size, obj]
                 Type memberType;
-                switch(member.Item2.MemberType)
+                switch(member.Member.MemberType)
                 {
                 case MemberTypes.Property:
-                    var property = (PropertyInfo)member.Item2;
+                    var property = (PropertyInfo)member.Member;
                     var getter = property.GetGetMethod(true);
                     if(getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
@@ -57,12 +57,12 @@ namespace GroBuf.SizeCounters
                     memberType = property.PropertyType;
                     break;
                 case MemberTypes.Field:
-                    var field = (FieldInfo)member.Item2;
+                    var field = (FieldInfo)member.Member;
                     il.Ldfld(field); // stack: [size, obj.field]
                     memberType = field.FieldType;
                     break;
                 default:
-                    throw new NotSupportedException("Data member of type " + member.Item2.MemberType + " is not supported");
+                    throw new NotSupportedException("Data member of type " + member.Member.MemberType + " is not supported");
                 }
                 il.Ldc_I4(0); // stack: [size, obj.member, false]
                 context.CallSizeCounter(memberType); // stack: [size, writers[i](obj.member, false) = memberSize]

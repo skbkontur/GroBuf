@@ -26,16 +26,16 @@ namespace GroBuf.Readers
             foreach(var member in context.GetDataMembers(Type))
             {
                 Type memberType;
-                switch(member.Item2.MemberType)
+                switch(member.Member.MemberType)
                 {
                 case MemberTypes.Property:
-                    memberType = ((PropertyInfo)member.Item2).PropertyType;
+                    memberType = ((PropertyInfo)member.Member).PropertyType;
                     break;
                 case MemberTypes.Field:
-                    memberType = ((FieldInfo)member.Item2).FieldType;
+                    memberType = ((FieldInfo)member.Member).FieldType;
                     break;
                 default:
-                    throw new NotSupportedException("Data member of type " + member.Item2.MemberType + " is not supported");
+                    throw new NotSupportedException("Data member of type " + member.Member.MemberType + " is not supported");
                 }
                 context.BuildConstants(memberType);
             }
@@ -153,7 +153,7 @@ namespace GroBuf.Readers
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
             var members = context.GetDataMembers(Type);
-            ulong[] hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Item1));
+            ulong[] hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
             var hashSet = new HashSet<uint>();
             for(var x = Math.Max((uint)members.Length, 1);; ++x)
             {
@@ -176,7 +176,7 @@ namespace GroBuf.Readers
                 {
                     var index = (int)(hashes[i] % x);
                     hashCodes[index] = hashes[i];
-                    dataMembers[index] = members[i].Item2;
+                    dataMembers[index] = members[i].Member;
                 }
                 return;
             }
