@@ -75,7 +75,7 @@ namespace GroBuf.Readers
             il.Bne(readAsIntLabel); // if(typeCode != GroBufTypeCode.String) goto readAsInt;
             var str = il.DeclareLocal(typeof(string));
 
-            context.LoadReader(typeof(string));
+//            context.LoadReader(typeof(string));
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
@@ -89,7 +89,7 @@ namespace GroBuf.Readers
 
             il.MarkLabel(readAsIntLabel);
 
-            context.LoadReader(typeof(int));
+//            context.LoadReader(typeof(int));
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]

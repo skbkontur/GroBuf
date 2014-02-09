@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="CompiledDynamicMethod.cs" />
     <Compile Include="DataMembersExtracters\AllFieldsExtractor.cs" />
+    <Compile Include="DataMembersExtracters\AllPropertiesExtractor.cs" />
     <Compile Include="DataMembersExtracters\DataMember.cs" />
     <Compile Include="DataMembersExtracters\DataMembersByAttributeExtractor.cs" />
     <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />

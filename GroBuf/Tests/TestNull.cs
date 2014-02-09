@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System;
+
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 

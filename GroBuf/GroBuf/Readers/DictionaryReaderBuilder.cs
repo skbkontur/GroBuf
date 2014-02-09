@@ -58,7 +58,7 @@ namespace GroBuf.Readers
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
 
-            context.LoadReader(keyType);
+//            context.LoadReader(keyType);
             
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
@@ -68,7 +68,7 @@ namespace GroBuf.Readers
             il.Ldloca(key); // stack: [pinnedData, ref index, dataLength, ref key]
             context.CallReader(keyType); // reader(pinnedData, ref index, dataLength, ref key); stack: []
 
-            context.LoadReader(valueType);
+//            context.LoadReader(valueType);
             
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]

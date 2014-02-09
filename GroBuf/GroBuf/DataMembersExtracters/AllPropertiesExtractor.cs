@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace GroBuf.DataMembersExtracters
 {
-    public class PropertiesExtractor : IDataMembersExtractor
+    public class AllPropertiesExtractor : IDataMembersExtractor
     {
         public IDataMember[] GetMembers(Type type)
         {
@@ -18,7 +18,7 @@ namespace GroBuf.DataMembersExtracters
         {
             if(type == null || type == typeof(object))
                 return;
-            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            var properties = type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly);
             members.AddRange(properties.Where(property => property.CanRead && property.GetGetMethod(true).GetParameters().Length == 0 && property.CanWrite && property.GetSetMethod(true).GetParameters().Length == 1).Select(info => new DataMember(info.Name, info)));
             GetMembers(type.BaseType, members);
         }

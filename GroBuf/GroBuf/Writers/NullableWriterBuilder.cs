@@ -22,7 +22,7 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
 
-            context.LoadWriter(Type.GetGenericArguments()[0]);
+//            context.LoadWriter(Type.GetGenericArguments()[0]);
 
             context.LoadObjByRef(); // stack: [&obj]
             il.Call(Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]

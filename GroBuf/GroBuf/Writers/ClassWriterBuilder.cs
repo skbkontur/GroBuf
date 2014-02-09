@@ -51,7 +51,7 @@ namespace GroBuf.Writers
             {
                 var member = dataMembers[i];
 
-                context.LoadWriter(member.Member.GetMemberType());
+//                context.LoadWriter(member.Member.GetMemberType());
 
                 if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [ref obj]

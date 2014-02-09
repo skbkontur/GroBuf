@@ -83,7 +83,7 @@ namespace GroBuf.Writers
             var nextLabel = il.DefineLabel("next");
             il.Blt(typeof(int), nextLabel); // if(slot.hashCode < 0) goto next; stack: []
 
-            context.LoadWriter(elementType);
+//            context.LoadWriter(elementType);
 
             il.Ldloc(slot); // stack: [slot]
             il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [slot.value]

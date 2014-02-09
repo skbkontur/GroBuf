@@ -72,7 +72,7 @@ namespace GroBuf.SizeCounters
             var nextLabel = il.DefineLabel("next");
             il.Blt(typeof(int), nextLabel); // if(slot.hashCode < 0) goto next; stack: [size]
 
-            context.LoadSizeCounter(elementType);
+//            context.LoadSizeCounter(elementType);
 
             il.Ldloc(slot); // stack: [size, slot]
             il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, slot.value]
