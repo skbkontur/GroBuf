@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 
 namespace GroBuf.Writers
 {
@@ -46,6 +47,8 @@ namespace GroBuf.Writers
                 writerBuilder = new DateTimeWriterBuilder();
             else if(type == typeof(Guid))
                 writerBuilder = new GuidWriterBuilder();
+            else if(type == typeof(IPAddress))
+                writerBuilder = new IPAddressWriterBuilder();
             else if(type.IsEnum)
                 writerBuilder = new EnumWriterBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

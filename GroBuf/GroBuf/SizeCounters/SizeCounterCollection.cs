@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 
 namespace GroBuf.SizeCounters
 {
@@ -46,6 +47,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new DateTimeSizeCounterBuilder();
             else if(type == typeof(Guid))
                 sizeCounterBuilder = new GuidSizeCounterBuilder();
+            else if(type == typeof(IPAddress))
+                sizeCounterBuilder = new IPAddressSizeCounterBuilder();
             else if(type.IsEnum)
                 sizeCounterBuilder = new EnumSizeCounterBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

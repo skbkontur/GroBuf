@@ -113,6 +113,7 @@
     <Compile Include="TestCustomReadWriteCustomSerializer.cs" />
     <Compile Include="TestCustomReadWriteInterface.cs" />
     <Compile Include="SerializeInterfaceTest.cs" />
+    <Compile Include="TestIPAddress.cs" />
     <Compile Include="TestList.cs" />
     <Compile Include="TestNonPublicFields.cs" />
     <Compile Include="TestChangeType.cs" />

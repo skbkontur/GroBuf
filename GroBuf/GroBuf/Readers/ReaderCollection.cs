@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 
 namespace GroBuf.Readers
 {
@@ -46,6 +47,8 @@ namespace GroBuf.Readers
                 readerBuilder = new DateTimeReaderBuilder();
             else if(type == typeof(Guid))
                 readerBuilder = new GuidReaderBuilder();
+            else if(type == typeof(IPAddress))
+                readerBuilder = new IPAddressReaderBuilder();
             else if(type.IsEnum)
                 readerBuilder = new EnumReaderBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))
