@@ -79,6 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestIPEndPoint.cs" />
     <Compile Include="ImmutableObjectChangedBugTest.cs" />
     <Compile Include="TestCubstomSerializerAndBaseBug.cs" />
     <Compile Include="TestDataMembersWithCustomName.cs" />
