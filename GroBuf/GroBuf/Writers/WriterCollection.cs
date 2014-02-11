@@ -49,6 +49,8 @@ namespace GroBuf.Writers
                 writerBuilder = new GuidWriterBuilder();
             else if(type == typeof(IPAddress))
                 writerBuilder = new IPAddressWriterBuilder();
+            else if(type == typeof(TimeSpan))
+                writerBuilder = new TimeSpanWriterBuilder();
             else if(type.IsEnum)
                 writerBuilder = new EnumWriterBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

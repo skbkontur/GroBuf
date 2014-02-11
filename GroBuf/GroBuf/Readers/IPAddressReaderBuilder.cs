@@ -19,8 +19,6 @@ namespace GroBuf.Readers
             var il = context.Il;
             context.LoadResultByRef(); // stack: [ref result]
 
-//            context.LoadReader(Type.GetGenericArguments()[0]);
-
             context.LoadData(); // stack: [ref result, data]
             context.LoadIndexByRef(); // stack: [ref result, data, ref index]
             context.LoadDataLength(); // stack: [ref result, data, ref index, dataLength]
@@ -31,8 +29,8 @@ namespace GroBuf.Readers
             var constructor = Type.GetConstructor(new[] {typeof(byte[])});
             if(constructor == null)
                 throw new MissingConstructorException(Type, typeof(byte[]));
-            il.Newobj(constructor); // stack: [ref result, new elementType?(value)]
-            il.Stind(Type); // result = new elementType?(value)
+            il.Newobj(constructor); // stack: [ref result, new IPAddress(value)]
+            il.Stind(Type); // result = new IPAddress(value)
         }
     }
 }

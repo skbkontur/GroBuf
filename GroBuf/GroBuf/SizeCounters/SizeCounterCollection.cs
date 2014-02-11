@@ -49,6 +49,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new GuidSizeCounterBuilder();
             else if(type == typeof(IPAddress))
                 sizeCounterBuilder = new IPAddressSizeCounterBuilder();
+            else if(type == typeof(TimeSpan))
+                sizeCounterBuilder = new TimeSpanSizeCounterBuilder();
             else if(type.IsEnum)
                 sizeCounterBuilder = new EnumSizeCounterBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

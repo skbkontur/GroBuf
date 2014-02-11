@@ -19,8 +19,6 @@ namespace GroBuf.SizeCounters
         {
             var il = context.Il;
 
-//            context.LoadSizeCounter(Type.GetGenericArguments()[0]);
-
             il.Ldc_I4(4); // stack: [4]
             context.LoadObj(); // stack: [4, obj]
             il.Ldfld(Type.GetField("m_Family", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [4, obj.m_Family]
