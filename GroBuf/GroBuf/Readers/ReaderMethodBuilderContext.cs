@@ -8,12 +8,13 @@ namespace GroBuf.Readers
 {
     internal class ReaderMethodBuilderContext
     {
-        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il)
+        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il, bool simpleType)
         {
             Context = context;
             Il = il;
             TypeCode = il.DeclareLocal(typeof(int));
             Length = il.DeclareLocal(typeof(uint));
+            Index = simpleType ? null : il.DeclareLocal(typeof(int));
         }
 
         /// <summary>
@@ -46,7 +47,16 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadDataLength()
         {
-            Il.Ldarg(2);
+            Il.Ldarg(3);
+            Il.Ldfld(typeof(ReaderContext).GetField("length", BindingFlags.Public | BindingFlags.Instance));
+        }
+
+        /// <summary>
+        /// Loads <c>context</c> onto the evaluation stack
+        /// </summary>
+        public void LoadContext()
+        {
+            Il.Ldarg(3);
         }
 
         /// <summary>
@@ -54,7 +64,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadResultByRef()
         {
-            Il.Ldarg(3);
+            Il.Ldarg(2);
         }
 
         /// <summary>
@@ -62,7 +72,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadResult(Type resultType)
         {
-            Il.Ldarg(3);
+            Il.Ldarg(2);
             Il.Ldind(resultType);
         }
 
@@ -265,7 +275,7 @@ namespace GroBuf.Readers
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
             }
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()});
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)});
         }
 
         public void CallReader(Type type)
@@ -278,5 +288,6 @@ namespace GroBuf.Readers
 
         public GroboIL.Local TypeCode { get; private set; }
         public GroboIL.Local Length { get; private set; }
+        public GroboIL.Local Index { get; private set; }
     }
 }

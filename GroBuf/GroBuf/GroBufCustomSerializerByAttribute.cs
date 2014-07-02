@@ -21,9 +21,9 @@ namespace GroBuf
             writerDelegate(obj, writeEmpty, result, ref index, resultLength);
         }
 
-        public void Read(IntPtr data, ref int index, int length, ref object result)
+        public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)
         {
-            readerDelegate(data, ref index, length, ref result);
+            readerDelegate(data, ref index, ref result, context);
         }
 
         private readonly SizeCounterDelegate sizeCounter;

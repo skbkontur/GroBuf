@@ -88,9 +88,9 @@ namespace GroBuf.Tests
             [GroBufReader]
             public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
-                return (IntPtr data, ref int index, int length, ref object result) =>
+                return (IntPtr data, ref int index, ref object result, ReaderContext context) =>
                            {
-                               baseReader(data, ref index, length, ref result);
+                               baseReader(data, ref index, ref result, context);
                                var z = result as Z;
                                if(z != null)
                                    z.S = z.X.ToString();
@@ -135,16 +135,16 @@ namespace GroBuf.Tests
             [GroBufReader]
             public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
-                return (IntPtr data, ref int index, int length, ref object result) =>
+                return (IntPtr data, ref int index, ref object result, ReaderContext context) =>
                            {
                                object type = null;
-                               readersFactory(typeof(string))(data, ref index, length, ref type);
+                               readersFactory(typeof(string))(data, ref index, ref type, context);
                                if((string)type == typeof(C).Name)
                                    result = new C();
                                else if((string)type == typeof(D).Name)
                                    result = new D();
                                else throw new InvalidOperationException("Unknown type " + type);
-                               readersFactory(result.GetType())(data, ref index, length, ref result);
+                               readersFactory(result.GetType())(data, ref index, ref result, context);
                            };
             }
         }
@@ -187,7 +187,7 @@ namespace GroBuf.Tests
             [GroBufReader]
             public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
-                return (IntPtr data, ref int index, int length, ref object result) =>
+                return (IntPtr data, ref int index, ref object result, ReaderContext context) =>
                            {
                                var bytes = new byte[8];
                                Marshal.Copy(data + index, bytes, 0, 8);

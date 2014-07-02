@@ -76,11 +76,11 @@ namespace GroBuf.Tests
                 baseSerializer.Write(obj, writeEmpty, result, ref index, resultLength);
             }
 
-            public void Read(IntPtr data, ref int index, int length, ref object result)
+            public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)
             {
                 var resultType = typeof(C1<>).MakeGenericType(argumentType);
                 result = Activator.CreateInstance(resultType);
-                factory(resultType).Read(data, ref index, length, ref result);
+                factory(resultType).Read(data, ref index, ref result, context);
             }
 
             private readonly Type argumentType;

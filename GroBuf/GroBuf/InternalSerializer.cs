@@ -22,9 +22,9 @@ namespace GroBuf
             groBufWriter.Write(type, ignoreCustomSerializer, obj, writeEmpty, result, ref index, resultLength);
         }
 
-        public void Read(IntPtr data, ref int index, int length, ref object result)
+        public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)
         {
-            groBufReader.Read(type, ignoreCustomSerializer, data, ref index, length, ref result);
+            groBufReader.Read(type, ignoreCustomSerializer, data, ref index, ref result, context);
         }
 
         private readonly GroBufWriter groBufWriter;

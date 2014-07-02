@@ -21,10 +21,10 @@ namespace GroBuf.Readers
 
             context.LoadData(); // stack: [ref result, data]
             context.LoadIndexByRef(); // stack: [ref result, data, ref index]
-            context.LoadDataLength(); // stack: [ref result, data, ref index, dataLength]
             var value = il.DeclareLocal(typeof(byte[]));
-            il.Ldloca(value); // stack: [ref result, data, ref index, dataLength, ref value]
-            context.CallReader(typeof(byte[])); // reader(pinnedData, ref index, dataLength, ref value); stack: [ref result]
+            il.Ldloca(value); // stack: [ref result, data, ref index, ref value]
+            context.LoadContext(); // stack: [ref result, data, ref index, ref value, context]
+            context.CallReader(typeof(byte[])); // reader(pinnedData, ref index, ref value, context); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
             var constructor = Type.GetConstructor(new[] {typeof(byte[])});
             if(constructor == null)

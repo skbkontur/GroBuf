@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Reflection.Emit;
 
 using GrEmit;
+using GrEmit.Utils;
 
 namespace GroBuf.Readers
 {
@@ -18,14 +20,24 @@ namespace GroBuf.Readers
             var method = new DynamicMethod("Read_" + Type.Name + "_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
-                                                   typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
+                                                   typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, readerTypeBuilderContext.Module, true);
             readerTypeBuilderContext.SetReaderMethod(Type, method);
             var il = new GroboIL(method);
-            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il);
+            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, Type.IsValueType && (Type.IsPrimitive || Type.IsEnum));
 
             ReadTypeCodeAndCheck(context); // Read TypeCode and check
             ReadNotEmpty(context); // Read obj
+
+//            if(context.Index != null)
+//            {
+//                context.LoadContext();
+//                il.Ldfld(typeof(ReaderContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance));
+//                il.Ldloc(context.Index);
+//                context.LoadResult(Type);
+//                il.Call(typeof(List<object>).GetProperty("Item", BindingFlags.Public | BindingFlags.Instance).GetSetMethod());
+//            }
+
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(ReaderDelegate<>).MakeGenericType(Type));
             var pointer = GroBufHelpers.ExtractDynamicMethodPointer(method);
@@ -52,6 +64,12 @@ namespace GroBuf.Readers
         private static void ReadTypeCodeAndCheck(ReaderMethodBuilderContext context)
         {
             var il = context.Il;
+//            if (context.Index != null)
+//            {
+//                context.LoadContext();
+//                il.Ldfld(typeof(ReaderContext).GetField("index", BindingFlags.Public | BindingFlags.Instance));
+//                il.Stloc(context.Index);
+//            }
             var notEmptyLabel = il.DefineLabel("notEmpty");
             il.Ldc_I4(1);
             context.AssertLength();
@@ -69,6 +87,20 @@ namespace GroBuf.Readers
             il.MarkLabel(notEmptyLabel);
 
             context.CheckTypeCode();
+
+//            if(context.Index != null)
+//            {
+//                context.LoadContext();
+//                il.Ldloc(context.Index);
+//                il.Ldc_I4(1);
+//                il.Add();
+//                il.Stfld(typeof(ReaderContext).GetField("index", BindingFlags.Public | BindingFlags.Instance));
+//
+//                context.LoadContext();
+//                il.Ldfld(typeof(ReaderContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance));
+//                il.Ldnull(typeof(object));
+//                il.Call(HackHelpers.GetMethodDefinition<List<object>>(list => list.Add(null)));
+//            }
         }
     }
 }

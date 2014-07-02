@@ -79,9 +79,9 @@ namespace GroBuf.Readers
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            il.Ldloca(str); // stack: [pinnedData, ref index, dataLength, ref str]
-            context.CallReader(typeof(string)); // reader<string>(pinnedData, ref index, dataLength, ref str); stack: []
+            il.Ldloca(str); // stack: [pinnedData, ref index, ref str]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref str, context]
+            context.CallReader(typeof(string)); // reader<string>(pinnedData, ref index, ref str, context); stack: []
             context.LoadResultByRef(); // stack: [ref result]
             il.Ldloc(str); // stack: [ref result, str]
             il.Call(typeof(GroBufHelpers).GetMethod("CalcHash", BindingFlags.Public | BindingFlags.Static)); // stack: [ref result, GroBufHelpers.CalcHash(str)]
@@ -93,9 +93,9 @@ namespace GroBuf.Readers
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            context.LoadResultByRef(); // stack: [pinnedData, ref index, dataLength, ref result]
-            context.CallReader(typeof(int)); // reader<int>(pinnedData, ref index, dataLength, ref result)
+            context.LoadResultByRef(); // stack: [pinnedData, ref index, ref result]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref result, context]
+            context.CallReader(typeof(int)); // reader<int>(pinnedData, ref index, ref result, context)
         }
 
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)

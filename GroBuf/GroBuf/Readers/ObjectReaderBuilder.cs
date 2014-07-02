@@ -35,16 +35,16 @@ namespace GroBuf.Readers
 
             context.LoadData(); // stack: [data]
             context.LoadIndexByRef(); // stack: [data, ref index]
-            context.LoadDataLength(); // stack: [data, ref index, dataLength]
-            context.LoadResultByRef(); // stack: [data, ref index, dataLength, ref result]
-            context.LoadField(readersField); // stack: [data, ref index, dataLength, ref result, readers]
-            il.Ldloc(context.TypeCode); // stack: [data, ref index, dataLength, ref result, readers, typeCode]
-            il.Ldelem(typeof(IntPtr)); // stack: [data, ref index, dataLength, ref result, readers[typeCode]]
-            il.Dup(); // stack: [data, ref index, dataLength, ref result, readers[typeCode], readers[typeCode]]
+            context.LoadResultByRef(); // stack: [data, ref index, ref result]
+            context.LoadContext(); // stack: [data, ref index, ref result, context]
+            context.LoadField(readersField); // stack: [data, ref index, ref result, context, readers]
+            il.Ldloc(context.TypeCode); // stack: [data, ref index, ref result, context, readers, typeCode]
+            il.Ldelem(typeof(IntPtr)); // stack: [data, ref index, ref result, context, readers[typeCode]]
+            il.Dup(); // stack: [data, ref index, ref result, context, readers[typeCode], readers[typeCode]]
             var skipValueLabel = il.DefineLabel("skipValue");
             il.Brfalse(skipValueLabel); // if(readers[typeCode] == 0) goto skipValue;
-            var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), typeof(int), typeof(object).MakeByRefType()};
-            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // readers[typeCode](data, ref index, dataLength, ref result); stack: []
+            var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), typeof(object).MakeByRefType(), typeof(ReaderContext)};
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // readers[typeCode](data, ref index, ref result, context); stack: []
             il.Ret();
             il.MarkLabel(skipValueLabel);
             il.Pop();
@@ -70,20 +70,20 @@ namespace GroBuf.Readers
             var method = new DynamicMethod("Read_" + type.Name + "_AndCastToObject_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
-                                                   typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), typeof(object).MakeByRefType()
+                                                   typeof(IntPtr), typeof(int).MakeByRefType(), typeof(object).MakeByRefType(), typeof(ReaderContext)
                                                }, context.Module, true);
             var il = new GroboIL(method);
-            il.Ldarg(3); // stack: [ref result]
+            il.Ldarg(2); // stack: [ref result]
             il.Ldarg(0); // stack: [ref result, data]
             il.Ldarg(1); // stack: [ref result, data, ref index]
-            il.Ldarg(2); // stack: [ref result, data, ref index, dataLength]
             var value = il.DeclareLocal(type);
-            il.Ldloca(value); // stack: [ref result, data, ref index, dataLength, ref value]
+            il.Ldloca(value); // stack: [ref result, data, ref index, ref value]
+            il.Ldarg(3); // stack: [ref result, data, ref index, ref value, context]
             var reader = context.GetReader(type).Pointer;
             if(reader == IntPtr.Zero)
                 throw new InvalidOperationException();
             il.Ldc_IntPtr(reader);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()}); // read<type>(data, ref index, dataLength, ref value); stack: [ref result]
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // read<type>(data, ref index, ref value, context); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
             if(type.IsValueType)
                 il.Box(type); // stack: [ref result, (object)value]

@@ -91,13 +91,13 @@ namespace GroBuf.Readers
             
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            context.LoadResult(Type); // stack: [pinnedData, ref index, dataLength, result]
-            il.Ldloc(i); // stack: [pinnedData, ref index, dataLength, result, i]
+            context.LoadResult(Type); // stack: [pinnedData, ref index, result]
+            il.Ldloc(i); // stack: [pinnedData, ref index, result, i]
 
-            il.Ldelema(elementType); // stack: [pinnedData, ref index, dataLength, ref result[i]]
+            il.Ldelema(elementType); // stack: [pinnedData, ref index, ref result[i]]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref result[i], context]
 
-            context.CallReader(elementType); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
+            context.CallReader(elementType); // reader(pinnedData, ref index, ref result[i], context); stack: []
             il.Ldloc(i); // stack: [i]
             il.Ldc_I4(1); // stack: [i, 1]
             il.Add(); // stack: [i + 1]
