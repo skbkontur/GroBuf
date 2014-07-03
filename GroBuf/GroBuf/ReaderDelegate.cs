@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace GroBuf
 {
@@ -9,8 +8,14 @@ namespace GroBuf
 
     public class ReaderContext
     {
-        public int length;
+        public ReaderContext(int length, int numberOfObjects)
+        {
+            this.length = length;
+            objects = numberOfObjects == 0 ? null : new object[numberOfObjects];
+        }
+
+        public readonly int length;
         public int count;
-        public readonly List<object> objects = new List<object>();
+        public readonly object[] objects;
     }
 }

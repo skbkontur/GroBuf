@@ -83,7 +83,7 @@ namespace GroBuf
 
         public void Read<T>(IntPtr data, ref int index, int length, ref T result)
         {
-            GetReader<T>(false)(data, ref index, ref result, new ReaderContext{length = length});
+            GetReader<T>(false)(data, ref index, ref result, new ReaderContext(length, 0));
         }
 
         public T Read<T>(IntPtr data, ref int index, int length)
@@ -153,7 +153,7 @@ namespace GroBuf
 
         public void Read(Type type, IntPtr data, ref int index, int length, ref object result)
         {
-            GetReader(type, false)(data, ref index, ref result, new ReaderContext{length = length});
+            GetReader(type, false)(data, ref index, ref result, new ReaderContext(length, 0));
         }
 
         public void Read(Type type, bool ignoreCustomSerialization, IntPtr data, ref int index, ref object result, ReaderContext context)
