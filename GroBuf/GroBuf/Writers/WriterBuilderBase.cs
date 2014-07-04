@@ -18,7 +18,7 @@ namespace GroBuf.Writers
             var method = new DynamicMethod("Write_" + Type.Name + "_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
-                                                   Type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)
+                                                   Type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)
                                                }, writerTypeBuilderContext.Module, true);
             writerTypeBuilderContext.SetWriterMethod(Type, method);
             var il = new GroboIL(method);

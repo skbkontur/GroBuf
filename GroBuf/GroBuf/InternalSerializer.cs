@@ -17,9 +17,9 @@ namespace GroBuf
             return groBufWriter.GetSize(type, ignoreCustomSerializer, obj, writeEmpty, context);
         }
 
-        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
+        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, WriterContext context)
         {
-            groBufWriter.Write(type, ignoreCustomSerializer, obj, writeEmpty, result, ref index, resultLength);
+            groBufWriter.Write(type, ignoreCustomSerializer, obj, writeEmpty, result, ref index, context);
         }
 
         public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)

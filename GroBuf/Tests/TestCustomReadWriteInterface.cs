@@ -80,11 +80,11 @@ namespace GroBuf.Tests
             [GroBufWriter]
             public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
-                return (object o, bool writeEmpty, IntPtr result, ref int index, int resultLength) =>
+                return (object o, bool writeEmpty, IntPtr result, ref int index, WriterContext context) =>
                            {
                                Type type = o.GetType();
-                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, resultLength);
-                               writersFactory(type)(o, writeEmpty, result, ref index, resultLength);
+                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, context);
+                               writersFactory(type)(o, writeEmpty, result, ref index, context);
                            };
             }
 

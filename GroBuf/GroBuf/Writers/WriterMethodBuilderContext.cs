@@ -64,11 +64,20 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
+        /// Loads <c>context</c> onto the evaluation stack
+        /// </summary>
+        public void LoadContext()
+        {
+            Il.Ldarg(4);
+        }
+
+        /// <summary>
         /// Loads <c>length</c> onto the evaluation stack
         /// </summary>
         public void LoadResultLength()
         {
             Il.Ldarg(4);
+            Il.Ldfld(typeof(WriterContext).GetField("length", BindingFlags.Public | BindingFlags.Instance));
         }
 
         /// <summary>
@@ -207,7 +216,7 @@ namespace GroBuf.Writers
                 Il.Ldc_I4(counter.Index);
                 Il.Ldelem(typeof(IntPtr));
             }
-            Il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)});
+            Il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)});
         }
 
         public WriterTypeBuilderContext Context { get; private set; }

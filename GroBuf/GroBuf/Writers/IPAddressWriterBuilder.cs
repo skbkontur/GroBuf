@@ -26,8 +26,8 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [obj.GetAddressBytes(), writeEmpty]
             context.LoadResult(); // stack: [obj.GetAddressBytes(), writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.GetAddressBytes(), writeEmpty, result, ref index]
-            context.LoadResultLength(); // stack: [obj.GetAddressBytes(), writeEmpty, result, ref index, resultLength]
-            context.CallWriter(typeof(byte[])); // writer(obj.GetAddressBytes(), writeEmpty, result, ref index, resultLength)
+            context.LoadContext(); // stack: [obj.GetAddressBytes(), writeEmpty, result, ref index, context]
+            context.CallWriter(typeof(byte[])); // writer(obj.GetAddressBytes(), writeEmpty, result, ref index, context)
         }
     }
 }

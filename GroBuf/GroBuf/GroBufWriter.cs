@@ -36,7 +36,7 @@ namespace GroBuf
         public void Write<T>(bool ignoreCustomSerialization, T obj, IntPtr result, int length)
         {
             int index = 0;
-            GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item1(obj, true, result, ref index, length);
+            GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item1(obj, true, result, ref index, new WriterContext(length));
         }
 
         public void Write<T>(T obj, byte[] result, ref int index)
@@ -46,13 +46,13 @@ namespace GroBuf
 
         public void Write<T>(T obj, IntPtr result, ref int index, int length)
         {
-            GetWriterAndSizeCounter<T>(false).Item1(obj, true, result, ref index, length);
+            GetWriterAndSizeCounter<T>(false).Item1(obj, true, result, ref index, new WriterContext(length));
         }
 
         public unsafe void Write<T>(bool ignoreCustomSerialization, T obj, byte[] result, ref int index)
         {
             fixed(byte* r = &result[0])
-                GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item1(obj, true, (IntPtr)r, ref index, result.Length);
+                GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item1(obj, true, (IntPtr)r, ref index, new WriterContext(result.Length));
         }
 
         public byte[] Write<T>(T obj)
@@ -63,11 +63,11 @@ namespace GroBuf
         public unsafe byte[] Write<T>(bool ignoreCustomSerialization, T obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
-            var size = writerAndCounter.Item2(obj, true, new WriterContext());
+            var size = writerAndCounter.Item2(obj, true, new WriterContext(0));
             var result = new byte[size];
             int index = 0;
             fixed(byte* r = &result[0])
-                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index, size);
+                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index, new WriterContext(size));
             if (index != size)
                 throw new Exception("Bug: at the end of serialization index must point at the end of array");
             return result;
@@ -86,12 +86,12 @@ namespace GroBuf
         public void Write(Type type, bool ignoreCustomSerialization, object obj, IntPtr result, int length)
         {
             int index = 0;
-            GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, result, ref index, length);
+            GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, result, ref index, new WriterContext(length));
         }
 
         public void Write(Type type, object obj, IntPtr result, ref int index, int length)
         {
-            GetWriterAndSizeCounter(type, false).Item1(obj, true, result, ref index, length);
+            GetWriterAndSizeCounter(type, false).Item1(obj, true, result, ref index, new WriterContext(length));
         }
 
         public void Write(Type type, object obj, byte[] result, ref int index)
@@ -102,17 +102,12 @@ namespace GroBuf
         public unsafe void Write(Type type, bool ignoreCustomSerialization, object obj, byte[] result, ref int index)
         {
             fixed(byte* r = &result[0])
-                GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, (IntPtr)r, ref index, result.Length);
+                GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, true, (IntPtr)r, ref index, new WriterContext(result.Length));
         }
 
-        public void Write(Type type, object obj, bool writeEmpty, IntPtr result, ref int index, int length)
+        public void Write(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty, IntPtr result, ref int index, WriterContext context)
         {
-            Write(type, false, obj, writeEmpty, result, ref index, length);
-        }
-
-        public void Write(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty, IntPtr result, ref int index, int length)
-        {
-            GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, writeEmpty, result, ref index, length);
+            GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item1(obj, writeEmpty, result, ref index, context);
         }
 
         public byte[] Write(Type type, object obj)
@@ -123,11 +118,11 @@ namespace GroBuf
         public unsafe byte[] Write(Type type, bool ignoreCustomSerialization, object obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
-            var size = writerAndCounter.Item2(obj, true, new WriterContext());
+            var size = writerAndCounter.Item2(obj, true, new WriterContext(0));
             var result = new byte[size];
             int index = 0;
             fixed(byte* r = &result[0])
-                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index, size);
+                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index, new WriterContext(size));
             if(index != size)
                 throw new Exception("At the end of serialization index must point at the end of array");
             return result;
@@ -135,7 +130,7 @@ namespace GroBuf
 
         public int GetSize(Type type, object obj, bool writeEmpty)
         {
-            return GetSize(type, false, obj, writeEmpty, new WriterContext());
+            return GetSize(type, false, obj, writeEmpty, new WriterContext(0));
         }
 
         public int GetSize(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty, WriterContext context)
@@ -152,7 +147,7 @@ namespace GroBuf
 
         private int GetSize<T>(bool ignoreCustomSerialization, T obj, bool writeEmpty)
         {
-            return GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty, new WriterContext());
+            return GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty, new WriterContext(0));
         }
 
         private Tuple<WriterDelegate, SizeCounterDelegate> GetWriterAndSizeCounter(Type type, bool ignoreCustomSerialization)
@@ -218,15 +213,15 @@ namespace GroBuf
             var type = typeof(T);
             IntPtr writer = GetWriter(type, ignoreCustomSerialization);
 
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}, module, true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}, module, true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [obj]
             il.Ldarg(1); // stack: [obj, writeEmpty]
             il.Ldarg(2); // stack: [obj, writeEmpty, result]
             il.Ldarg(3); // stack: [obj, writeEmpty, result, ref index]
-            il.Ldarg(4); // stack: [obj, writeEmpty, result, ref index, length]
+            il.Ldarg(4); // stack: [obj, writeEmpty, result, ref index, context]
             il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}); // writer.write<T>(obj, writeEmpty, result, ref index, length); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // writer.write<T>(obj, writeEmpty, result, ref index, context); stack: []
             il.Ret();
 
             return (WriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(WriterDelegate<T>));
@@ -236,7 +231,7 @@ namespace GroBuf
         {
             IntPtr writer = GetWriter(type, ignoreCustomSerialization);
 
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}, module, true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}, module, true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [obj]
             if(type.IsValueType)
@@ -246,9 +241,9 @@ namespace GroBuf
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, length]
+            il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
             il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}); // writer.write<T>((type)obj, writeEmpty, result, ref index, length); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // writer.write<T>((type)obj, writeEmpty, result, ref index, context); stack: []
             il.Ret();
 
             return (WriterDelegate)dynamicMethod.CreateDelegate(typeof(WriterDelegate));

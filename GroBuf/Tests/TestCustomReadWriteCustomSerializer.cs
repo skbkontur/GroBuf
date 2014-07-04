@@ -71,9 +71,9 @@ namespace GroBuf.Tests
                 return baseSerializer.CountSize(obj, writeEmpty, context);
             }
 
-            public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
+            public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, WriterContext context)
             {
-                baseSerializer.Write(obj, writeEmpty, result, ref index, resultLength);
+                baseSerializer.Write(obj, writeEmpty, result, ref index, context);
             }
 
             public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)

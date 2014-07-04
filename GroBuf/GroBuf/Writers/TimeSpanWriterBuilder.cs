@@ -26,8 +26,8 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [obj._ticks, writeEmpty]
             context.LoadResult(); // stack: [obj._ticks, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj._ticks, writeEmpty, result, ref index]
-            context.LoadResultLength(); // stack: [obj._ticks, writeEmpty, result, ref index, resultLength]
-            context.CallWriter(typeof(long)); // writer(obj._ticks, writeEmpty, result, ref index, resultLength)
+            context.LoadContext(); // stack: [obj._ticks, writeEmpty, result, ref index, context]
+            context.CallWriter(typeof(long)); // writer(obj._ticks, writeEmpty, result, ref index, context)
         }
     }
 }

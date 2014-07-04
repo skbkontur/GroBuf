@@ -92,8 +92,8 @@ namespace GroBuf.Writers
             il.Ldc_I4(1); // stack: [obj[i].key, true]
             context.LoadResult(); // stack: [obj[i].key, true, result]
             context.LoadIndexByRef(); // stack: [obj[i].key, true, result, ref index]
-            context.LoadResultLength(); // stack: [obj[i].key, true, result, ref index, resultLength]
-            context.CallWriter(keyType); // write<keyType>(obj[i].key, true, result, ref index, resultLength); stack: []
+            context.LoadContext(); // stack: [obj[i].key, true, result, ref index, context]
+            context.CallWriter(keyType); // write<keyType>(obj[i].key, true, result, ref index, context); stack: []
 
 //            context.LoadWriter(valueType);
             
@@ -102,8 +102,8 @@ namespace GroBuf.Writers
             il.Ldc_I4(1); // stack: [obj[i].value, true]
             context.LoadResult(); // stack: [obj[i].value, true, result]
             context.LoadIndexByRef(); // stack: [obj[i].value, true, result, ref index]
-            context.LoadResultLength(); // stack: [obj[i].value, true, result, ref index, resultLength]
-            context.CallWriter(valueType); // writer<valueType>(obj[i].value, true, result, ref index, resultLength); stack: []
+            context.LoadContext(); // stack: [obj[i].value, true, result, ref index, context]
+            context.CallWriter(valueType); // writer<valueType>(obj[i].value, true, result, ref index, context); stack: []
 
             il.MarkLabel(nextLabel);
             il.Ldloc(count); // stack: [ count]
