@@ -46,9 +46,9 @@ namespace GroBuf.Tests
 
             #region IGroBufCustomSerializer Members
 
-            public int CountSize(object obj, bool writeEmpty)
+            public int CountSize(object obj, bool writeEmpty, WriterContext context)
             {
-                return baseSerializer.CountSize(obj, writeEmpty);
+                return baseSerializer.CountSize(obj, writeEmpty, context);
             }
 
             public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
@@ -110,9 +110,9 @@ namespace GroBuf.Tests
                 this.baseSerializer = baseSerializer;
             }
 
-            public int CountSize(object obj, bool writeEmpty)
+            public int CountSize(object obj, bool writeEmpty, WriterContext context)
             {
-                return baseSerializer.CountSize(obj, writeEmpty);
+                return baseSerializer.CountSize(obj, writeEmpty, context);
             }
 
             public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)

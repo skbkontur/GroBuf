@@ -27,7 +27,8 @@ namespace GroBuf.SizeCounters
             context.LoadObjByRef(); // stack: [&obj]
             il.Call(Type.GetProperty("Value").GetGetMethod()); // stack: [obj.Value]
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
-            context.CallSizeCounter(Type.GetGenericArguments()[0]); // stack: [counter(obj.Value, writeEmpty)]
+            context.LoadContext(); // stack: [obj.Value, writeEmpty, context]
+            context.CallSizeCounter(Type.GetGenericArguments()[0]); // stack: [counter(obj.Value, writeEmpty, context)]
         }
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)

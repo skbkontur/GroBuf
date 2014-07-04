@@ -63,7 +63,7 @@ namespace GroBuf
         public unsafe byte[] Write<T>(bool ignoreCustomSerialization, T obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
-            var size = writerAndCounter.Item2(obj, true);
+            var size = writerAndCounter.Item2(obj, true, new WriterContext());
             var result = new byte[size];
             int index = 0;
             fixed(byte* r = &result[0])
@@ -123,7 +123,7 @@ namespace GroBuf
         public unsafe byte[] Write(Type type, bool ignoreCustomSerialization, object obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
-            var size = writerAndCounter.Item2(obj, true);
+            var size = writerAndCounter.Item2(obj, true, new WriterContext());
             var result = new byte[size];
             int index = 0;
             fixed(byte* r = &result[0])
@@ -135,12 +135,12 @@ namespace GroBuf
 
         public int GetSize(Type type, object obj, bool writeEmpty)
         {
-            return GetSize(type, false, obj, writeEmpty);
+            return GetSize(type, false, obj, writeEmpty, new WriterContext());
         }
 
-        public int GetSize(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty)
+        public int GetSize(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty, WriterContext context)
         {
-            return GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item2(obj, writeEmpty);
+            return GetWriterAndSizeCounter(type, ignoreCustomSerialization).Item2(obj, writeEmpty, context);
         }
 
         public GroBufOptions Options { get { return options; } }
@@ -152,7 +152,7 @@ namespace GroBuf
 
         private int GetSize<T>(bool ignoreCustomSerialization, T obj, bool writeEmpty)
         {
-            return GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty);
+            return GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty, new WriterContext());
         }
 
         private Tuple<WriterDelegate, SizeCounterDelegate> GetWriterAndSizeCounter(Type type, bool ignoreCustomSerialization)
@@ -278,12 +278,13 @@ namespace GroBuf
             var type = typeof(T);
             IntPtr counter = GetCounter(type, ignoreCustomSerialization);
 
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {type, typeof(bool)}, GetType(), true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [obj]
             il.Ldarg(1); // stack: [obj, writeEmpty]
-            il.Ldc_IntPtr(counter); // stack: [obj, writeEmpty, counter]
-            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)}); // counter(obj, writeEmpty); stack: []
+            il.Ldarg(2); // stack: [obj, writeEmpty, context]
+            il.Ldc_IntPtr(counter); // stack: [obj, writeEmpty, context, counter]
+            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // counter(obj, writeEmpty, context); stack: []
             il.Ret();
 
             return (SizeCounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate<T>));
@@ -293,7 +294,7 @@ namespace GroBuf
         {
             IntPtr counter = GetCounter(type, ignoreCustomSerialization);
 
-            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {typeof(object), typeof(bool)}, GetType(), true);
+            var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {typeof(object), typeof(bool), typeof(WriterContext)}, GetType(), true);
             var il = new GroboIL(dynamicMethod);
             il.Ldarg(0); // stack: [obj]
             if(type.IsValueType)
@@ -301,8 +302,9 @@ namespace GroBuf
             //            else
             //                il.Castclass(type); // stack: [(type)obj]
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
-            il.Ldc_IntPtr(counter); // stack: [(type)obj, writeEmpty, counter]
-            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)}); // counter((type)obj, writeEmpty); stack: []
+            il.Ldarg(2); // stack: [(type)obj, writeEmpty, context]
+            il.Ldc_IntPtr(counter); // stack: [(type)obj, writeEmpty, context, counter]
+            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // counter((type)obj, writeEmpty, context); stack: []
             il.Ret();
 
             return (SizeCounterDelegate)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate));

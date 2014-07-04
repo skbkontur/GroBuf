@@ -114,10 +114,10 @@ namespace GroBuf.Tests
             [GroBufSizeCounter]
             public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
-                return (o, writeEmpty) =>
+                return (o, writeEmpty, context) =>
                            {
                                Type type = o.GetType();
-                               return sizeCountersFactory(typeof(string))(type.Name, writeEmpty) + sizeCountersFactory(type)(o, writeEmpty);
+                               return sizeCountersFactory(typeof(string))(type.Name, writeEmpty, context) + sizeCountersFactory(type)(o, writeEmpty, context);
                            };
             }
 
@@ -169,7 +169,7 @@ namespace GroBuf.Tests
             [GroBufSizeCounter]
             public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
-                return (o, writeEmpty) => 8;
+                return (o, writeEmpty, context) => 8;
             }
 
             [GroBufWriter]

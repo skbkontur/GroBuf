@@ -28,7 +28,8 @@ namespace GroBuf.SizeCounters
             if(Type.IsValueType)
                 il.Box(Type); // stack: [customSerializer, (object)obj]
             context.LoadWriteEmpty(); // stack: [customSerializer, (object)obj, writeEmpty]
-            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.CountSize(null, false)), typeof(IGroBufCustomSerializer)); // stack: [customSerializer.CountSize((object)obj, writeEmpty)]
+            context.LoadContext(); // stack: [customSerializer, (object)obj, writeEmpty, context]
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.CountSize(null, false, null)), typeof(IGroBufCustomSerializer)); // stack: [customSerializer.CountSize((object)obj, writeEmpty, context)]
 
             var countLengthLabel = il.DefineLabel("countLength");
             il.Dup(); // stack: [size, size]

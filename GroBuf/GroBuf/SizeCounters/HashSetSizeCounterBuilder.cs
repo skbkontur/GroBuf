@@ -77,7 +77,8 @@ namespace GroBuf.SizeCounters
             il.Ldloc(slot); // stack: [size, slot]
             il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, slot.value]
             il.Ldc_I4(1); // stack: [size, slot.value, true]
-            context.CallSizeCounter(elementType); // stack: [size, writer(slot.value, true) = valueSize]
+            context.LoadContext(); // stack: [size, slot.value, true, context]
+            context.CallSizeCounter(elementType); // stack: [size, writer(slot.value, true, context) = valueSize]
             il.Add(); // stack: [size + valueSize]
 
             il.MarkLabel(nextLabel);

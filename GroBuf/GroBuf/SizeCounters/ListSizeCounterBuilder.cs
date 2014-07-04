@@ -68,7 +68,8 @@ namespace GroBuf.SizeCounters
             il.Ldloc(i); // stack: [size, items, i]
             il.Ldelem(elementType);
             il.Ldc_I4(1); // stack: [size, obj[i], true]
-            context.CallSizeCounter(elementType); // stack: [size, writer(obj[i], true) = itemSize]
+            context.LoadContext(); // stack: [size, obj[i], true, context]
+            context.CallSizeCounter(elementType); // stack: [size, writer(obj[i], true, context) = itemSize]
             il.Add(); // stack: [size + itemSize]
             il.Ldloc(count); // stack: [size, length]
             il.Ldloc(i); // stack: [size, length, i]

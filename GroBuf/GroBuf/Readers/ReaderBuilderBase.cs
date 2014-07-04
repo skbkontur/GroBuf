@@ -24,7 +24,7 @@ namespace GroBuf.Readers
                                                }, readerTypeBuilderContext.Module, true);
             readerTypeBuilderContext.SetReaderMethod(Type, method);
             var il = new GroboIL(method);
-            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, Type.IsValueType && (Type.IsPrimitive || Type.IsEnum || (Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>))));
+            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, Type.IsValueType);
 
             ReadTypeCodeAndCheck(context); // Read TypeCode and check
             ReadNotEmpty(context); // Read obj

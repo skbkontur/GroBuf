@@ -105,6 +105,7 @@
     <Compile Include="IGroBufCustomSerializerCollection.cs" />
     <Compile Include="InternalSerializer.cs" />
     <Compile Include="MissingConstructorException.cs" />
+    <Compile Include="ReaderContext.cs" />
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
@@ -162,6 +163,7 @@
     <Compile Include="SizeCounters\SizeCounterBuilderContext.cs" />
     <Compile Include="SizeCounters\StringSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\TimeSpanSizeCounterBuilder.cs" />
+    <Compile Include="WriterContext.cs" />
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />

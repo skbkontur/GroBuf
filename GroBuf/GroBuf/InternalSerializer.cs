@@ -12,9 +12,9 @@ namespace GroBuf
             this.ignoreCustomSerializer = ignoreCustomSerializer;
         }
 
-        public int CountSize(object obj, bool writeEmpty)
+        public int CountSize(object obj, bool writeEmpty, WriterContext context)
         {
-            return groBufWriter.GetSize(type, ignoreCustomSerializer, obj, writeEmpty);
+            return groBufWriter.GetSize(type, ignoreCustomSerializer, obj, writeEmpty, context);
         }
 
         public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)

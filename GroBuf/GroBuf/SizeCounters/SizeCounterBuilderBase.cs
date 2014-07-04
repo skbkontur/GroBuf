@@ -15,7 +15,7 @@ namespace GroBuf.SizeCounters
 
         public void BuildSizeCounter(SizeCounterBuilderContext sizeCounterBuilderContext)
         {
-            var method = new DynamicMethod("Count_" + Type.Name + "_" + Guid.NewGuid(), typeof(int), new[] {Type, typeof(bool)}, sizeCounterBuilderContext.Module, true);
+            var method = new DynamicMethod("Count_" + Type.Name + "_" + Guid.NewGuid(), typeof(int), new[] {Type, typeof(bool), typeof(WriterContext)}, sizeCounterBuilderContext.Module, true);
             sizeCounterBuilderContext.SetSizeCounterMethod(Type, method);
             var il = new GroboIL(method);
             var context = new SizeCounterMethodBuilderContext(sizeCounterBuilderContext, il);

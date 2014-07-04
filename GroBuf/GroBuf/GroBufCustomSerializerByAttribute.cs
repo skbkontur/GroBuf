@@ -11,9 +11,9 @@ namespace GroBuf
             this.readerDelegate = readerDelegate;
         }
 
-        public int CountSize(object obj, bool writeEmpty)
+        public int CountSize(object obj, bool writeEmpty, WriterContext context)
         {
-            return sizeCounter(obj, writeEmpty);
+            return sizeCounter(obj, writeEmpty, context);
         }
 
         public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)

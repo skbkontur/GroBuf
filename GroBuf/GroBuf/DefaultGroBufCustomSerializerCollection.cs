@@ -22,7 +22,7 @@ namespace GroBuf
                 throw new MissingMethodException("Missing grobuf custom reader for type '" + customSerializerType + "'");
             var sizeCounterDelegate = (SizeCounterDelegate)customSizeCounter.Invoke(
                 null,
-                new object[] {(Func<Type, SizeCounterDelegate>)(type => ((o, empty) => factory(type).CountSize(o, empty))), (SizeCounterDelegate)(baseSerializer.CountSize)});
+                new object[] {(Func<Type, SizeCounterDelegate>)(type => ((o, empty, context) => factory(type).CountSize(o, empty, context))), (SizeCounterDelegate)(baseSerializer.CountSize)});
             var writerDelegate = (WriterDelegate)writer.Invoke(
                 null,
                 new object[] {(Func<Type, WriterDelegate>)(type => ((object o, bool empty, IntPtr result, ref int index, int resultLength) => factory(type).Write(o, empty, result, ref index, resultLength))), (WriterDelegate)(baseSerializer.Write)});

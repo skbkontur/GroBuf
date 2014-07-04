@@ -39,6 +39,14 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
+        /// Loads <c>context</c> onto the evaluation stack
+        /// </summary>
+        public void LoadContext()
+        {
+            Il.Ldarg(2);
+        }
+
+        /// <summary>
         /// Loads the specified field onto the evaluation stack
         /// </summary>
         /// <param name="field">Field to load</param>
@@ -77,7 +85,7 @@ namespace GroBuf.SizeCounters
                 Il.Ldc_I4(counter.Index);
                 Il.Ldelem(typeof(IntPtr));
             }
-            Il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)});
+            Il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)});
         }
 
         public SizeCounterBuilderContext Context { get; private set; }

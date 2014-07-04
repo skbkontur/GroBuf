@@ -71,7 +71,7 @@ namespace GroBuf.SizeCounters
 
         private static KeyValuePair<Delegate, IntPtr> GetCounter(SizeCounterMethodBuilderContext context, Type type)
         {
-            var method = new DynamicMethod("CastTo_" + type.Name + "_AndCount_" + Guid.NewGuid(), typeof(int), new[] {typeof(object), typeof(bool)}, context.Context.Module, true);
+            var method = new DynamicMethod("CastTo_" + type.Name + "_AndCount_" + Guid.NewGuid(), typeof(int), new[] {typeof(object), typeof(bool), typeof(WriterContext)}, context.Context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(0); // stack: [obj]
             if(type.IsValueType)
@@ -82,8 +82,9 @@ namespace GroBuf.SizeCounters
             var counter = context.Context.GetCounter(type).Pointer;
             if(counter == IntPtr.Zero)
                 throw new InvalidOperationException("Attempt to call method at Zero pointer");
+            il.Ldarg(2);
             il.Ldc_IntPtr(counter);
-            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool)}); // stack: [count<type>((type)obj, writeEmpty)]
+            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // stack: [count<type>((type)obj, writeEmpty, context)]
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(SizeCounterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
