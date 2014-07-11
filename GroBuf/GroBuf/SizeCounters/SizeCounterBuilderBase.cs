@@ -47,7 +47,6 @@ namespace GroBuf.SizeCounters
                 il.Add(); // stack: [context, context.references + 1]
                 il.Stfld(WriterContext.ReferencesField); // context.references += 1; stack: []
                 il.Ldc_I4(5); // stack: [5]
-                context.UpdateIndex();
                 il.Ret(); // return 5
                 il.MarkLabel(storeLocationLabel);
                 context.LoadContext(); // stack: [context]
@@ -58,7 +57,6 @@ namespace GroBuf.SizeCounters
             }
 
             CountSizeNotEmpty(context); // Count size
-            context.UpdateIndex();
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(SizeCounterDelegate<>).MakeGenericType(Type));
             var pointer = GroBufHelpers.ExtractDynamicMethodPointer(method);

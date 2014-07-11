@@ -294,14 +294,14 @@ namespace GroBuf.Readers
             Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
             var doneLabel = Il.DefineLabel("done");
             Il.Brfalse(doneLabel); // if(context.objects == null) goto done; stack: []
-
-            Il.Ldloca(Index);
-            Il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
-            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
-
-            Il.Ldstr(type.Name);
-            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
-
+//
+//            Il.Ldloca(Index);
+//            Il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
+//            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
+//
+//            Il.Ldstr(type.Name);
+//            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
+//
             LoadContext(); // stack: [context]
             Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
             Il.Ldloc(Index); // stack: [context.objects, index]

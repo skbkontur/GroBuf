@@ -76,6 +76,31 @@ namespace GroBuf.Tests
             Assert.AreEqual("zzz", aa.ArrayB[0].S);
         }
 
+        [Test]
+        public void TestTwoObjects()
+        {
+            var b = new TestClassB { S = "zzz" };
+            var a = new TestClassA { B = b, ArrayB = new[] { b }, S = "zzz" };
+            a.A = a;
+            var data = serializer.Serialize(a, a);
+            int index = 0;
+            var aa = serializer.Deserialize<TestClassA>(data, ref index, data.Length);
+            var aaa = serializer.Deserialize<TestClassAChanged>(data, ref index, data.Length);
+            Assert.AreSame(aa, aa.A);
+            Assert.IsNotNull(aa.ArrayB);
+            Assert.AreEqual(1, aa.ArrayB.Length);
+            Assert.IsNotNull(aa.B);
+            Assert.AreEqual("zzz", aa.B.S);
+            Assert.AreEqual("zzz", aa.S);
+            Assert.AreSame(aa.B, aa.ArrayB[0]);
+            Assert.AreSame(aaa, aaa.A);
+            Assert.IsNotNull(aaa.ArrayB);
+            Assert.AreEqual(1, aaa.ArrayB.Length);
+            Assert.AreEqual("zzz", aaa.S);
+            Assert.IsNotNull(aaa.ArrayB[0]);
+            Assert.AreEqual("zzz", aaa.ArrayB[0].S);
+        }
+
         public class TestClassA
         {
             public TestClassB B { get; set; }

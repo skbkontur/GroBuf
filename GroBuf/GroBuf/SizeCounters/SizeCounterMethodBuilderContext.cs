@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 
 using GrEmit;
+using GrEmit.Utils;
 
 namespace GroBuf.SizeCounters
 {
@@ -62,21 +63,7 @@ namespace GroBuf.SizeCounters
         public void ReturnForNull()
         {
             LoadWriteEmpty(); // stack: [writeEmpty]
-            UpdateIndex();
             Il.Ret();
-        }
-
-        public void UpdateIndex()
-        {
-            if(!packReferences) return;
-            Il.Stloc(size);
-            LoadContext(); // stack: [context]
-            Il.Dup(); // stack: [context, context]
-            Il.Ldfld(WriterContext.IndexField); // stack: [context, context.index]
-            Il.Ldloc(size); // stack: [context, context.index, size]
-            Il.Add(); // stack: [context, context.index + size]
-            Il.Stfld(WriterContext.IndexField); // context.index += size; stack: []
-            Il.Ldloc(size);
         }
 
 //        public void LoadSizeCounter(Type type)

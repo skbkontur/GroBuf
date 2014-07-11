@@ -34,6 +34,12 @@ namespace GroBuf.Writers
             if (!Type.IsValueType && IsReference/* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/)
             {
                 // Pack reference
+                var index = il.DeclareLocal(typeof(int));
+                context.LoadIndex(); // stack: [external index]
+                context.LoadContext(); // stack: [external index, context]
+                il.Ldfld(WriterContext.StartField); // stack: [external index, context.start]
+                il.Sub(); // stack: [external index - context.start]
+                il.Stloc(index); // index = external index - context.start; stack: []
                 context.LoadContext(); // stack: [context]
                 il.Ldfld(typeof(WriterContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance)); // stack: [context.objects]
                 context.LoadObj(); // stack: [context.objects, obj]
@@ -44,11 +50,11 @@ namespace GroBuf.Writers
                 var storeLocationLabel = il.DefineLabel("storeLocation");
                 il.Brfalse(storeLocationLabel);
                 // Current object is in dict
-                context.LoadIndex(); // stack: [index]
+                il.Ldloc(index);
                 il.Ldloc(reference); // stack: [index, reference]
                 var skipSelfLabel = il.DefineLabel("skipSelf");
                 il.Beq(skipSelfLabel); // if(index == reference) goto skipSelf; stack: []
-                context.LoadIndex(); // stack: [index]
+                il.Ldloc(index); // stack: [index]
                 il.Ldloc(reference); // stack: [index, reference]
                 var badReferenceLabel = il.DefineLabel("badReference");
                 il.Blt(typeof(int), badReferenceLabel); // if(index < reference) goto badReference; stack: []
@@ -66,7 +72,7 @@ namespace GroBuf.Writers
                 context.LoadContext(); // stack: [context]
                 il.Ldfld(typeof(WriterContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance)); // stack: [context.objects]
                 context.LoadObj(); // stack: [context.objects, obj]
-                context.LoadIndex(); // stack: [context.objects, obj, index]
+                il.Ldloc(index); // stack: [context.objects, obj, index]
                 il.Call(HackHelpers.GetMethodDefinition<Dictionary<object, int>>(dict => dict.Add(null, 0)), typeof(Dictionary<object, int>)); // context.objects.Add(obj, index);
                 il.MarkLabel(skipSelfLabel);
             }
