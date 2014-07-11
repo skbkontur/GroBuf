@@ -31,18 +31,16 @@ namespace GroBuf.Readers
             if (!Type.IsValueType && IsReference/* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/)
             {
                 // Pack reference
-//                context.LoadContext(); // stack: [context]
-//                il.Dup(); // stack: [context, context]
+                context.LoadContext(); // stack: [context]
+                il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+                var notReadLabel = il.DefineLabel("notRead");
+                il.Brfalse(notReadLabel);
                 context.LoadIndex(); // stack: [external index]
                 context.LoadContext(); // stack: [external index, context]
                 il.Ldfld(ReaderContext.StartField); // stack: [external index, context.start]
                 il.Sub(); // stack: [external index - context.start]
                 il.Stloc(context.Index); // index = external index - context.start; stack: []
 
-                context.LoadContext(); // stack: [context]
-                il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
-                var notReadLabel = il.DefineLabel("notRead");
-                il.Brfalse(notReadLabel);
                 context.LoadContext(); // stack: [context]
                 il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
                 il.Ldloc(context.Index); // stack: [context.objects, index]
@@ -59,20 +57,20 @@ namespace GroBuf.Readers
                 context.SkipValue(); // Skip value - it has already been read
                 il.Ret();
                 il.MarkLabel(notReadLabel);
-
-//                il.Ldfld(typeof(ReaderContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance)); // stack: [context.objects]
-//                il.Ldlen(); // stack: [context.objects.Length]
-//                il.Ldloc(context.Index); // stack: [context.objects.Length, index]
-//                var objectsIsBigEnoughLabel = il.DefineLabel("objectsIsBigEnough");
-//                il.Bgt(typeof(int), objectsIsBigEnoughLabel); // if(context.objects.Length > index) goto objectsIsBigEnough; stack: []
-//                il.Ldstr("Too many reference type objects");
-//                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
-//                il.Throw();
-//                il.MarkLabel(objectsIsBigEnoughLabel);
                 il.Ldloc(context.TypeCode); // stack: [typeCode]
                 il.Ldc_I4((int)GroBufTypeCode.Reference); // stack: [typeCode, GroBufTypeCode.Reference]
                 var readUsualLabel = il.DefineLabel("readUsual");
                 il.Bne(readUsualLabel); // if(typeCode != GroBufTypeCode.Reference) goto readUsual; stack: []
+
+                context.LoadContext(); // stack: [context]
+                il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+                var objectsIsNotNullLabel = il.DefineLabel("objectsIsNotNull");
+                il.Brtrue(objectsIsNotNullLabel); // if(context.objects != null) goto objectsIsNotNull; stack: [context.objects]
+                il.Ldstr("Reference is not valid at this point");
+                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+                il.Throw();
+                il.MarkLabel(objectsIsNotNullLabel);
+
                 context.IncreaseIndexBy1(); // index = index + 1; stack: []
                 il.Ldc_I4(4);
                 context.AssertLength();
@@ -91,13 +89,6 @@ namespace GroBuf.Readers
                 il.MarkLabel(goodReferenceLabel);
                 context.LoadContext(); // stack: [context]
                 il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
-                il.Dup(); // stack: [context.objects, context.objects]
-                var objectsIsNotNullLabel = il.DefineLabel("objectsIsNotNull");
-                il.Brtrue(objectsIsNotNullLabel); // if(context.objects != null) goto objectsIsNotNull; stack: [context.objects]
-                il.Ldstr("Reference is not valid at this point");
-                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
-                il.Throw();
-                il.MarkLabel(objectsIsNotNullLabel);
                 il.Ldloc(reference); // stack: [context.objects, reference]
                 il.Ldloca(obj); // stack: [context.objects, reference, ref obj]
                 il.Call(HackHelpers.GetMethodDefinition<Dictionary<int, object>>(dict => dict.TryGetValue(0, out dummy)), typeof(Dictionary<int, object>)); // stack: [context.objects.TryGetValue(reference, out obj)]
@@ -111,7 +102,6 @@ namespace GroBuf.Readers
                 il.MarkLabel(readObjectLabel);
 
                 // Referenced object has not been read - this means that the object reference belongs to is property that has been deleted
-
                 context.LoadData(); // stack: [data]
                 il.Ldloc(reference); // stack: [data, reference]
                 context.LoadContext(); // stack: [data, reference, context]
@@ -123,11 +113,6 @@ namespace GroBuf.Readers
                 context.LoadContext(); // stack: [data, ref reference, ref result, context]
                 context.CallReader(Type);
                 il.Ret();
-//                il.Ldloca(reference);
-//                il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
-//                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
-//                il.Throw();
-
                 il.MarkLabel(readUsualLabel);
             }
 
