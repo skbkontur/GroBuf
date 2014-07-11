@@ -37,5 +37,7 @@ namespace GroBuf.Readers
             il.Newobj(constructor); // stack: [ref result, new elementType?(value)]
             il.Stobj(Type); // result = new elementType?(value)
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

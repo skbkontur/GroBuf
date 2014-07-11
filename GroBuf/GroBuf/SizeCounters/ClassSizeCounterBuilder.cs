@@ -90,5 +90,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(5); // stack: [size, 5]
             il.Add(); // stack: [size + 5]
         }
+
+        protected override bool IsReference { get { return true; } }
     }
 }

@@ -24,27 +24,114 @@ namespace GroBuf.Readers
                                                }, readerTypeBuilderContext.Module, true);
             readerTypeBuilderContext.SetReaderMethod(Type, method);
             var il = new GroboIL(method);
-            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, Type.IsValueType);
+            var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, !Type.IsValueType && IsReference/* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/);
 
             ReadTypeCodeAndCheck(context); // Read TypeCode and check
-            ReadNotEmpty(context); // Read obj
 
-            if(context.Index != null)
+            if (!Type.IsValueType && IsReference/* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/)
             {
-                context.LoadContext();
-                il.Ldfld(typeof(ReaderContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance));
-                var objectsIsNullLabel = il.DefineLabel("objectsIsNull");
-                il.Brfalse(objectsIsNullLabel);
-                context.LoadContext();
-                il.Ldfld(typeof(ReaderContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance));
-                il.Ldloc(context.Index);
-                context.LoadResult(Type);
-                if(Type.IsValueType)
-                    il.Box(Type);
-                il.Stelem(typeof(object));
-                il.MarkLabel(objectsIsNullLabel);
+                // Pack reference
+//                context.LoadContext(); // stack: [context]
+//                il.Dup(); // stack: [context, context]
+                context.LoadIndex(); // stack: [external index]
+                context.LoadContext(); // stack: [external index, context]
+                il.Ldfld(ReaderContext.StartField); // stack: [external index, context.start]
+                il.Sub(); // stack: [external index - context.start]
+                il.Stloc(context.Index); // index = external index - context.start; stack: []
+
+                context.LoadContext(); // stack: [context]
+                il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+                var notReadLabel = il.DefineLabel("notRead");
+                il.Brfalse(notReadLabel);
+                context.LoadContext(); // stack: [context]
+                il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+                il.Ldloc(context.Index); // stack: [context.objects, index]
+                var obj = il.DeclareLocal(typeof(object));
+                il.Ldloca(obj);
+                object dummy;
+                il.Call(HackHelpers.GetMethodDefinition<Dictionary<int, object>>(dict => dict.TryGetValue(0, out dummy)), typeof(Dictionary<int, object>)); // stack: [context.objects.TryGetValue(index, out obj)]
+                il.Brfalse(notReadLabel); // if(!context.objects.TryGetValue(index, out obj)) goto notRead;
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(obj); // stack: [ref result, obj]
+                il.Castclass(Type); // stack: [ref result, (Type)obj]
+                il.Stind(Type); // result = (Type)obj; stack: []
+                context.IncreaseIndexBy1(); // Skip type code
+                context.SkipValue(); // Skip value - it has already been read
+                il.Ret();
+                il.MarkLabel(notReadLabel);
+
+//                il.Ldfld(typeof(ReaderContext).GetField("objects", BindingFlags.Public | BindingFlags.Instance)); // stack: [context.objects]
+//                il.Ldlen(); // stack: [context.objects.Length]
+//                il.Ldloc(context.Index); // stack: [context.objects.Length, index]
+//                var objectsIsBigEnoughLabel = il.DefineLabel("objectsIsBigEnough");
+//                il.Bgt(typeof(int), objectsIsBigEnoughLabel); // if(context.objects.Length > index) goto objectsIsBigEnough; stack: []
+//                il.Ldstr("Too many reference type objects");
+//                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+//                il.Throw();
+//                il.MarkLabel(objectsIsBigEnoughLabel);
+                il.Ldloc(context.TypeCode); // stack: [typeCode]
+                il.Ldc_I4((int)GroBufTypeCode.Reference); // stack: [typeCode, GroBufTypeCode.Reference]
+                var readUsualLabel = il.DefineLabel("readUsual");
+                il.Bne(readUsualLabel); // if(typeCode != GroBufTypeCode.Reference) goto readUsual; stack: []
+                context.IncreaseIndexBy1(); // index = index + 1; stack: []
+                il.Ldc_I4(4);
+                context.AssertLength();
+                context.GoToCurrentLocation();
+                var reference = il.DeclareLocal(typeof(int));
+                il.Ldind(typeof(int)); // stack: [*(int*)data[index]]
+                il.Stloc(reference); // reference = *(int*)data[index]; stack: []
+                context.IncreaseIndexBy4(); // index = index + 4; stack: []
+                il.Ldloc(context.Index); // stack: [index]
+                il.Ldloc(reference); // stack: [index, reference]
+                var goodReferenceLabel = il.DefineLabel("goodReference");
+                il.Bgt(typeof(int), goodReferenceLabel); // if(index > reference) goto goodReference; stack: []
+                il.Ldstr("Bad reference");
+                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+                il.Throw();
+                il.MarkLabel(goodReferenceLabel);
+                context.LoadContext(); // stack: [context]
+                il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+                il.Dup(); // stack: [context.objects, context.objects]
+                var objectsIsNotNullLabel = il.DefineLabel("objectsIsNotNull");
+                il.Brtrue(objectsIsNotNullLabel); // if(context.objects != null) goto objectsIsNotNull; stack: [context.objects]
+                il.Ldstr("Reference is not valid at this point");
+                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+                il.Throw();
+                il.MarkLabel(objectsIsNotNullLabel);
+                il.Ldloc(reference); // stack: [context.objects, reference]
+                il.Ldloca(obj); // stack: [context.objects, reference, ref obj]
+                il.Call(HackHelpers.GetMethodDefinition<Dictionary<int, object>>(dict => dict.TryGetValue(0, out dummy)), typeof(Dictionary<int, object>)); // stack: [context.objects.TryGetValue(reference, out obj)]
+                var readObjectLabel = il.DefineLabel("readObject");
+                il.Brfalse(readObjectLabel); // if(!context.objects.TryGetValue(reference, out obj)) goto readObjects; stack: []
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldloc(obj); // stack: [ref result, obj]
+                il.Castclass(Type); // stack: [ref result, (Type)obj]
+                il.Stind(Type); // result = (Type)obj; stack: []
+                il.Ret();
+                il.MarkLabel(readObjectLabel);
+
+                // Referenced object has not been read - this means that the object reference belongs to is property that has been deleted
+
+                context.LoadData(); // stack: [data]
+                il.Ldloc(reference); // stack: [data, reference]
+                context.LoadContext(); // stack: [data, reference, context]
+                il.Ldfld(ReaderContext.StartField); // stack: [data, reference, context.start]
+                il.Add(); // stack: [data, reference + context.start]
+                il.Stloc(reference); // reference += context.start; stack: [data]
+                il.Ldloca(reference); // stack: [data, ref reference]
+                context.LoadResultByRef(); // stack: [data, ref reference, ref result]
+                context.LoadContext(); // stack: [data, ref reference, ref result, context]
+                context.CallReader(Type);
+                il.Ret();
+//                il.Ldloca(reference);
+//                il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
+//                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] { typeof(string) }));
+//                il.Throw();
+
+                il.MarkLabel(readUsualLabel);
             }
 
+            ReadNotEmpty(context); // Read obj
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(ReaderDelegate<>).MakeGenericType(Type));
             var pointer = GroBufHelpers.ExtractDynamicMethodPointer(method);
@@ -60,6 +147,8 @@ namespace GroBuf.Readers
         protected abstract void BuildConstantsInternal(ReaderConstantsBuilderContext context);
         protected abstract void ReadNotEmpty(ReaderMethodBuilderContext context);
 
+        protected abstract bool IsReference { get; }
+
         protected Type Type { get; private set; }
 
         /// <summary>
@@ -71,12 +160,6 @@ namespace GroBuf.Readers
         private static void ReadTypeCodeAndCheck(ReaderMethodBuilderContext context)
         {
             var il = context.Il;
-            if (context.Index != null)
-            {
-                context.LoadContext();
-                il.Ldfld(typeof(ReaderContext).GetField("count", BindingFlags.Public | BindingFlags.Instance));
-                il.Stloc(context.Index);
-            }
             var notEmptyLabel = il.DefineLabel("notEmpty");
             il.Ldc_I4(1);
             context.AssertLength();
@@ -94,15 +177,6 @@ namespace GroBuf.Readers
             il.MarkLabel(notEmptyLabel);
 
             context.CheckTypeCode();
-
-            if(context.Index != null)
-            {
-                context.LoadContext();
-                il.Ldloc(context.Index);
-                il.Ldc_I4(1);
-                il.Add();
-                il.Stfld(typeof(ReaderContext).GetField("count", BindingFlags.Public | BindingFlags.Instance));
-            }
         }
     }
 }

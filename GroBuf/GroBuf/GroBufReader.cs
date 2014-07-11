@@ -81,9 +81,20 @@ namespace GroBuf
             return Read<T>(data, ref index, length);
         }
 
-        public void Read<T>(IntPtr data, ref int index, int length, ref T result)
+        public unsafe void Read<T>(IntPtr data, ref int index, int length, ref T result)
         {
-            GetReader<T>(false)(data, ref index, ref result, new ReaderContext(length, 0));
+            int references = 0;
+            if(index >= length)
+                throw new DataCorruptedException("Unexpected end of data");
+            var start = (byte*)(data + index);
+            if(*start == (byte)GroBufTypeCode.Reference)
+            {
+                if(index + 5 >= length)
+                    throw new DataCorruptedException("Unexpected end of data");
+                references = *(int*)(start + 1);
+                index += 5;
+            }
+            GetReader<T>(false)(data, ref index, ref result, new ReaderContext(length, index, references));
         }
 
         public T Read<T>(IntPtr data, ref int index, int length)
@@ -151,9 +162,20 @@ namespace GroBuf
             return Read(type, data, ref index, length);
         }
 
-        public void Read(Type type, IntPtr data, ref int index, int length, ref object result)
+        public unsafe void Read(Type type, IntPtr data, ref int index, int length, ref object result)
         {
-            GetReader(type, false)(data, ref index, ref result, new ReaderContext(length, 0));
+            int references = 0;
+            if (index >= length)
+                throw new DataCorruptedException("Unexpected end of data");
+            var start = (byte*)(data + index);
+            if (*start == (byte)GroBufTypeCode.Reference)
+            {
+                if (index + 5 >= length)
+                    throw new DataCorruptedException("Unexpected end of data");
+                references = *(int*)(start + 1);
+                index += 5;
+            }
+            GetReader(type, false)(data, ref index, ref result, new ReaderContext(length, index, references));
         }
 
         public void Read(Type type, bool ignoreCustomSerialization, IntPtr data, ref int index, ref object result, ReaderContext context)

@@ -55,7 +55,11 @@ namespace GroBuf.Readers
                 il.Unbox_Any(Type); // stack: [ref result, (Type)local]
                 il.Stobj(Type); // result = (Type)local
             }
+
+            context.StoreObject(Type);
         }
+
+        protected override bool IsReference { get { return false; } }
 
         private readonly IGroBufCustomSerializer customSerializer;
     }

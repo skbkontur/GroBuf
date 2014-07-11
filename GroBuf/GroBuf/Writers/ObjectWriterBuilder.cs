@@ -61,6 +61,8 @@ namespace GroBuf.Writers
             context.WriteNull();
         }
 
+        protected override bool IsReference { get { return false; } }
+
         private static KeyValuePair<Delegate, IntPtr>[] GetWriters(WriterTypeBuilderContext context)
         {
             var dict = primitiveTypes.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));

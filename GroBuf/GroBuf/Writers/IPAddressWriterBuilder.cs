@@ -29,5 +29,7 @@ namespace GroBuf.Writers
             context.LoadContext(); // stack: [obj.GetAddressBytes(), writeEmpty, result, ref index, context]
             context.CallWriter(typeof(byte[])); // writer(obj.GetAddressBytes(), writeEmpty, result, ref index, context)
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

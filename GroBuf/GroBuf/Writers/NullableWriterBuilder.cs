@@ -40,5 +40,7 @@ namespace GroBuf.Writers
             context.Il.Brtrue(notEmptyLabel); // if(obj.HasValue) goto notEmpty;
             return true;
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

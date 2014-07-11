@@ -88,5 +88,7 @@ namespace GroBuf.Writers
                 throw new NotSupportedException();
             }
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

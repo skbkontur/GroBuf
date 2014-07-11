@@ -87,6 +87,8 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy1();
         }
 
+        protected override bool IsReference { get { return false; } }
+
         private static readonly MethodInfo dateTimeFromBinaryMethod = HackHelpers.GetMethodDefinition((Expression<Func<long, object>>)(data => DateTime.FromBinary(data)));
     }
 }

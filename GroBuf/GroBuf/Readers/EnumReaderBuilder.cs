@@ -98,6 +98,8 @@ namespace GroBuf.Readers
             context.CallReader(typeof(int)); // reader<int>(pinnedData, ref index, ref result, context)
         }
 
+        protected override bool IsReference { get { return false; } }
+
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)
         {
             var names = Enum.GetNames(Type);

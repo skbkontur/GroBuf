@@ -29,5 +29,7 @@ namespace GroBuf.Writers
             context.LoadContext(); // stack: [obj._ticks, writeEmpty, result, ref index, context]
             context.CallWriter(typeof(long)); // writer(obj._ticks, writeEmpty, result, ref index, context)
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

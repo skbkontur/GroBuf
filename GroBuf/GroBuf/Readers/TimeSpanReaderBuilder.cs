@@ -32,5 +32,7 @@ namespace GroBuf.Readers
             il.Newobj(constructor); // stack: [ref result, new TimeSpan(ticks)]
             il.Stobj(Type); // result = new TimeSpan(ticks)
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

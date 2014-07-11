@@ -32,5 +32,7 @@ namespace GroBuf.Readers
             il.Newobj(constructor); // stack: [ref result, new IPAddress(value)]
             il.Stind(Type); // result = new IPAddress(value)
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

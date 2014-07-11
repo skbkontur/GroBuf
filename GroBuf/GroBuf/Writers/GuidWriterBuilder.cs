@@ -32,5 +32,7 @@ namespace GroBuf.Writers
             il.Stind(typeof(long)); // result[index] = (int64)*(obj + 8)
             context.IncreaseIndexBy8(); // index = index + 8
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

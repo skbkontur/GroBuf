@@ -50,6 +50,8 @@ namespace GroBuf.Readers
             il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic), Type); // hashSet.Initialize(length); stack: [ref result, hashSet]
             il.Stind(typeof(object)); // result = hashSet; stack: []
 
+            context.StoreObject(Type);
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -88,6 +90,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private readonly Type elementType;
     }

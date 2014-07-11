@@ -72,15 +72,17 @@ namespace GroBuf.Readers
 
             if(!Type.IsValueType)
             {
-                context.LoadResultByRef(); // stack: [ref result]
-                il.Ldind(typeof(object)); // stack: [result]
+                context.LoadResultByRef(); // stack: [data length, ref result]
+                il.Ldind(typeof(object)); // stack: [data length, result]
                 var notNullLabel = il.DefineLabel("notNull");
-                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: []
-                context.LoadResultByRef(); // stack: [ref result]
+                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data length]
+                context.LoadResultByRef(); // stack: [data length, ref result]
                 ObjectConstructionHelper.EmitConstructionOfType(Type, il);
-                il.Stind(typeof(object)); // result = new type(); stack: []
+                il.Stind(typeof(object)); // result = new type(); stack: [data length]
                 il.MarkLabel(notNullLabel);
             }
+
+            context.StoreObject(Type);
 
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(data length == 0) goto done; stack: []
@@ -149,6 +151,8 @@ namespace GroBuf.Readers
 
             il.MarkLabel(doneLabel);
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {

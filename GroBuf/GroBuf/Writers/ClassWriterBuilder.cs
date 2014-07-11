@@ -143,5 +143,7 @@ namespace GroBuf.Writers
             il.Ldloc(length); // stack: [result + start + 1, length]
             il.Stind(typeof(int)); // *(int*)(result + start + 1) = length
         }
+
+        protected override bool IsReference { get { return true; } }
     }
 }

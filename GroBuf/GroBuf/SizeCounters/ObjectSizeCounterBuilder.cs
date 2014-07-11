@@ -36,23 +36,27 @@ namespace GroBuf.SizeCounters
 
             context.LoadObj(); // stack: [obj]
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
-            context.LoadField(countersField); // stack: [obj, writeEmpty, counters]
-            context.LoadObj(); // stack: [obj, writeEmpty, result, ref index, counters, obj]
-            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, counters, obj.GetType()]
-            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, counters, GroBufHelpers.GetTypeCode(obj.GetType())]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            il.Dup(); // stack: [obj, writeEmpty, counters[GroBufHelpers.GetTypeCode(obj.GetType())], counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            context.LoadContext(); // stack: [obj, writeEmpty, context]
+            context.LoadField(countersField); // stack: [obj, writeEmpty, context, counters]
+            context.LoadObj(); // stack: [obj, writeEmpty, context, ref index, counters, obj]
+            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, context, counters, obj.GetType()]
+            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, context, counters, GroBufHelpers.GetTypeCode(obj.GetType())]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, context, counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            il.Dup(); // stack: [obj, writeEmpty, context, counters[GroBufHelpers.GetTypeCode(obj.GetType())], counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
             var returnForNullLabel = il.DefineLabel("returnForNull");
             il.Brfalse(returnForNullLabel); // if(counters[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto returnForNull;
-            var parameterTypes = new[] {typeof(object), typeof(bool)};
+            var parameterTypes = new[] {typeof(object), typeof(bool), typeof(WriterContext)};
             il.Calli(CallingConventions.Standard, typeof(int), parameterTypes); // stack: [counters[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty)]
             il.Ret();
             il.MarkLabel(returnForNullLabel);
             il.Pop();
             il.Pop();
             il.Pop();
+            il.Pop();
             context.ReturnForNull();
         }
+
+        protected override bool IsReference { get { return false; } }
 
         private static KeyValuePair<Delegate, IntPtr>[] GetCounters(SizeCounterMethodBuilderContext context)
         {
@@ -82,7 +86,7 @@ namespace GroBuf.SizeCounters
             var counter = context.Context.GetCounter(type).Pointer;
             if(counter == IntPtr.Zero)
                 throw new InvalidOperationException("Attempt to call method at Zero pointer");
-            il.Ldarg(2);
+            il.Ldarg(2); // stack: [(type)obj, writeEmpty, context]
             il.Ldc_IntPtr(counter);
             il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // stack: [count<type>((type)obj, writeEmpty, context)]
             il.Ret();

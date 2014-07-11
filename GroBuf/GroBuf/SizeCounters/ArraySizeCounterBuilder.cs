@@ -41,6 +41,8 @@ namespace GroBuf.SizeCounters
             return true;
         }
 
+        protected override bool IsReference { get { return true; } }
+
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;

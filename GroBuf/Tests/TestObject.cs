@@ -91,6 +91,16 @@ namespace GroBuf.Tests
             Assert.AreEqual("qxx", oo.Z);
         }
 
+        [Test]
+        public void TestPackReferences()
+        {
+            var o = new Az {Z = "zzz", S = "zzz", B = new Bz {S = new Cz {S = 123}}};
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<Az>(data);
+            Assert.AreEqual("zzz", oo.Z);
+            Assert.AreEqual("zzz", oo.S);
+        }
+
         public class A
         {
             public object S { get; set; }

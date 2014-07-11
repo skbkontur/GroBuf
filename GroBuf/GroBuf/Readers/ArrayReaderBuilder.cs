@@ -78,6 +78,9 @@ namespace GroBuf.Readers
                 il.Newarr(elementType); // stack: [ref result, new type[length]]
                 il.Stind(typeof(object)); // result = new type[length]; stack: []
             }
+
+            context.StoreObject(Type);
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -107,6 +110,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private static readonly MethodInfo resizeMethod = ((MethodCallExpression)((Expression<Action<int[]>>)(arr => Array.Resize(ref arr, 0))).Body).Method.GetGenericMethodDefinition();
         private readonly Type elementType;

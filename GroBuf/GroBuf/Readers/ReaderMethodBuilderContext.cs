@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using GrEmit;
@@ -8,13 +9,13 @@ namespace GroBuf.Readers
 {
     internal class ReaderMethodBuilderContext
     {
-        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il, bool simpleType)
+        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il, bool referenceType)
         {
             Context = context;
             Il = il;
             TypeCode = il.DeclareLocal(typeof(int));
             Length = il.DeclareLocal(typeof(uint));
-            Index = simpleType ? null : il.DeclareLocal(typeof(int));
+            Index = referenceType ? il.DeclareLocal(typeof(int)) : null;
         }
 
         /// <summary>
@@ -281,6 +282,32 @@ namespace GroBuf.Readers
         public void CallReader(Type type)
         {
             CallReader(Il, type, Context);
+        }
+
+        public void StoreObject(Type type)
+        {
+            if(Index == null) return;
+            if (type.IsValueType)
+                throw new InvalidOperationException("A reference type expected");
+            // Store in array of all references
+            LoadContext(); // stack: [context]
+            Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+            var doneLabel = Il.DefineLabel("done");
+            Il.Brfalse(doneLabel); // if(context.objects == null) goto done; stack: []
+
+            Il.Ldloca(Index);
+            Il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
+            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
+
+            Il.Ldstr(type.Name);
+            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
+
+            LoadContext(); // stack: [context]
+            Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+            Il.Ldloc(Index); // stack: [context.objects, index]
+            LoadResult(type); // stack: [context.objects, index, result]
+            Il.Call(HackHelpers.GetMethodDefinition<Dictionary<int,object>>(dict => dict.Add(0, null)), typeof(Dictionary<int, object>)); // context.objects.Add(index, result)
+            Il.MarkLabel(doneLabel);
         }
 
         public ReaderTypeBuilderContext Context { get; private set; }

@@ -25,7 +25,7 @@ namespace GroBuf
 
         public int GetSize<T>(T obj)
         {
-            return GetSize(obj, true);
+            return GetSize(false, obj, true);
         }
 
         public void Write<T>(T obj, IntPtr result, int length)
@@ -63,11 +63,21 @@ namespace GroBuf
         public unsafe byte[] Write<T>(bool ignoreCustomSerialization, T obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
-            var size = writerAndCounter.Item2(obj, true, new WriterContext(0));
-            var result = new byte[size];
+            var context = new WriterContext(0);
+            var size = writerAndCounter.Item2(obj, true, context);
+            var result = new byte[context.references > 0 ? size + 5 : size];
             int index = 0;
-            fixed(byte* r = &result[0])
-                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index, new WriterContext(size));
+            fixed (byte* r = &result[0])
+            {
+                var start = (IntPtr)r;
+                if (context.references > 0)
+                {
+                    *r = (byte)GroBufTypeCode.Reference;
+                    *(int*)(r + 1) = context.references;
+                    start = (IntPtr)(r + 5);
+                }
+                writerAndCounter.Item1(obj, true, start, ref index, new WriterContext(size));
+            }
             if (index != size)
                 throw new Exception("Bug: at the end of serialization index must point at the end of array");
             return result;
@@ -75,7 +85,9 @@ namespace GroBuf
 
         public int GetSize(Type type, object obj)
         {
-            return GetSize(type, obj, true);
+            var context = new WriterContext(0);
+            var result = GetSize(type, false, obj, true, context);
+            return context.references > 0 ? result + 5 : result;
         }
 
         public void Write(Type type, object obj, IntPtr result, int length)
@@ -115,22 +127,27 @@ namespace GroBuf
             return Write(type, false, obj);
         }
 
-        public unsafe byte[] Write(Type type, bool ignoreCustomSerialization, object obj)
+        private unsafe byte[] Write(Type type, bool ignoreCustomSerialization, object obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
-            var size = writerAndCounter.Item2(obj, true, new WriterContext(0));
-            var result = new byte[size];
+            var context = new WriterContext(0);
+            var size = writerAndCounter.Item2(obj, true, context);
+            var result = new byte[context.references > 0 ? size + 5 : size];
             int index = 0;
-            fixed(byte* r = &result[0])
-                writerAndCounter.Item1(obj, true, (IntPtr)r, ref index, new WriterContext(size));
+            fixed (byte* r = &result[0])
+            {
+                var start = (IntPtr)r;
+                if(context.references > 0)
+                {
+                    *r = (byte)GroBufTypeCode.Reference;
+                    *(int*)(r + 1) = context.references;
+                    start = (IntPtr)(r + 5);
+                }
+                writerAndCounter.Item1(obj, true, start, ref index, new WriterContext(size));
+            }
             if(index != size)
                 throw new Exception("At the end of serialization index must point at the end of array");
             return result;
-        }
-
-        public int GetSize(Type type, object obj, bool writeEmpty)
-        {
-            return GetSize(type, false, obj, writeEmpty, new WriterContext(0));
         }
 
         public int GetSize(Type type, bool ignoreCustomSerialization, object obj, bool writeEmpty, WriterContext context)
@@ -140,14 +157,11 @@ namespace GroBuf
 
         public GroBufOptions Options { get { return options; } }
 
-        private int GetSize<T>(T obj, bool writeEmpty)
-        {
-            return GetSize(false, obj, writeEmpty);
-        }
-
         private int GetSize<T>(bool ignoreCustomSerialization, T obj, bool writeEmpty)
         {
-            return GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty, new WriterContext(0));
+            var context = new WriterContext(0);
+            var result = GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty, context);
+            return context.references > 0 ? result + 5 : result;
         }
 
         private Tuple<WriterDelegate, SizeCounterDelegate> GetWriterAndSizeCounter(Type type, bool ignoreCustomSerialization)

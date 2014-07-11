@@ -49,6 +49,8 @@ namespace GroBuf.Readers
             il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new Dictionary(length)]
             il.Stind(typeof(object)); // result = new Dictionary(length); stack: []
 
+            context.StoreObject(Type);
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -101,6 +103,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private readonly Type keyType;
         private readonly Type valueType;

@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using System.Reflection.Emit;
 
 using GrEmit;
 
@@ -8,8 +7,10 @@ namespace GroBuf.SizeCounters
 {
     internal class SizeCounterMethodBuilderContext
     {
-        public SizeCounterMethodBuilderContext(SizeCounterBuilderContext context, GroboIL il)
+        public SizeCounterMethodBuilderContext(SizeCounterBuilderContext context, GroboIL il, bool packReferences)
         {
+            this.packReferences = packReferences;
+            size = packReferences ? il.DeclareLocal(typeof(int)) : null;
             Context = context;
             Il = il;
         }
@@ -61,7 +62,21 @@ namespace GroBuf.SizeCounters
         public void ReturnForNull()
         {
             LoadWriteEmpty(); // stack: [writeEmpty]
+            UpdateIndex();
             Il.Ret();
+        }
+
+        public void UpdateIndex()
+        {
+            if(!packReferences) return;
+            Il.Stloc(size);
+            LoadContext(); // stack: [context]
+            Il.Dup(); // stack: [context, context]
+            Il.Ldfld(WriterContext.IndexField); // stack: [context, context.index]
+            Il.Ldloc(size); // stack: [context, context.index, size]
+            Il.Add(); // stack: [context, context.index + size]
+            Il.Stfld(WriterContext.IndexField); // context.index += size; stack: []
+            Il.Ldloc(size);
         }
 
 //        public void LoadSizeCounter(Type type)
@@ -90,5 +105,7 @@ namespace GroBuf.SizeCounters
 
         public SizeCounterBuilderContext Context { get; private set; }
         public GroboIL Il { get; private set; }
+        private readonly bool packReferences;
+        private GroboIL.Local size;
     }
 }

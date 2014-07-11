@@ -47,10 +47,13 @@ namespace GroBuf.SizeCounters
             il.Ldelem(typeof(long)); // stack: [hashCodes[obj % hashCodes.Length] = hashCode]
             il.Brfalse(countAsIntLabel); // if(hashCode == 0) goto countAsInt;
             il.Ldc_I4(9); // stack: [9]
+            context.UpdateIndex();
             il.Ret(); // return 9;
             il.MarkLabel(countAsIntLabel);
             il.Ldc_I4(5); // stack: [5]
         }
+
+        protected override bool IsReference { get { return false; } }
 
         private KeyValuePair<ulong[], int[]> BuildHashCodesTable()
         {
