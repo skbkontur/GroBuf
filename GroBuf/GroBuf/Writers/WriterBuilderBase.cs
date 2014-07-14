@@ -31,7 +31,7 @@ namespace GroBuf.Writers
                 context.WriteNull(); // Write null & return
             il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
 
-            if (!Type.IsValueType && IsReference/* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/)
+            if (!Type.IsValueType && IsReference && writerTypeBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences))
             {
                 // Pack reference
                 var index = il.DeclareLocal(typeof(int));

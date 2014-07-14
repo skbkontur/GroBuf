@@ -20,14 +20,14 @@ namespace GroBuf.SizeCounters
             var method = new DynamicMethod("Count_" + Type.Name + "_" + Guid.NewGuid(), typeof(int), new[] {Type, typeof(bool), typeof(WriterContext)}, sizeCounterBuilderContext.Module, true);
             sizeCounterBuilderContext.SetSizeCounterMethod(Type, method);
             var il = new GroboIL(method);
-            var context = new SizeCounterMethodBuilderContext(sizeCounterBuilderContext, il, true/* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/);
+            var context = new SizeCounterMethodBuilderContext(sizeCounterBuilderContext, il, sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences));
 
             var notEmptyLabel = il.DefineLabel("notEmpty");
             if(CheckEmpty(context, notEmptyLabel)) // Check if obj is empty
                 context.ReturnForNull(); // return for null
             il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
 
-            if(!Type.IsValueType && IsReference /* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/)
+            if(!Type.IsValueType && IsReference  && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences))
             {
                 // Pack reference
                 var index = il.DeclareLocal(typeof(int));
