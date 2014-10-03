@@ -30,5 +30,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(5); // stack: [4 << ((obj.m_Family == AddressFamily.InterNetworkV6) << 1), 5]
             il.Add(); // stack: [4 << ((obj.m_Family == AddressFamily.InterNetworkV6) << 1) + 5]
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

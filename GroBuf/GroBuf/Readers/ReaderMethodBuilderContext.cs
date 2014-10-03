@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using GrEmit;
@@ -8,12 +9,13 @@ namespace GroBuf.Readers
 {
     internal class ReaderMethodBuilderContext
     {
-        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il)
+        public ReaderMethodBuilderContext(ReaderTypeBuilderContext context, GroboIL il, bool referenceType)
         {
             Context = context;
             Il = il;
             TypeCode = il.DeclareLocal(typeof(int));
             Length = il.DeclareLocal(typeof(uint));
+            Index = referenceType ? il.DeclareLocal(typeof(int)) : null;
         }
 
         /// <summary>
@@ -46,7 +48,16 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadDataLength()
         {
-            Il.Ldarg(2);
+            Il.Ldarg(3);
+            Il.Ldfld(typeof(ReaderContext).GetField("length", BindingFlags.Public | BindingFlags.Instance));
+        }
+
+        /// <summary>
+        /// Loads <c>context</c> onto the evaluation stack
+        /// </summary>
+        public void LoadContext()
+        {
+            Il.Ldarg(3);
         }
 
         /// <summary>
@@ -54,7 +65,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadResultByRef()
         {
-            Il.Ldarg(3);
+            Il.Ldarg(2);
         }
 
         /// <summary>
@@ -62,7 +73,7 @@ namespace GroBuf.Readers
         /// </summary>
         public void LoadResult(Type resultType)
         {
-            Il.Ldarg(3);
+            Il.Ldarg(2);
             Il.Ldind(resultType);
         }
 
@@ -265,7 +276,7 @@ namespace GroBuf.Readers
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
             }
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), type.MakeByRefType()});
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)});
         }
 
         public void CallReader(Type type)
@@ -273,10 +284,37 @@ namespace GroBuf.Readers
             CallReader(Il, type, Context);
         }
 
+        public void StoreObject(Type type)
+        {
+            if(Index == null) return;
+            if (type.IsValueType)
+                throw new InvalidOperationException("A reference type expected");
+            // Store in array of all references
+            LoadContext(); // stack: [context]
+            Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+            var doneLabel = Il.DefineLabel("done");
+            Il.Brfalse(doneLabel); // if(context.objects == null) goto done; stack: []
+//
+//            Il.Ldloca(Index);
+//            Il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
+//            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
+//
+//            Il.Ldstr(type.Name);
+//            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
+//
+            LoadContext(); // stack: [context]
+            Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
+            Il.Ldloc(Index); // stack: [context.objects, index]
+            LoadResult(type); // stack: [context.objects, index, result]
+            Il.Call(HackHelpers.GetMethodDefinition<Dictionary<int,object>>(dict => dict.Add(0, null)), typeof(Dictionary<int, object>)); // context.objects.Add(index, result)
+            Il.MarkLabel(doneLabel);
+        }
+
         public ReaderTypeBuilderContext Context { get; private set; }
         public GroboIL Il { get; private set; }
 
         public GroboIL.Local TypeCode { get; private set; }
         public GroboIL.Local Length { get; private set; }
+        public GroboIL.Local Index { get; private set; }
     }
 }

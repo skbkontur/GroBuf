@@ -25,11 +25,11 @@ namespace GroBuf.Readers
 
             context.LoadData(); // stack: [ref result, data]
             context.LoadIndexByRef(); // stack: [ref result, data, ref index]
-            context.LoadDataLength(); // stack: [ref result, data, ref index, dataLength]
             var argumentType = Type.GetGenericArguments()[0];
             var value = il.DeclareLocal(argumentType);
-            il.Ldloca(value); // stack: [ref result, data, ref index, dataLength, ref value]
-            context.CallReader(argumentType); // reader(pinnedData, ref index, dataLength, ref value); stack: [ref result]
+            il.Ldloca(value); // stack: [ref result, data, ref index, ref value]
+            context.LoadContext(); // stack: [ref result, data, ref index, ref value, context]
+            context.CallReader(argumentType); // reader(pinnedData, ref index, ref value, context); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
             var constructor = Type.GetConstructor(new[] {argumentType});
             if(constructor == null)
@@ -37,5 +37,7 @@ namespace GroBuf.Readers
             il.Newobj(constructor); // stack: [ref result, new elementType?(value)]
             il.Stobj(Type); // result = new elementType?(value)
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

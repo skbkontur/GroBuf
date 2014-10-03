@@ -50,6 +50,8 @@ namespace GroBuf.Readers
             il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic), Type); // hashSet.Initialize(length); stack: [ref result, hashSet]
             il.Stind(typeof(object)); // result = hashSet; stack: []
 
+            context.StoreObject(Type);
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -63,10 +65,10 @@ namespace GroBuf.Readers
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
             var value = il.DeclareLocal(elementType);
-            il.Ldloca(value); // stack: [pinnedData, ref index, dataLength, ref value]
-            context.CallReader(elementType); // reader(pinnedData, ref index, dataLength, ref value); stack: []
+            il.Ldloca(value); // stack: [pinnedData, ref index, ref value]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref value, context]
+            context.CallReader(elementType); // reader(pinnedData, ref index, ref value, context); stack: []
 
             context.LoadResult(Type); // stack: [result]
             il.Ldloc(value); // stack: [result, value]
@@ -88,6 +90,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private readonly Type elementType;
     }

@@ -98,6 +98,9 @@
         [DataLength(8)]
         DateTimeNew = 31,
 
+        [DataLength(4)]
+        Reference = 32,
+
         [DataLength(-1)]
         CustomData = 255
     }

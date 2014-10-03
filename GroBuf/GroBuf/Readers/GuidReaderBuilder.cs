@@ -40,5 +40,7 @@ namespace GroBuf.Readers
             il.Conv_U(); // stack: [null]
             il.Stloc(pinnedResult); // pinnedResult = null
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

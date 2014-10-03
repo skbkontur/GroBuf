@@ -58,6 +58,8 @@ namespace GroBuf.Writers
 */
         }
 
+        protected override bool IsReference { get { return false; } }
+
         private static readonly PropertyInfo dateTimeKindProperty = (PropertyInfo)((MemberExpression)((Expression<Func<DateTime, DateTimeKind>>)(dateTime => dateTime.Kind)).Body).Member;
         private static readonly PropertyInfo dateTimeTicksProperty = (PropertyInfo)((MemberExpression)((Expression<Func<DateTime, long>>)(dateTime => dateTime.Ticks)).Body).Member;
         private static readonly MethodInfo dateTimeToBinaryMethod = ((MethodCallExpression)((Expression<Func<DateTime, long>>)(dateTime => dateTime.ToBinary())).Body).Method;

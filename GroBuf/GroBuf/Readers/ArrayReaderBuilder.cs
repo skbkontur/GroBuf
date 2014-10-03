@@ -78,6 +78,9 @@ namespace GroBuf.Readers
                 il.Newarr(elementType); // stack: [ref result, new type[length]]
                 il.Stind(typeof(object)); // result = new type[length]; stack: []
             }
+
+            context.StoreObject(Type);
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -91,13 +94,13 @@ namespace GroBuf.Readers
             
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            context.LoadResult(Type); // stack: [pinnedData, ref index, dataLength, result]
-            il.Ldloc(i); // stack: [pinnedData, ref index, dataLength, result, i]
+            context.LoadResult(Type); // stack: [pinnedData, ref index, result]
+            il.Ldloc(i); // stack: [pinnedData, ref index, result, i]
 
-            il.Ldelema(elementType); // stack: [pinnedData, ref index, dataLength, ref result[i]]
+            il.Ldelema(elementType); // stack: [pinnedData, ref index, ref result[i]]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref result[i], context]
 
-            context.CallReader(elementType); // reader(pinnedData, ref index, dataLength, ref result[i]); stack: []
+            context.CallReader(elementType); // reader(pinnedData, ref index, ref result[i], context); stack: []
             il.Ldloc(i); // stack: [i]
             il.Ldc_I4(1); // stack: [i, 1]
             il.Add(); // stack: [i + 1]
@@ -107,6 +110,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private static readonly MethodInfo resizeMethod = ((MethodCallExpression)((Expression<Action<int[]>>)(arr => Array.Resize(ref arr, 0))).Body).Method.GetGenericMethodDefinition();
         private readonly Type elementType;

@@ -49,6 +49,8 @@ namespace GroBuf.Readers
             il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new Dictionary(length)]
             il.Stind(typeof(object)); // result = new Dictionary(length); stack: []
 
+            context.StoreObject(Type);
+
             il.Ldloc(length); // stack: [length]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(length == 0) goto allDone; stack: []
@@ -62,19 +64,19 @@ namespace GroBuf.Readers
             
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
             var key = il.DeclareLocal(Type.GetGenericArguments()[0]);
             var value = il.DeclareLocal(Type.GetGenericArguments()[1]);
-            il.Ldloca(key); // stack: [pinnedData, ref index, dataLength, ref key]
-            context.CallReader(keyType); // reader(pinnedData, ref index, dataLength, ref key); stack: []
+            il.Ldloca(key); // stack: [pinnedData, ref index, ref key]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref key, context]
+            context.CallReader(keyType); // reader(pinnedData, ref index, ref key, context); stack: []
 
 //            context.LoadReader(valueType);
             
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            il.Ldloca(value); // stack: [pinnedData, ref index, dataLength, ref value]
-            context.CallReader(valueType); // reader(pinnedData, ref index, dataLength, ref value); stack: []
+            il.Ldloca(value); // stack: [pinnedData, ref index, ref value]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref value, context]
+            context.CallReader(valueType); // reader(pinnedData, ref index, ref value, context); stack: []
 
             context.LoadResult(Type);
             il.Ldloc(key);
@@ -101,6 +103,8 @@ namespace GroBuf.Readers
             il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private readonly Type keyType;
         private readonly Type valueType;

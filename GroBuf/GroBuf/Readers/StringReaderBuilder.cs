@@ -45,6 +45,9 @@ namespace GroBuf.Readers
                 throw new MissingConstructorException(Type, typeof(char*), typeof(int), typeof(int));
             il.Newobj(constructor); // stack: [ref result, new string(&data[index], 0, length >> 1)]
             il.Stind(typeof(string)); // result = new string(&data[index], 0, length >> 1); stack: []
+
+            context.StoreObject(Type);
+
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(length); // stack: [ref index, index, length]
@@ -57,5 +60,7 @@ namespace GroBuf.Readers
             il.Ldstr(""); // stack: [ref result, ""]
             il.Stind(typeof(string)); // result = ""; stack: []
         }
+
+        protected override bool IsReference { get { return true; } }
     }
 }

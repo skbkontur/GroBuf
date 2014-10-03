@@ -86,8 +86,8 @@ namespace GroBuf.Writers
                 il.Ldc_I4(8); // stack: [obj.prop, false, result, ref index, ref index, index, 8]
                 il.Add(); // stack: [obj.prop, false, result, ref index, ref index, index + 8]
                 il.Stind(typeof(int)); // index = index + 8; stack: [obj.prop, false, result, ref index]
-                context.LoadResultLength(); // stack: [obj.prop, false, result, ref index, resultLength]
-                context.CallWriter(memberType); // writers[i](obj.prop, false, result, ref index, ref result, resultLength)
+                context.LoadContext(); // stack: [obj.prop, false, result, ref index, context]
+                context.CallWriter(memberType); // writers[i](obj.prop, false, result, ref index, ref result, context)
                 context.LoadIndex(); // stack: [index]
                 il.Ldc_I4(8); // stack: [index, 8]
                 il.Sub(); // stack: [index - 8]
@@ -143,5 +143,7 @@ namespace GroBuf.Writers
             il.Ldloc(length); // stack: [result + start + 1, length]
             il.Stind(typeof(int)); // *(int*)(result + start + 1) = length
         }
+
+        protected override bool IsReference { get { return true; } }
     }
 }

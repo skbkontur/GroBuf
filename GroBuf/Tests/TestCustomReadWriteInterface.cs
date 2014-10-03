@@ -70,37 +70,37 @@ namespace GroBuf.Tests
             [GroBufSizeCounter]
             public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
-                return (o, writeEmpty) =>
+                return (o, writeEmpty, context) =>
                            {
                                Type type = o.GetType();
-                               return sizeCountersFactory(typeof(string))(type.Name, writeEmpty) + sizeCountersFactory(type)(o, writeEmpty);
+                               return sizeCountersFactory(typeof(string))(type.Name, writeEmpty, context) + sizeCountersFactory(type)(o, writeEmpty, context);
                            };
             }
 
             [GroBufWriter]
             public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
-                return (object o, bool writeEmpty, IntPtr result, ref int index, int resultLength) =>
+                return (object o, bool writeEmpty, IntPtr result, ref int index, WriterContext context) =>
                            {
                                Type type = o.GetType();
-                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, resultLength);
-                               writersFactory(type)(o, writeEmpty, result, ref index, resultLength);
+                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, context);
+                               writersFactory(type)(o, writeEmpty, result, ref index, context);
                            };
             }
 
             [GroBufReader]
             public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
-                return (IntPtr data, ref int index, int length, ref object result) =>
+                return (IntPtr data, ref int index, ref object result, ReaderContext context) =>
                            {
                                object type = null;
-                               readersFactory(typeof(string))(data, ref index, length, ref type);
+                               readersFactory(typeof(string))(data, ref index, ref type, context);
                                if((string)type == typeof(C).Name)
                                    result = new C();
                                else if((string)type == typeof(D).Name)
                                    result = new D();
                                else throw new InvalidOperationException("Unknown type " + type);
-                               readersFactory(result.GetType())(data, ref index, length, ref result);
+                               readersFactory(result.GetType())(data, ref index, ref result, context);
                            };
             }
         }

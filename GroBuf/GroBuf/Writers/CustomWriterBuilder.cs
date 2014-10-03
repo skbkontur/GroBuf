@@ -40,9 +40,9 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [customSerializer, (object)obj, writeEmpty]
             context.LoadResult(); // stack: [customSerializer, (object)obj, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index]
-            context.LoadResultLength(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index, resultLength]
+            context.LoadContext(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index, context]
             int dummy = 0;
-            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy, 0)), typeof(IGroBufCustomSerializer)); // customSerializer.Write((object)obj, writeEmpty, result, ref index, resultLength); stack: []
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy, null)), typeof(IGroBufCustomSerializer)); // customSerializer.Write((object)obj, writeEmpty, result, ref index, context); stack: []
 
             context.LoadIndex(); // stack: [index]
             il.Ldloc(start); // stack: [index, start]
@@ -74,6 +74,8 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // *(int*)(result + start + 1) = length
             il.MarkLabel(doneLabel);
         }
+
+        protected override bool IsReference { get { return false; } }
 
         private readonly IGroBufCustomSerializer customSerializer;
     }

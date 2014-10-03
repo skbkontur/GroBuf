@@ -72,15 +72,17 @@ namespace GroBuf.Readers
 
             if(!Type.IsValueType)
             {
-                context.LoadResultByRef(); // stack: [ref result]
-                il.Ldind(typeof(object)); // stack: [result]
+                context.LoadResultByRef(); // stack: [data length, ref result]
+                il.Ldind(typeof(object)); // stack: [data length, result]
                 var notNullLabel = il.DefineLabel("notNull");
-                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: []
-                context.LoadResultByRef(); // stack: [ref result]
+                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data length]
+                context.LoadResultByRef(); // stack: [data length, ref result]
                 ObjectConstructionHelper.EmitConstructionOfType(Type, il);
-                il.Stind(typeof(object)); // result = new type(); stack: []
+                il.Stind(typeof(object)); // result = new type(); stack: [data length]
                 il.MarkLabel(notNullLabel);
             }
+
+            context.StoreObject(Type);
 
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(data length == 0) goto done; stack: []
@@ -120,14 +122,14 @@ namespace GroBuf.Readers
             // Read data
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
-            context.LoadDataLength(); // stack: [pinnedData, ref index, dataLength]
-            context.LoadResultByRef(); // stack: [pinnedData, ref index, dataLength, ref result]
+            context.LoadResultByRef(); // stack: [pinnedData, ref index, ref result]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref result, context]
 
-            context.LoadField(settersField); // stack: [pinnedData, ref index, dataLength, ref result, setters]
-            il.Ldloc(idx); // stack: [pinnedData, ref index, dataLength, ref result, setters, idx]
-            il.Ldelem(typeof(IntPtr)); // stack: [pinnedData, ref index, dataLength, ref result, setters[idx]]
-            var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()};
-            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // setters[idx](pinnedData, ref index, dataLength, ref result); stack: []
+            context.LoadField(settersField); // stack: [pinnedData, ref index, ref result, context, setters]
+            il.Ldloc(idx); // stack: [pinnedData, ref index, ref result, context, setters, idx]
+            il.Ldelem(typeof(IntPtr)); // stack: [pinnedData, ref index, ref result, context, setters[idx]]
+            var parameterTypes = new[] {typeof(byte*), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)};
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // setters[idx](pinnedData, ref index, ref result, context); stack: []
 
             var checkIndexLabel = il.DefineLabel("checkIndex");
             il.Br(checkIndexLabel); // goto checkIndex
@@ -149,6 +151,8 @@ namespace GroBuf.Readers
 
             il.MarkLabel(doneLabel);
         }
+
+        protected override bool IsReference { get { return true; } }
 
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
@@ -187,7 +191,7 @@ namespace GroBuf.Readers
             var method = new DynamicMethod("Set_" + Type.Name + "_" + member.Name + "_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
-                                                   typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int), Type.MakeByRefType()
+                                                   typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, context.Module, true);
             var il = new GroboIL(method);
 
@@ -195,16 +199,16 @@ namespace GroBuf.Readers
 
             il.Ldarg(0); // stack: [data]
             il.Ldarg(1); // stack: [data, ref index]
-            il.Ldarg(2); // stack: [data, ref index, dataLength]
             switch(member.MemberType)
             {
             case MemberTypes.Field:
-                il.Ldarg(3); // stack: [data, ref index, dataLength, ref result]
+                il.Ldarg(2); // stack: [data, ref index, ref result]
                 if(!Type.IsValueType)
-                    il.Ldind(typeof(object)); // stack: [data, ref index, dataLength, result]
+                    il.Ldind(typeof(object)); // stack: [data, ref index, result]
                 var field = (FieldInfo)member;
-                il.Ldflda(field); // stack: [data, ref index, dataLength, ref result.field]
-                ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, dataLength, ref result.field); stack: []
+                il.Ldflda(field); // stack: [data, ref index, ref result.field]
+                il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
+                ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, ref result.field, context); stack: []
                 break;
             case MemberTypes.Property:
                 var property = (PropertyInfo)member;
@@ -214,15 +218,16 @@ namespace GroBuf.Readers
                     MethodInfo getter = property.GetGetMethod(true);
                     if(getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
-                    il.Ldarg(3); // stack: [data, ref index, dataLength, ref result]
+                    il.Ldarg(2); // stack: [data, ref index, ref result]
                     if (!Type.IsValueType)
-                        il.Ldind(typeof(object)); // stack: [data, ref index, dataLength, result]
-                    il.Call(getter, Type); // stack: [ data, ref index, dataLength, result.property]
-                    il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index, dataLength]
+                        il.Ldind(typeof(object)); // stack: [data, ref index, result]
+                    il.Call(getter, Type); // stack: [ data, ref index, result.property]
+                    il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index]
                 }
-                il.Ldloca(propertyValue); // stack: [data, ref index, dataLength, ref propertyValue]
-                ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, dataLength, ref propertyValue); stack: []
-                il.Ldarg(3); // stack: [ref result]
+                il.Ldloca(propertyValue); // stack: [data, ref index, ref propertyValue]
+                il.Ldarg(3); // stack: [data, ref index, ref propertyValue, context]
+                ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, ref propertyValue, context); stack: []
+                il.Ldarg(2); // stack: [ref result]
                 if(!Type.IsValueType)
                     il.Ldind(typeof(object)); // stack: [result]
                 il.Ldloc(propertyValue); // stack: [result, propertyValue]

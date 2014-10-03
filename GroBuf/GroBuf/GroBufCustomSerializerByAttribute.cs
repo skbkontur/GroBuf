@@ -11,19 +11,19 @@ namespace GroBuf
             this.readerDelegate = readerDelegate;
         }
 
-        public int CountSize(object obj, bool writeEmpty)
+        public int CountSize(object obj, bool writeEmpty, WriterContext context)
         {
-            return sizeCounter(obj, writeEmpty);
+            return sizeCounter(obj, writeEmpty, context);
         }
 
-        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
+        public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, WriterContext context)
         {
-            writerDelegate(obj, writeEmpty, result, ref index, resultLength);
+            writerDelegate(obj, writeEmpty, result, ref index, context);
         }
 
-        public void Read(IntPtr data, ref int index, int length, ref object result)
+        public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)
         {
-            readerDelegate(data, ref index, length, ref result);
+            readerDelegate(data, ref index, ref result, context);
         }
 
         private readonly SizeCounterDelegate sizeCounter;

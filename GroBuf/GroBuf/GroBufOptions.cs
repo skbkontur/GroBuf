@@ -7,6 +7,7 @@ namespace GroBuf
     {
         None = 0,
         WriteEmptyObjects = 1,
-        MergeOnRead = 2
+        MergeOnRead = 2,
+        PackReferences = 4,
     }
 }

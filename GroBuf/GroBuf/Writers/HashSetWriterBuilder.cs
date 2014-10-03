@@ -33,6 +33,8 @@ namespace GroBuf.Writers
             return true;
         }
 
+        protected override bool IsReference { get { return true; } }
+
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
         {
             context.BuildConstants(elementType);
@@ -90,8 +92,8 @@ namespace GroBuf.Writers
             il.Ldc_I4(1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]
             context.LoadIndexByRef(); // stack: [obj[i], true, result, ref index]
-            context.LoadResultLength(); // stack: [obj[i], true, result, ref index, resultLength]
-            context.CallWriter(elementType); // write<elementType>(obj[i], true, result, ref index, resultLength)
+            context.LoadContext(); // stack: [obj[i], true, result, ref index, context]
+            context.CallWriter(elementType); // write<elementType>(obj[i], true, result, ref index, context)
 
             il.MarkLabel(nextLabel);
             il.Ldloc(count); // stack: [count]

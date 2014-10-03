@@ -50,5 +50,7 @@ namespace GroBuf.SizeCounters
                 throw new NotSupportedException("Type '" + Type + "' is not supported");
             }
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

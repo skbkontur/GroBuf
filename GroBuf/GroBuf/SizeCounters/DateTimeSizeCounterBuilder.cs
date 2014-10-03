@@ -30,6 +30,8 @@ namespace GroBuf.SizeCounters
 */
         }
 
+        protected override bool IsReference { get { return false; } }
+
         private static readonly PropertyInfo dateTimeKindProperty = (PropertyInfo)((MemberExpression)((Expression<Func<DateTime, DateTimeKind>>)(dateTime => dateTime.Kind)).Body).Member;
     }
 }

@@ -65,7 +65,8 @@ namespace GroBuf.SizeCounters
                     throw new NotSupportedException("Data member of type " + member.Member.MemberType + " is not supported");
                 }
                 il.Ldc_I4(0); // stack: [size, obj.member, false]
-                context.CallSizeCounter(memberType); // stack: [size, writers[i](obj.member, false) = memberSize]
+                context.LoadContext(); // stack: [size, obj.member, false, context]
+                context.CallSizeCounter(memberType); // stack: [size, writers[i](obj.member, false, context) = memberSize]
                 il.Dup(); // stack: [size, memberSize, memberSize]
                 var nextLabel = il.DefineLabel("next");
                 il.Brfalse(nextLabel); // if(memberSize = 0) goto next; stack: [size, memberSize]
@@ -89,5 +90,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(5); // stack: [size, 5]
             il.Add(); // stack: [size + 5]
         }
+
+        protected override bool IsReference { get { return true; } }
     }
 }

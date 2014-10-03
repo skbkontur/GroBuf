@@ -79,6 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestPackReferences.cs" />
     <Compile Include="TestTimeSpan.cs" />
     <Compile Include="TestIPEndPoint.cs" />
     <Compile Include="ImmutableObjectChangedBugTest.cs" />

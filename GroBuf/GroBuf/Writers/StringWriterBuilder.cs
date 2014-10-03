@@ -65,6 +65,8 @@ namespace GroBuf.Writers
             il.MarkLabel(doneLabel);
         }
 
+        protected override bool IsReference { get { return true; } }
+
         private static readonly MethodInfo lengthPropertyGetter = ((PropertyInfo)((MemberExpression)((Expression<Func<string, int>>)(s => s.Length)).Body).Member).GetGetMethod();
     }
 }

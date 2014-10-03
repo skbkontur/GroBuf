@@ -29,8 +29,8 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [obj.Value, writeEmpty]
             context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
-            context.LoadResultLength(); // stack: [obj.Value, writeEmpty, result, ref index, resultLength]
-            context.CallWriter(Type.GetGenericArguments()[0]); // writer(obj.Value, writeEmpty, result, ref index, resultLength)
+            context.LoadContext(); // stack: [obj.Value, writeEmpty, result, ref index, context]
+            context.CallWriter(Type.GetGenericArguments()[0]); // writer(obj.Value, writeEmpty, result, ref index, context)
         }
 
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
@@ -40,5 +40,7 @@ namespace GroBuf.Writers
             context.Il.Brtrue(notEmptyLabel); // if(obj.HasValue) goto notEmpty;
             return true;
         }
+
+        protected override bool IsReference { get { return false; } }
     }
 }

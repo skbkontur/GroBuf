@@ -26,6 +26,8 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [obj.Length << 1 + 5]
         }
 
+        protected override bool IsReference { get { return true; } }
+
         private static readonly MethodInfo lengthPropertyGetter = ((PropertyInfo)((MemberExpression)((Expression<Func<string, int>>)(s => s.Length)).Body).Member).GetGetMethod();
     }
 }

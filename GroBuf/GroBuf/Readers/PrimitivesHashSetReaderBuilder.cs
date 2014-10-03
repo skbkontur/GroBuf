@@ -88,6 +88,8 @@ namespace GroBuf.Readers
             il.MarkLabel(doneLabel); // stack: []
         }
 
+        protected override bool IsReference { get { return true; } }
+
         private static void CountArrayLength(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);

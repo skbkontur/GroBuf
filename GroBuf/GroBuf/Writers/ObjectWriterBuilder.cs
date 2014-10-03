@@ -38,17 +38,17 @@ namespace GroBuf.Writers
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
             context.LoadResult(); // stack: [obj, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj, writeEmpty, result, ref index]
-            context.LoadResultLength(); // stack: [obj, writeEmpty, result, ref index, resultLength]
-            context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, writers]
-            context.LoadObj(); // stack: [obj, writeEmpty, result, ref index, writers, obj]
-            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, result, ref index, writers, obj.GetType()]
-            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, result, ref index, writers, GroBufHelpers.GetTypeCode(obj.GetType())]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            il.Dup(); // stack: [obj, writeEmpty, result, ref index, writers[GroBufHelpers.GetTypeCode(obj.GetType())], writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            context.LoadContext(); // stack: [obj, writeEmpty, result, ref index, context]
+            context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, context, writers]
+            context.LoadObj(); // stack: [obj, writeEmpty, result, ref index, context, writers, obj]
+            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, result, ref index, context, writers, obj.GetType()]
+            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, result, ref index, context, writers, GroBufHelpers.GetTypeCode(obj.GetType())]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
+            il.Dup(); // stack: [obj, writeEmpty, result, ref index, context, writers[GroBufHelpers.GetTypeCode(obj.GetType())], writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
             var writeNullLabel = il.DefineLabel("writeNull");
             il.Brfalse(writeNullLabel); // if(writers[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto writeNull;
-            var parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType(), typeof(int)};
-            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index, resultLength); stack: []
+            var parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType(), typeof(WriterContext)};
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index, context); stack: []
             il.Ret();
             il.MarkLabel(writeNullLabel);
             // todo мутное место, нафига эти нелепые Pop?
@@ -60,6 +60,8 @@ namespace GroBuf.Writers
             il.Pop();
             context.WriteNull();
         }
+
+        protected override bool IsReference { get { return false; } }
 
         private static KeyValuePair<Delegate, IntPtr>[] GetWriters(WriterTypeBuilderContext context)
         {
@@ -81,7 +83,7 @@ namespace GroBuf.Writers
             var method = new DynamicMethod("CastTo_" + type.Name + "_AndWrite_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
-                                                   typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)
+                                                   typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)
                                                }, context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(0); // stack: [obj]
@@ -92,12 +94,12 @@ namespace GroBuf.Writers
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, resultLength]
+            il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
             var writer = context.GetWriter(type).Pointer;
             if(writer == IntPtr.Zero)
                 throw new InvalidOperationException();
             il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(int)}); // write<type>((type)obj, writeEmpty, result, ref index, resultLength)
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // write<type>((type)obj, writeEmpty, result, ref index, context)
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(WriterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));

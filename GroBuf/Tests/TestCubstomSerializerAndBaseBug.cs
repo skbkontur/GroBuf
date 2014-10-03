@@ -46,21 +46,21 @@ namespace GroBuf.Tests
 
             #region IGroBufCustomSerializer Members
 
-            public int CountSize(object obj, bool writeEmpty)
+            public int CountSize(object obj, bool writeEmpty, WriterContext context)
             {
-                return baseSerializer.CountSize(obj, writeEmpty);
+                return baseSerializer.CountSize(obj, writeEmpty, context);
             }
 
-            public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
+            public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, WriterContext context)
             {
-                baseSerializer.Write(obj, writeEmpty, result, ref index, resultLength);
+                baseSerializer.Write(obj, writeEmpty, result, ref index, context);
             }
 
-            public void Read(IntPtr data, ref int index, int length, ref object result)
+            public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)
             {
                 var date = new Date2();
                 result = date;
-                baseSerializer.Read(data, ref index, length, ref result);
+                baseSerializer.Read(data, ref index, ref result, context);
                 date.Do(); //hack
             }
 
@@ -110,20 +110,20 @@ namespace GroBuf.Tests
                 this.baseSerializer = baseSerializer;
             }
 
-            public int CountSize(object obj, bool writeEmpty)
+            public int CountSize(object obj, bool writeEmpty, WriterContext context)
             {
-                return baseSerializer.CountSize(obj, writeEmpty);
+                return baseSerializer.CountSize(obj, writeEmpty, context);
             }
 
-            public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, int resultLength)
+            public void Write(object obj, bool writeEmpty, IntPtr result, ref int index, WriterContext context)
             {
-                baseSerializer.Write(obj, writeEmpty, result, ref index, resultLength);
+                baseSerializer.Write(obj, writeEmpty, result, ref index, context);
             }
 
-            public void Read(IntPtr data, ref int index, int length, ref object result)
+            public void Read(IntPtr data, ref int index, ref object result, ReaderContext context)
             {
                 result = Activator.CreateInstance(typeof(I1Impl));
-                factory(typeof(I1Impl)).Read(data, ref index, length, ref result);
+                factory(typeof(I1Impl)).Read(data, ref index, ref result, context);
             }
 
             private readonly Func<Type, IGroBufCustomSerializer> factory;
