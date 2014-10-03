@@ -28,10 +28,16 @@ namespace GroBuf.Readers
 
         protected override unsafe void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
-            context.IncreaseIndexBy1();
-            context.AssertTypeCode(GroBufTypeCodeMap.GetTypeCode(Type));
-
             var il = context.Il;
+
+            il.Ldloc(context.TypeCode); // stack: [type code]
+            il.Ldc_I4((int)GroBufTypeCodeMap.GetTypeCode(Type)); // stack: [type code, GroBufTypeCode(Type)]
+            var tryReadArrayElementLabel = il.DefineLabel("tryReadArrayElement");
+            il.Bne(tryReadArrayElementLabel); // if(type code != GroBufTypeCode(Type)) goto tryReadArrayElement; stack: []
+
+
+            context.IncreaseIndexBy1();
+
             var size = il.DeclareLocal(typeof(int));
 
             il.Ldc_I4(4);
@@ -106,6 +112,51 @@ namespace GroBuf.Readers
             il.Ldloc(size); // stack: [ref index, index, size]
             il.Add(); // stack: [ref index, index + size]
             il.Stind(typeof(int)); // index = index + size
+            il.Br(doneLabel);
+
+            il.MarkLabel(tryReadArrayElementLabel);
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            {
+                var createArrayLabel = il.DefineLabel("createArray");
+                context.LoadResult(Type); // stack: [result]
+                il.Brfalse(createArrayLabel); // if(result == null) goto createArray;
+                context.LoadResult(Type); // stack: [result]
+                il.Ldlen(); // stack: [result.Length]
+                il.Ldc_I4(1); // stack: [result.Length, 1]
+
+                var arrayCreatedLabel = il.DefineLabel("arrayCreated");
+                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= 1) goto arrayCreated;
+
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldc_I4(1); // stack: [ref result, 1]
+                il.Call(resizeMethod.MakeGenericMethod(elementType)); // Array.Resize(ref result, 1)
+                il.Br(arrayCreatedLabel); // goto arrayCreated
+
+                il.MarkLabel(createArrayLabel);
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldc_I4(1); // stack: [ref result, 1]
+                il.Newarr(elementType); // stack: [ref result, new type[1]]
+                il.Stind(Type); // result = new type[1]; stack: []
+
+                il.MarkLabel(arrayCreatedLabel);
+            }
+            else
+            {
+                context.LoadResultByRef(); // stack: [ref result]
+                il.Ldc_I4(1); // stack: [ref result, 1]
+                il.Newarr(elementType); // stack: [ref result, new type[1]]
+                il.Stind(Type); // result = new type[1]; stack: []
+            }
+
+            context.LoadData(); // stack: [pinnedData]
+            context.LoadIndexByRef(); // stack: [pinnedData, ref index]
+            context.LoadResult(Type); // stack: [pinnedData, ref index, result]
+            il.Ldc_I4(0); // stack: [pinnedData, ref index, result, 0]
+
+            il.Ldelema(elementType); // stack: [pinnedData, ref index, ref result[0]]
+            context.LoadContext(); // stack: [pinnedData, ref index, ref result[0], context]
+
+            context.CallReader(elementType); // reader(pinnedData, ref index, ref result[0], context); stack: []
 
             il.MarkLabel(doneLabel); // stack: []
         }

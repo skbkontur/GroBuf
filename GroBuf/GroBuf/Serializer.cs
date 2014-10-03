@@ -107,7 +107,12 @@ namespace GroBuf
             return reader.Read(type, data, ref index, length);
         }
 
-        public void Merge<T>(T from, ref T to)
+        void ISerializer.Merge<T>(T from, ref T to)
+        {
+            ChangeType(from, ref to);
+        }
+
+        public void Merge<TFrom, TTo>(TFrom from, ref TTo to)
         {
             ChangeType(from, ref to);
         }
