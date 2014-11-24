@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,7 +31,7 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
 
-            var writers = GetWriters(context.Context);
+            var writers = GetWriters(context);
             var writersField = context.Context.InitConstField(Type, 0, writers.Select(pair => pair.Value).ToArray());
             context.Context.InitConstField(Type, 1, writers.Select(pair => pair.Key).ToArray());
 
@@ -63,7 +64,7 @@ namespace GroBuf.Writers
 
         protected override bool IsReference { get { return false; } }
 
-        private static KeyValuePair<Delegate, IntPtr>[] GetWriters(WriterTypeBuilderContext context)
+        private static KeyValuePair<Delegate, IntPtr>[] GetWriters(WriterMethodBuilderContext context)
         {
             var dict = primitiveTypes.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));
             foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
@@ -78,28 +79,29 @@ namespace GroBuf.Writers
             return result;
         }
 
-        private static KeyValuePair<Delegate, IntPtr> GetWriter(WriterTypeBuilderContext context, Type type)
+        private static KeyValuePair<Delegate, IntPtr> GetWriter(WriterMethodBuilderContext context, Type type)
         {
             var method = new DynamicMethod("CastTo_" + type.Name + "_AndWrite_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
                                                    typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)
-                                               }, context.Module, true);
+                                               }, context.Context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(0); // stack: [obj]
             if(type.IsValueType)
                 il.Unbox_Any(type); // stack: [(type)obj]
-//            else
-//                il.Castclass(type); // stack: [(type)obj]
+            else
+                il.Castclass(type); // stack: [(type)obj]
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
             il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
-            var writer = context.GetWriter(type).Pointer;
-            if(writer == IntPtr.Zero)
-                throw new InvalidOperationException();
-            il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // write<type>((type)obj, writeEmpty, result, ref index, context)
+            context.CallWriter(il, type);
+//            var writer = context.GetWriter(type).Pointer;
+//            if(writer == IntPtr.Zero)
+//                throw new InvalidOperationException();
+//            il.Ldc_IntPtr(writer);
+//            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // write<type>((type)obj, writeEmpty, result, ref index, context)
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(WriterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
@@ -111,7 +113,7 @@ namespace GroBuf.Writers
         private static readonly Type[] primitiveTypes = new[]
             {
                 typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
-                typeof(decimal), typeof(float), typeof(double), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array), typeof(Hashtable)
             };
     }
 }

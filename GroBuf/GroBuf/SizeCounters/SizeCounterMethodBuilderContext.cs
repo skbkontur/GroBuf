@@ -74,20 +74,25 @@ namespace GroBuf.SizeCounters
 //            Il.Ldelem(typeof(SizeCounterDelegate<>).MakeGenericType(type));
 //        }
 
-        public void CallSizeCounter(Type type)
+        public void CallSizeCounter(GroboIL il, Type type)
         {
-//            var delegateType = typeof(SizeCounterDelegate<>).MakeGenericType(type);
-//            Il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
+            //            var delegateType = typeof(SizeCounterDelegate<>).MakeGenericType(type);
+            //            il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
             var counter = Context.GetCounter(type);
-            if(counter.Pointer != IntPtr.Zero)
-                Il.Ldc_IntPtr(counter.Pointer);
+            if (counter.Pointer != IntPtr.Zero)
+                il.Ldc_IntPtr(counter.Pointer);
             else
             {
-                Il.Ldfld(Context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
-                Il.Ldc_I4(counter.Index);
-                Il.Ldelem(typeof(IntPtr));
+                il.Ldfld(Context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
+                il.Ldc_I4(counter.Index);
+                il.Ldelem(typeof(IntPtr));
             }
-            Il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)});
+            il.Calli(CallingConventions.Standard, typeof(int), new[] { type, typeof(bool), typeof(WriterContext) });
+        }
+
+        public void CallSizeCounter(Type type)
+        {
+            CallSizeCounter(Il, type);
         }
 
         public SizeCounterBuilderContext Context { get; private set; }

@@ -61,6 +61,8 @@ namespace GroBuf.Readers
                 readerBuilder = type.GetElementType().IsPrimitive ? (IReaderBuilder)new PrimitivesArrayReaderBuilder(type) : new ArrayReaderBuilder(type);
             else if(type == typeof(Array))
                 readerBuilder = new ArrayReaderBuilder(type);
+            else if(type == typeof(Hashtable))
+                readerBuilder = new HashtableReaderBuilder();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 readerBuilder = new DictionaryReaderBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))

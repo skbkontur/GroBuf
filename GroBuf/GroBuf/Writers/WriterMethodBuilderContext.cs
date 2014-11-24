@@ -203,20 +203,25 @@ namespace GroBuf.Writers
 //            Il.Ldelem(typeof(WriterDelegate<>).MakeGenericType(type));
 //        }
 
-        public void CallWriter(Type type)
+        public void CallWriter(GroboIL il, Type type)
         {
 //            var delegateType = typeof(WriterDelegate<>).MakeGenericType(type);
-//            Il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
+//            il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
             var counter = Context.GetWriter(type);
             if(counter.Pointer != IntPtr.Zero)
-                Il.Ldc_IntPtr(counter.Pointer);
+                il.Ldc_IntPtr(counter.Pointer);
             else
             {
-                Il.Ldfld(Context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
-                Il.Ldc_I4(counter.Index);
-                Il.Ldelem(typeof(IntPtr));
+                il.Ldfld(Context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
+                il.Ldc_I4(counter.Index);
+                il.Ldelem(typeof(IntPtr));
             }
-            Il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)});
+            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)});
+        }
+
+        public void CallWriter(Type type)
+        {
+            CallWriter(Il, type);
         }
 
         public WriterTypeBuilderContext Context { get; private set; }

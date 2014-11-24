@@ -92,7 +92,7 @@ namespace GroBuf.SizeCounters
             il.Ldfld(entryType.GetField("value")); // stack: [size, entry.value]
             il.Ldc_I4(1); // stack: [size, entry.value, true]
             context.LoadContext(); // stack: [size, entry.value, true, context]
-            context.CallSizeCounter(valueType); // stack: [size, writer(entry.value, true, context) = keySize]
+            context.CallSizeCounter(valueType); // stack: [size, writer(entry.value, true, context) = valueSize]
             il.Add(); // stack: [size + valueSize]
 
             il.MarkLabel(nextLabel);

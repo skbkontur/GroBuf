@@ -109,6 +109,7 @@
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
+    <Compile Include="Readers\HashtableReaderBuilder.cs" />
     <Compile Include="Readers\IPAddressReaderBuilder.cs" />
     <Compile Include="Readers\PrimitivesHashSetReaderBuilder.cs" />
     <Compile Include="Readers\HashSetReaderBuilder.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="SizeCounterDelegate.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\HashtableSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\IPAddressSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesHashSetSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\HashSetSizeCounterBuilder.cs" />
@@ -167,6 +169,7 @@
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
+    <Compile Include="Writers\HashtableWriterBuilder.cs" />
     <Compile Include="Writers\IPAddressWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesHashSetWriterBuilder.cs" />
     <Compile Include="Writers\HashSetWriterBuilder.cs" />

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -80,15 +81,16 @@ namespace GroBuf.SizeCounters
             il.Ldarg(0); // stack: [obj]
             if(type.IsValueType)
                 il.Unbox_Any(type); // stack: [(type)obj]
-//            else
-//                il.Castclass(type); // stack: [(type)obj]
+            else
+                il.Castclass(type); // stack: [(type)obj]
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
-            var counter = context.Context.GetCounter(type).Pointer;
-            if(counter == IntPtr.Zero)
-                throw new InvalidOperationException("Attempt to call method at Zero pointer");
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, context]
-            il.Ldc_IntPtr(counter);
-            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // stack: [count<type>((type)obj, writeEmpty, context)]
+            context.CallSizeCounter(il, type);
+//            var counter = context.Context.GetCounter(type).Pointer;
+//            if(counter == IntPtr.Zero)
+//                throw new InvalidOperationException("Attempt to call method at Zero pointer");
+//            il.Ldc_IntPtr(counter);
+//            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // stack: [count<type>((type)obj, writeEmpty, context)]
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(SizeCounterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
@@ -100,7 +102,7 @@ namespace GroBuf.SizeCounters
         private static readonly Type[] primitiveTypes = new[]
             {
                 typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
-                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array), typeof(Hashtable)
             };
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -29,7 +30,7 @@ namespace GroBuf.Readers
         {
             var il = context.Il;
 
-            var readers = GetReaders(context.Context);
+            var readers = GetReaders(context);
             var readersField = context.Context.InitConstField(Type, 0, readers.Select(pair => pair.Value).ToArray());
             context.Context.InitConstField(Type, 1, readers.Select(pair => pair.Key).ToArray());
 
@@ -58,7 +59,7 @@ namespace GroBuf.Readers
 
         protected override bool IsReference { get { return false; } }
 
-        private static KeyValuePair<Delegate, IntPtr>[] GetReaders(ReaderTypeBuilderContext context)
+        private static KeyValuePair<Delegate, IntPtr>[] GetReaders(ReaderMethodBuilderContext context)
         {
             var result = new KeyValuePair<Delegate, IntPtr>[256];
             foreach(var type in primitiveTypes)
@@ -67,13 +68,13 @@ namespace GroBuf.Readers
             return result;
         }
 
-        private static KeyValuePair<Delegate, IntPtr> GetReader(ReaderTypeBuilderContext context, Type type)
+        private static KeyValuePair<Delegate, IntPtr> GetReader(ReaderMethodBuilderContext context, Type type)
         {
             var method = new DynamicMethod("Read_" + type.Name + "_AndCastToObject_" + Guid.NewGuid(), typeof(void),
                                            new[]
                                                {
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), typeof(object).MakeByRefType(), typeof(ReaderContext)
-                                               }, context.Module, true);
+                                               }, context.Context.Module, true);
             var il = new GroboIL(method);
             il.Ldarg(2); // stack: [ref result]
             il.Ldarg(0); // stack: [ref result, data]
@@ -81,11 +82,14 @@ namespace GroBuf.Readers
             var value = il.DeclareLocal(type);
             il.Ldloca(value); // stack: [ref result, data, ref index, ref value]
             il.Ldarg(3); // stack: [ref result, data, ref index, ref value, context]
-            var reader = context.GetReader(type).Pointer;
-            if(reader == IntPtr.Zero)
-                throw new InvalidOperationException();
-            il.Ldc_IntPtr(reader);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // read<type>(data, ref index, ref value, context); stack: [ref result]
+
+            ReaderMethodBuilderContext.CallReader(il, type, context.Context);
+
+//            var reader = context.GetReader(type).Pointer;
+//            if(reader == IntPtr.Zero)
+//                throw new InvalidOperationException();
+//            il.Ldc_IntPtr(reader);
+//            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // read<type>(data, ref index, ref value, context); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
             if(type.IsValueType)
                 il.Box(type); // stack: [ref result, (object)value]
@@ -98,7 +102,7 @@ namespace GroBuf.Readers
         private static readonly Type[] primitiveTypes = new[]
             {
                 typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
-                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array)
+                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array), typeof(Hashtable)
             };
     }
 }

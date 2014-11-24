@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 
 using GroBuf.DataMembersExtracters;
 
@@ -62,11 +63,43 @@ namespace GroBuf.Tests
             byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual("zzz", oo.S);
-            var array = (Array)oo.B.S;
+            var array = oo.B.S as Array;
             Assert.NotNull(array);
             Assert.AreEqual(2, array.Length);
             Assert.AreEqual(100, array.GetValue(0));
             Assert.AreEqual("qxx", array.GetValue(1));
+        }
+
+        [Test]
+        public void TestHashtable()
+        {
+            var o = new A {S = new Hashtable {{"1", 1}, {"2", "2"}}};
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<A>(data);
+            var hashtable = oo.S as Hashtable;
+            Assert.IsNotNull(hashtable);
+            Assert.AreEqual(2, hashtable.Count);
+            Assert.AreEqual(1, hashtable["1"]);
+            Assert.AreEqual("2", hashtable["2"]);
+        }
+
+        [Test]
+        public void TestHashtableInArray()
+        {
+            var o = new A { S = "zzz", B = new B { S = new object[] { (byte)100, "qxx", new Hashtable { { "1", 1 }, { "2", "2" } } } } };
+            byte[] data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<A>(data);
+            Assert.AreEqual("zzz", oo.S);
+            var array = oo.B.S as Array;
+            Assert.NotNull(array);
+            Assert.AreEqual(3, array.Length);
+            Assert.AreEqual(100, array.GetValue(0));
+            Assert.AreEqual("qxx", array.GetValue(1));
+            var hashtable = array.GetValue(2) as Hashtable;
+            Assert.IsNotNull(hashtable);
+            Assert.AreEqual(2, hashtable.Count);
+            Assert.AreEqual(1, hashtable["1"]);
+            Assert.AreEqual("2", hashtable["2"]);
         }
 
         [Test]
