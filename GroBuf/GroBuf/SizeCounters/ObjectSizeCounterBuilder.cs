@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -22,57 +21,73 @@ namespace GroBuf.SizeCounters
             context.SetFields(Type, new[]
                 {
                     new KeyValuePair<string, Type>("counters_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
-                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[]))
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])) // This field is needed only to save references to the dynamic methods. Otherwise GC will destroy them
                 });
-            Array.ForEach(primitiveTypes, type => context.BuildConstants(type));
+            Array.ForEach(GroBufHelpers.LeafTypes.Where(type => type != null).ToArray(), type => context.BuildConstants(type));
         }
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {
             var il = context.Il;
 
-            var counters = GetCounters(context);
+            var counters = GroBufHelpers.LeafTypes.Select(type1 => type1 == null ? new KeyValuePair<Delegate, IntPtr>(null, IntPtr.Zero) : GetCounter(context, type1)).ToArray();
             var countersField = context.Context.InitConstField(Type, 0, counters.Select(pair => pair.Value).ToArray());
             context.Context.InitConstField(Type, 1, counters.Select(pair => pair.Key).ToArray());
 
+            il.Ldfld(typeof(GroBufHelpers).GetField("LeafTypeHandles", BindingFlags.Public | BindingFlags.Static)); // stack: [LeafTypeHandles]
+            context.LoadObj(); // stack: [LeafTypeHandles, obj]
+            il.Call(getTypeMethod, Type); // stack: [LeafTypeHandles, obj.GetType()]
+            var type = il.DeclareLocal(typeof(Type));
+            il.Dup(); // stack: [LeafTypeHandles, obj.GetType(), obj.GetType()]
+            il.Stloc(type); // type = obj.GetType(); stack: [LeafTypeHandles, obj.GetType()]
+            il.Call(typeTypeHandleProperty.GetGetMethod(), typeof(Type)); // stack: [LeafTypeHandles, obj.GetType().TypeHandle]
+            var typeHandle = il.DeclareLocal(typeof(RuntimeTypeHandle));
+            il.Stloc(typeHandle); // typeHandle = obj.GetType().TypeHandle; stack: [LeafTypeHandles]
+            il.Ldloca(typeHandle); // stack: [LeafTypeHandles, ref typeHandle]
+            il.Call(runtimeTypeHandleValueProperty.GetGetMethod(), typeof(RuntimeTypeHandle)); // stack: [LeafTypeHandles, obj.GetType().TypeHandle.Value]
+            var handle = il.DeclareLocal(typeof(IntPtr));
+            il.Dup(); // stack: [LeafTypeHandles, obj.GetType().TypeHandle.Value, obj.GetType().TypeHandle.Value]
+            il.Stloc(handle); // handle = obj.GetType().TypeHandle.Value; stack: [LeafTypeHandles, handle]
+            il.Ldc_I4(counters.Length); // stack: [LeafTypeHandles, handle, LeafTypeHandles.Length]
+            il.Rem(typeof(uint)); // stack: [LeafTypeHandles, handle % LeafTypeHandles.Length]
+            var index = il.DeclareLocal(typeof(int));
+            il.Conv_I4(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length)]
+            il.Dup(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length), (int)(handle % LeafTypeHandles.Length)]
+            il.Stloc(index); // index = (int)(handle % LeafTypeHandles.Length); stack: [LeafTypeHandles, index]
+            il.Ldelem(typeof(IntPtr)); // stack: [LeafTypeHandles[index]]
+            il.Ldloc(handle); // stack: [LeafTypeHandles[index], handle]
+            var tryAsArrayLabel = il.DefineLabel("tryAsArray");
+            il.Bne(tryAsArrayLabel); // if(LeafTypeHandles[index] != handle) goto tryAsArray; stack: []
             context.LoadObj(); // stack: [obj]
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
             context.LoadContext(); // stack: [obj, writeEmpty, context]
             context.LoadField(countersField); // stack: [obj, writeEmpty, context, counters]
-            context.LoadObj(); // stack: [obj, writeEmpty, context, ref index, counters, obj]
-            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, context, counters, obj.GetType()]
-            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, context, counters, GroBufHelpers.GetTypeCode(obj.GetType())]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, context, counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            il.Dup(); // stack: [obj, writeEmpty, context, counters[GroBufHelpers.GetTypeCode(obj.GetType())], counters[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            var returnForNullLabel = il.DefineLabel("returnForNull");
-            il.Brfalse(returnForNullLabel); // if(counters[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto returnForNull;
+            il.Ldloc(index); // stack: [obj, writeEmpty, context, counters, index]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, context, counters[index]]
             var parameterTypes = new[] {typeof(object), typeof(bool), typeof(WriterContext)};
-            il.Calli(CallingConventions.Standard, typeof(int), parameterTypes); // stack: [counters[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty)]
+            il.Calli(CallingConventions.Standard, typeof(int), parameterTypes); // stack: [counters[index](obj, writeEmpty)]
             il.Ret();
+
+            il.MarkLabel(tryAsArrayLabel);
+            il.Ldloc(type); // stack: [obj.GetType()]
+            il.Call(typeIsArrayProperty.GetGetMethod(), typeof(Type)); // stack: [obj.GetType().IsArray]
+            var returnForNullLabel = il.DefineLabel("returnForNull");
+            il.Brfalse(returnForNullLabel);
+            context.LoadObj(); // stack: [obj]
+            context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
+            context.LoadContext(); // stack: [obj, writeEmpty, context]
+            context.LoadField(countersField); // stack: [obj, writeEmpty, context, counters]
+            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(Array))); // stack: [obj, writeEmpty, context, counters, index of typeof(Array)]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, context, counters[index of typeof(Array)]]
+            parameterTypes = new[] {typeof(object), typeof(bool), typeof(WriterContext)};
+            il.Calli(CallingConventions.Standard, typeof(int), parameterTypes); // stack: [counters[index of typeof(Array)](obj, writeEmpty)]
+            il.Ret();
+
             il.MarkLabel(returnForNullLabel);
-            il.Pop();
-            il.Pop();
-            il.Pop();
-            il.Pop();
             context.ReturnForNull();
         }
 
         protected override bool IsReference { get { return false; } }
-
-        private static KeyValuePair<Delegate, IntPtr>[] GetCounters(SizeCounterMethodBuilderContext context)
-        {
-            var dict = primitiveTypes.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetCounter(context, type));
-            foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
-            {
-                if(!dict.ContainsKey(value))
-                    dict.Add(value, new KeyValuePair<Delegate, IntPtr>(null, IntPtr.Zero));
-            }
-            int max = dict.Keys.Cast<int>().Max();
-            var result = new KeyValuePair<Delegate, IntPtr>[max + 1];
-            foreach(var entry in dict)
-                result[(int)entry.Key] = entry.Value;
-            return result;
-        }
 
         private static KeyValuePair<Delegate, IntPtr> GetCounter(SizeCounterMethodBuilderContext context, Type type)
         {
@@ -86,23 +101,14 @@ namespace GroBuf.SizeCounters
             il.Ldarg(1); // stack: [(type)obj, writeEmpty]
             il.Ldarg(2); // stack: [(type)obj, writeEmpty, context]
             context.CallSizeCounter(il, type);
-//            var counter = context.Context.GetCounter(type).Pointer;
-//            if(counter == IntPtr.Zero)
-//                throw new InvalidOperationException("Attempt to call method at Zero pointer");
-//            il.Ldc_IntPtr(counter);
-//            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // stack: [count<type>((type)obj, writeEmpty, context)]
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(SizeCounterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
         private static readonly MethodInfo getTypeMethod = ((MethodCallExpression)((Expression<Func<object, Type>>)(obj => obj.GetType())).Body).Method;
-        private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufTypeCodeMap.GetTypeCode(type))).Body).Method;
-
-        private static readonly Type[] primitiveTypes = new[]
-            {
-                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
-                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array), typeof(Hashtable)
-            };
+        private static readonly PropertyInfo typeTypeHandleProperty = (PropertyInfo)((MemberExpression)((Expression<Func<Type, RuntimeTypeHandle>>)(type => type.TypeHandle)).Body).Member;
+        private static readonly PropertyInfo runtimeTypeHandleValueProperty = (PropertyInfo)((MemberExpression)((Expression<Func<RuntimeTypeHandle, IntPtr>>)(handle => handle.Value)).Body).Member;
+        private static readonly PropertyInfo typeIsArrayProperty = (PropertyInfo)((MemberExpression)((Expression<Func<Type, bool>>)(type => type.IsArray)).Body).Member;
     }
 }

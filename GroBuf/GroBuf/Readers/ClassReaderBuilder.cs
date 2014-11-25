@@ -158,31 +158,14 @@ namespace GroBuf.Readers
         {
             var members = context.GetDataMembers(Type);
             ulong[] hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
-            var hashSet = new HashSet<uint>();
-            for(var x = Math.Max((uint)members.Length, 1);; ++x)
+            var n = GroBufHelpers.CalcSize(hashes);
+            hashCodes = new ulong[n];
+            dataMembers = new MemberInfo[n];
+            for(int i = 0; i < members.Length; i++)
             {
-                hashSet.Clear();
-                bool ok = true;
-                foreach(var hash in hashes)
-                {
-                    var item = (uint)(hash % x);
-                    if(hashSet.Contains(item))
-                    {
-                        ok = false;
-                        break;
-                    }
-                    hashSet.Add(item);
-                }
-                if(!ok) continue;
-                hashCodes = new ulong[x];
-                dataMembers = new MemberInfo[x];
-                for(int i = 0; i < members.Length; i++)
-                {
-                    var index = (int)(hashes[i] % x);
-                    hashCodes[index] = hashes[i];
-                    dataMembers[index] = members[i].Member;
-                }
-                return;
+                var index = (int)(hashes[i] % n);
+                hashCodes[index] = hashes[i];
+                dataMembers[index] = members[i].Member;
             }
         }
 

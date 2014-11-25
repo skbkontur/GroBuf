@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -22,62 +21,77 @@ namespace GroBuf.Writers
             context.SetFields(Type, new[]
                 {
                     new KeyValuePair<string, Type>("writers_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
-                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])),
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])), // This field is needed only to save references to the dynamic methods. Otherwise GC will destroy them
                 });
-            Array.ForEach(primitiveTypes, type => context.BuildConstants(type));
+            Array.ForEach(GroBufHelpers.LeafTypes.Where(type => type != null).ToArray(), type => context.BuildConstants(type));
         }
 
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
 
-            var writers = GetWriters(context);
+            var writers = GroBufHelpers.LeafTypes.Select(type1 => type1 == null ? new KeyValuePair<Delegate, IntPtr>(null, IntPtr.Zero) : GetWriter(context, type1)).ToArray();
             var writersField = context.Context.InitConstField(Type, 0, writers.Select(pair => pair.Value).ToArray());
             context.Context.InitConstField(Type, 1, writers.Select(pair => pair.Key).ToArray());
 
+            il.Ldfld(typeof(GroBufHelpers).GetField("LeafTypeHandles", BindingFlags.Public | BindingFlags.Static)); // stack: [LeafTypeHandles]
+            context.LoadObj(); // stack: [LeafTypeHandles, obj]
+            il.Call(getTypeMethod, Type); // stack: [LeafTypeHandles, obj.GetType()]
+            var type = il.DeclareLocal(typeof(Type));
+            il.Dup(); // stack: [LeafTypeHandles, obj.GetType(), obj.GetType()]
+            il.Stloc(type); // type = obj.GetType(); stack: [LeafTypeHandles, obj.GetType()]
+            il.Call(typeTypeHandleProperty.GetGetMethod(), typeof(Type)); // stack: [LeafTypeHandles, obj.GetType().TypeHandle]
+            var typeHandle = il.DeclareLocal(typeof(RuntimeTypeHandle));
+            il.Stloc(typeHandle); // typeHandle = obj.GetType().TypeHandle; stack: [LeafTypeHandles]
+            il.Ldloca(typeHandle); // stack: [LeafTypeHandles, ref typeHandle]
+            il.Call(runtimeTypeHandleValueProperty.GetGetMethod(), typeof(RuntimeTypeHandle)); // stack: [LeafTypeHandles, obj.GetType().TypeHandle.Value]
+            var handle = il.DeclareLocal(typeof(IntPtr));
+            il.Dup(); // stack: [LeafTypeHandles, obj.GetType().TypeHandle.Value, obj.GetType().TypeHandle.Value]
+            il.Stloc(handle); // handle = obj.GetType().TypeHandle.Value; stack: [LeafTypeHandles, handle]
+            il.Ldc_I4(writers.Length); // stack: [LeafTypeHandles, handle, LeafTypeHandles.Length]
+            il.Rem(typeof(uint)); // stack: [LeafTypeHandles, handle % LeafTypeHandles.Length]
+            var index = il.DeclareLocal(typeof(int));
+            il.Conv_I4(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length)]
+            il.Dup(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length), (int)(handle % LeafTypeHandles.Length)]
+            il.Stloc(index); // index = (int)(handle % LeafTypeHandles.Length); stack: [LeafTypeHandles, index]
+            il.Ldelem(typeof(IntPtr)); // stack: [LeafTypeHandles[index]]
+            il.Ldloc(handle); // stack: [LeafTypeHandles[index], handle]
+            var tryAsArrayLabel = il.DefineLabel("tryAsArray");
+            il.Bne(tryAsArrayLabel); // if(LeafTypeHandles[index] != handle) goto tryAsArray; stack: []
             context.LoadObj(); // stack: [obj]
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
             context.LoadResult(); // stack: [obj, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj, writeEmpty, result, ref index]
             context.LoadContext(); // stack: [obj, writeEmpty, result, ref index, context]
             context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, context, writers]
-            context.LoadObj(); // stack: [obj, writeEmpty, result, ref index, context, writers, obj]
-            il.Call(getTypeMethod, Type); // stack: [obj, writeEmpty, result, ref index, context, writers, obj.GetType()]
-            il.Call(getTypeCodeMethod); // stack: [obj, writeEmpty, result, ref index, context, writers, GroBufHelpers.GetTypeCode(obj.GetType())]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            il.Dup(); // stack: [obj, writeEmpty, result, ref index, context, writers[GroBufHelpers.GetTypeCode(obj.GetType())], writers[GroBufHelpers.GetTypeCode(obj.GetType())]]
-            var writeNullLabel = il.DefineLabel("writeNull");
-            il.Brfalse(writeNullLabel); // if(writers[GroBufHelpers.GetTypeCode(obj.GetType())] == 0) goto writeNull;
+            il.Ldloc(index); // stack: [obj, writeEmpty, result, ref index, context, writers, index]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[index]]
             var parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType(), typeof(WriterContext)};
-            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // writers[GroBufHelpers.GetTypeCode(obj.GetType())](obj, writeEmpty, result, ref index, context); stack: []
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // stack: [writers[index](obj, writeEmpty, result, ref index, context)]
             il.Ret();
+
+            il.MarkLabel(tryAsArrayLabel);
+            il.Ldloc(type); // stack: [obj.GetType()]
+            il.Call(typeIsArrayProperty.GetGetMethod(), typeof(Type)); // stack: [obj.GetType().IsArray]
+            var writeNullLabel = il.DefineLabel("writeNull");
+            il.Brfalse(writeNullLabel);
+            context.LoadObj(); // stack: [obj]
+            context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
+            context.LoadResult(); // stack: [obj, writeEmpty, result]
+            context.LoadIndexByRef(); // stack: [obj, writeEmpty, result, ref index]
+            context.LoadContext(); // stack: [obj, writeEmpty, result, ref index, context]
+            context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, context, writers]
+            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(Array))); // stack: [obj, writeEmpty, result, ref index, context, writers, index of typeof(Array)]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[index of typeof(Array)]]
+            parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType(), typeof(WriterContext)};
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // stack: [writers[index of typeof(Array)](obj, writeEmpty, result, ref index, context)]
+            il.Ret();
+
             il.MarkLabel(writeNullLabel);
-            // todo мутное место, нафига эти нелепые Pop?
-            il.Pop();
-            il.Pop();
-            il.Pop();
-            il.Pop();
-            il.Pop();
-            il.Pop();
             context.WriteNull();
         }
 
         protected override bool IsReference { get { return false; } }
-
-        private static KeyValuePair<Delegate, IntPtr>[] GetWriters(WriterMethodBuilderContext context)
-        {
-            var dict = primitiveTypes.ToDictionary(GroBufTypeCodeMap.GetTypeCode, type => GetWriter(context, type));
-            foreach(GroBufTypeCode value in Enum.GetValues(typeof(GroBufTypeCode)))
-            {
-                if(!dict.ContainsKey(value))
-                    dict.Add(value, new KeyValuePair<Delegate, IntPtr>(null, IntPtr.Zero));
-            }
-            int max = dict.Keys.Cast<int>().Max();
-            var result = new KeyValuePair<Delegate, IntPtr>[max + 1];
-            foreach(var entry in dict)
-                result[(int)entry.Key] = entry.Value;
-            return result;
-        }
 
         private static KeyValuePair<Delegate, IntPtr> GetWriter(WriterMethodBuilderContext context, Type type)
         {
@@ -97,23 +111,14 @@ namespace GroBuf.Writers
             il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
             il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
             context.CallWriter(il, type);
-//            var writer = context.GetWriter(type).Pointer;
-//            if(writer == IntPtr.Zero)
-//                throw new InvalidOperationException();
-//            il.Ldc_IntPtr(writer);
-//            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // write<type>((type)obj, writeEmpty, result, ref index, context)
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(WriterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
         private static readonly MethodInfo getTypeMethod = ((MethodCallExpression)((Expression<Func<object, Type>>)(obj => obj.GetType())).Body).Method;
-        private static readonly MethodInfo getTypeCodeMethod = ((MethodCallExpression)((Expression<Func<Type, GroBufTypeCode>>)(type => GroBufTypeCodeMap.GetTypeCode(type))).Body).Method;
-
-        private static readonly Type[] primitiveTypes = new[]
-            {
-                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
-                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array), typeof(Hashtable)
-            };
+        private static readonly PropertyInfo typeTypeHandleProperty = (PropertyInfo)((MemberExpression)((Expression<Func<Type, RuntimeTypeHandle>>)(type => type.TypeHandle)).Body).Member;
+        private static readonly PropertyInfo runtimeTypeHandleValueProperty = (PropertyInfo)((MemberExpression)((Expression<Func<RuntimeTypeHandle, IntPtr>>)(handle => handle.Value)).Body).Member;
+        private static readonly PropertyInfo typeIsArrayProperty = (PropertyInfo)((MemberExpression)((Expression<Func<Type, bool>>)(type => type.IsArray)).Body).Member;
     }
 }

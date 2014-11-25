@@ -165,6 +165,7 @@
     <Compile Include="SizeCounters\SizeCounterBuilderContext.cs" />
     <Compile Include="SizeCounters\StringSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\TimeSpanSizeCounterBuilder.cs" />
+    <Compile Include="LeafTypeAttribute.cs" />
     <Compile Include="WriterContext.cs" />
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />

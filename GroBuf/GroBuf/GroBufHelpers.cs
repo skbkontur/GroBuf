@@ -11,16 +11,22 @@ namespace GroBuf
 {
     public static class GroBufHelpers
     {
+        static GroBufHelpers()
+        {
+            LeafTypes = BuildLeafTypes();
+            LeafTypeHandles = LeafTypes.Select(type => type == null ? IntPtr.Zero : type.TypeHandle.Value).ToArray();
+        }
+
         public static Type GetMemberType(this MemberInfo member)
         {
-            switch (member.MemberType)
+            switch(member.MemberType)
             {
-                case MemberTypes.Property:
-                    return ((PropertyInfo)member).PropertyType;
-                case MemberTypes.Field:
-                    return ((FieldInfo)member).FieldType;
-                default:
-                    throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
+            case MemberTypes.Property:
+                return ((PropertyInfo)member).PropertyType;
+            case MemberTypes.Field:
+                return ((FieldInfo)member).FieldType;
+            default:
+                throw new NotSupportedException("Data member of type " + member.MemberType + " is not supported");
             }
         }
 
@@ -55,6 +61,30 @@ namespace GroBuf
         {
             return HashCalculator.CalcHash(str);
         }
+
+        public static uint CalcSize(ulong[] values)
+        {
+            var hashSet = new HashSet<uint>();
+            for(var n = Math.Max((uint)values.Length, 1);; ++n)
+            {
+                hashSet.Clear();
+                bool ok = true;
+                foreach(var x in values)
+                {
+                    var item = (uint)(x % n);
+                    if(hashSet.Contains(item))
+                    {
+                        ok = false;
+                        break;
+                    }
+                    hashSet.Add(item);
+                }
+                if(ok) return n;
+            }
+        }
+
+        public static readonly IntPtr[] LeafTypeHandles;
+        public static readonly Type[] LeafTypes;
 
         public static readonly int[] Lengths = BuildLengths();
 
@@ -100,6 +130,23 @@ namespace GroBuf
                 lengths[(int)field.GetValue(dummy)] = attribute.Length;
             }
             return lengths;
+        }
+
+        private static Type[] BuildLeafTypes()
+        {
+            Type type = typeof(GroBufTypeCode);
+            FieldInfo[] fields = type.GetFields();
+            var types = (from field in fields
+                         where field.FieldType == type
+                         select (LeafTypeAttribute)field.GetCustomAttributes(typeof(LeafTypeAttribute), false).SingleOrDefault()
+                         into attribute
+                         where attribute != null
+                         select attribute.Type).ToList();
+            var n = CalcSize(types.Select(x => (ulong)x.TypeHandle.Value.ToInt64()).ToArray());
+            var result = new Type[n];
+            foreach(var x in types)
+                result[x.TypeHandle.Value.ToInt64() % n] = x;
+            return result;
         }
 
         private static readonly object dummy = new object();

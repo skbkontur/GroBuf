@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -21,9 +20,9 @@ namespace GroBuf.Readers
             context.SetFields(Type, new[]
                 {
                     new KeyValuePair<string, Type>("readers_" + Type.Name + "_" + Guid.NewGuid(), typeof(IntPtr[])),
-                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[]))
+                    new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])) // This field is needed only to save references to the dynamic methods. Otherwise GC will destroy them
                 });
-            Array.ForEach(primitiveTypes, type => context.BuildConstants(type));
+            Array.ForEach(GroBufHelpers.LeafTypes.Where(type => type != null).ToArray(), type => context.BuildConstants(type));
         }
 
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
@@ -62,7 +61,7 @@ namespace GroBuf.Readers
         private static KeyValuePair<Delegate, IntPtr>[] GetReaders(ReaderMethodBuilderContext context)
         {
             var result = new KeyValuePair<Delegate, IntPtr>[256];
-            foreach(var type in primitiveTypes)
+            foreach(var type in GroBufHelpers.LeafTypes.Where(type => type != null))
                 result[(int)GroBufTypeCodeMap.GetTypeCode(type)] = GetReader(context, type);
             result[(int)GroBufTypeCode.DateTimeOld] = result[(int)GroBufTypeCode.DateTimeNew];
             return result;
@@ -93,16 +92,12 @@ namespace GroBuf.Readers
             il.Ldloc(value); // stack: [ref result, value]
             if(type.IsValueType)
                 il.Box(type); // stack: [ref result, (object)value]
+            else
+                il.Castclass(type);
             il.Stind(typeof(object)); // result = (object)value
             il.Ret();
             var @delegate = method.CreateDelegate(typeof(ReaderDelegate));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
-
-        private static readonly Type[] primitiveTypes = new[]
-            {
-                typeof(bool), typeof(sbyte), typeof(byte), typeof(short), typeof(ushort), typeof(int), typeof(uint), typeof(long), typeof(ulong),
-                typeof(float), typeof(double), typeof(decimal), typeof(string), typeof(Guid), typeof(DateTime), typeof(Array), typeof(Hashtable)
-            };
     }
 }
