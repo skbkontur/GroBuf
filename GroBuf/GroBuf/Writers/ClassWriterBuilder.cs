@@ -45,7 +45,7 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // index = index + 5; stack: []
 
             var dataMembers = context.Context.GetDataMembers(Type);
-            var hashCodes = GroBufHelpers.CalcHashAndCheck(dataMembers.Select(member => member.Name));
+            var hashCodes = GroBufHelpers.CalcHashesAndCheck(dataMembers);
             var prev = il.DeclareLocal(typeof(int));
             for(int i = 0; i < dataMembers.Length; i++)
             {

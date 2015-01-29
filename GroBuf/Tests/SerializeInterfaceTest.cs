@@ -30,7 +30,7 @@ namespace GroBuf.Tests
         {
             public IDataMember[] GetMembers(Type type)
             {
-                return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(info => new DataMember(info.Name, info)).ToArray();
+                return type.GetProperties(BindingFlags.Public | BindingFlags.Instance).Select(DataMember.Create).ToArray();
             }
         }
 

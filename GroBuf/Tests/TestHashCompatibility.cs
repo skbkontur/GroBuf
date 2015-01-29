@@ -20,6 +20,12 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestCalcHash()
+        {
+            Console.WriteLine(GroBufHelpers.HashCalculator.CalcHash("X"));
+        }
+
+        [Test]
         public void TestMaxLenNotAffectsHash()
         {
             var h20 = new HashCalculator(GroBufHelpers.Seed, 20);

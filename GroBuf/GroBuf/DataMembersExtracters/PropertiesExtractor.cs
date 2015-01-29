@@ -19,7 +19,7 @@ namespace GroBuf.DataMembersExtracters
             if(type == null || type == typeof(object))
                 return;
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            members.AddRange(properties.Where(property => property.CanRead && property.GetGetMethod(true).GetParameters().Length == 0 && property.CanWrite && property.GetSetMethod(true).GetParameters().Length == 1).Select(info => new DataMember(info.Name, info)));
+            members.AddRange(properties.Where(property => property.CanRead && property.GetGetMethod(true).GetParameters().Length == 0 && property.CanWrite && property.GetSetMethod(true).GetParameters().Length == 1).Select(DataMember.Create));
             GetMembers(type.BaseType, members);
         }
     }

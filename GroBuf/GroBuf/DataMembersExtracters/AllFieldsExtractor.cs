@@ -18,7 +18,7 @@ namespace GroBuf.DataMembersExtracters
         {
             if(type == null || type == typeof(object))
                 return;
-            members.AddRange(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).Select(info => new DataMember(info.Name, info)));
+            members.AddRange(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).Select(DataMember.Create));
             GetMembers(type.BaseType, members);
         }
     }

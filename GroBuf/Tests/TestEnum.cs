@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System.Runtime.Serialization;
+
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
@@ -90,6 +92,24 @@ namespace GroBuf.Tests
             Assert.IsTrue(oo == Enum3.Eleven || oo == Enum3.Одиннадцать);
         }
 
+        [Test]
+        public void TestReadWriteToId()
+        {
+            var o = Enum1.One;
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<Enum1x>(data);
+            Assert.AreEqual(Enum1x.OneX, oo);
+        }
+
+        [Test]
+        public void TestReadWriteFromId()
+        {
+            var o = Enum1x.OneX;
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<Enum1>(data);
+            Assert.AreEqual(Enum1.One, oo);
+        }
+
         public enum Enum1
         {
             One = 1,
@@ -102,6 +122,12 @@ namespace GroBuf.Tests
             Thousand = 1000,
             Million = 1000000,
             Billion = 1000000000
+        }
+
+        public enum Enum1x
+        {
+            [GroboMember(9186681566302519059)]
+            OneX = 1
         }
 
         public enum Enum2_Old

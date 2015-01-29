@@ -157,7 +157,7 @@ namespace GroBuf.Readers
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
             var members = context.GetDataMembers(Type);
-            ulong[] hashes = GroBufHelpers.CalcHashAndCheck(members.Select(member => member.Name));
+            ulong[] hashes = GroBufHelpers.CalcHashesAndCheck(members);
             var n = GroBufHelpers.CalcSize(hashes);
             hashCodes = new ulong[n];
             dataMembers = new MemberInfo[n];

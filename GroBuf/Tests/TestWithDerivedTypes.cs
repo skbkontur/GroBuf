@@ -1,4 +1,6 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System;
+
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
@@ -18,10 +20,8 @@ namespace GroBuf.Tests
         {
             var o = new Derived {Z = "zzz", S = "qxx"};
             var data = serializer.Serialize(o);
-            var oo = serializer.Deserialize<Derived>(data);
-            Assert.AreEqual("zzz", oo.Z);
-            Assert.AreEqual("qxx", oo.S);
-            Assert.AreEqual("DerivedV", oo.VFF);
+            var e = Assert.Throws<InvalidOperationException>(() => serializer.Deserialize<Derived>(data));
+            Assert.AreEqual("Hash code collision: members 'Base.V' and 'Derived.V' have the same hash code = 1558541029501997959", e.Message);
         }
 
         [Test]

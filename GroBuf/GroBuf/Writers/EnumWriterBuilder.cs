@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
+using GroBuf.DataMembersExtracters;
 
 namespace GroBuf.Writers
 {
@@ -73,7 +76,7 @@ namespace GroBuf.Writers
         {
             var values = (int[])Enum.GetValues(Type);
             var uniqueValues = new HashSet<int>(values).ToArray();
-            var nameHashes = GroBufHelpers.CalcHashAndCheck(Enum.GetNames(Type));
+            var nameHashes = GroBufHelpers.CalcHashesAndCheckForEnum(Type);
             var hashSet = new HashSet<uint>();
             for (var x = (uint)values.Length; ; ++x)
             {

@@ -7,6 +7,8 @@ using System.Runtime.CompilerServices;
 
 using GrEmit;
 
+using GroBuf.DataMembersExtracters;
+
 namespace GroBuf
 {
     public static class GroBufHelpers
@@ -30,6 +32,14 @@ namespace GroBuf
             }
         }
 
+        public static ulong[] CalcHashesAndCheckForEnum(Type type)
+        {
+            if(!type.IsEnum)
+                throw new InvalidOperationException(string.Format("Enum expected. Type: {0}", type));
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static).Select(DataMember.Create);
+            return CalcHashesAndCheck(fields);
+        }
+
         public static MethodInfo GetMethod<TAttribute>(Type type)
         {
             MethodInfo result = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(TAttribute), true).Any());
@@ -38,21 +48,21 @@ namespace GroBuf
             return type.BaseType == typeof(object) ? null : GetMethod<TAttribute>(type.BaseType);
         }
 
-        public static ulong[] CalcHashAndCheck(IEnumerable<string> strings)
+        public static ulong[] CalcHashesAndCheck(IEnumerable<IDataMember> dataMembers)
         {
-            var dict = new Dictionary<ulong, string>();
-            foreach(var s in strings)
+            var dict = new Dictionary<ulong, MemberInfo>();
+            foreach(var dataMember in dataMembers)
             {
-                ulong hash = CalcHash(s);
+                var hash = dataMember.Id.HasValue ? dataMember.Id.Value : CalcHash(dataMember.Name);
                 if(hash == 0)
-                    throw new InvalidOperationException("Hash code of '" + s + "' equals to zero");
+                    throw new InvalidOperationException(string.Format("Hash code of '{0}.{1}' equals to zero", dataMember.Member.DeclaringType.Name, dataMember.Member.Name));
                 if(dict.ContainsKey(hash))
                 {
-                    if(dict[hash] == s)
-                        throw new InvalidOperationException("Duplicated string '" + s + "'");
-                    throw new InvalidOperationException("Hash code collision: strings '" + s + "' and '" + dict[hash] + "' have the same hash code = '" + hash + "'");
+                    if(dict[hash] == dataMember.Member)
+                        throw new InvalidOperationException(string.Format("Duplicated member '{0}.{1}'", dataMember.Member.DeclaringType.Name, dataMember.Member.Name));
+                    throw new InvalidOperationException(string.Format("Hash code collision: members '{0}.{1}' and '{2}.{3}' have the same hash code = {4}", dataMember.Member.DeclaringType.Name, dataMember.Member.Name, dict[hash].DeclaringType.Name, dict[hash].Name, hash));
                 }
-                dict.Add(hash, s);
+                dict.Add(hash, dataMember.Member);
             }
             return dict.Keys.ToArray();
         }

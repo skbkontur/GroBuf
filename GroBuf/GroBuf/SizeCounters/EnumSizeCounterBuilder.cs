@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 
+using GroBuf.DataMembersExtracters;
+
 namespace GroBuf.SizeCounters
 {
     internal class EnumSizeCounterBuilder : SizeCounterBuilderBase
@@ -58,7 +60,7 @@ namespace GroBuf.SizeCounters
         {
             var values = (int[])Enum.GetValues(Type);
             var uniqueValues = new HashSet<int>(values).ToArray();
-            var nameHashes = GroBufHelpers.CalcHashAndCheck(Enum.GetNames(Type));
+            var nameHashes = GroBufHelpers.CalcHashesAndCheckForEnum(Type);
             var hashSet = new HashSet<uint>();
             for(var x = (uint)values.Length;; ++x)
             {
