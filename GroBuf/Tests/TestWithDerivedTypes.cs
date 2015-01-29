@@ -19,8 +19,7 @@ namespace GroBuf.Tests
         public void Test1()
         {
             var o = new Derived {Z = "zzz", S = "qxx"};
-            var data = serializer.Serialize(o);
-            var e = Assert.Throws<InvalidOperationException>(() => serializer.Deserialize<Derived>(data));
+            var e = Assert.Throws<InvalidOperationException>(() => serializer.Serialize(o));
             Assert.AreEqual("Hash code collision: members 'Base.V' and 'Derived.V' have the same hash code = 1558541029501997959", e.Message);
         }
 
