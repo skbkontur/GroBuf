@@ -19,10 +19,6 @@ namespace GroBuf.DataMembersExtracters
             Member = member;
         }
 
-        public DataMember(MemberInfo member)
-        {
-        }
-
         public ulong? Id { get; private set; }
 
         public string Name { get; private set; }
