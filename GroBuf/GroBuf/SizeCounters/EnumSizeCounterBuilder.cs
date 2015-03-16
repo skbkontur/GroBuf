@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Emit;
+using System.Reflection;
 
 using GroBuf.DataMembersExtracters;
 
@@ -58,14 +58,15 @@ namespace GroBuf.SizeCounters
 
         private KeyValuePair<ulong[], int[]> BuildHashCodesTable()
         {
-            var values = (int[])Enum.GetValues(Type);
+            var fields = Type.GetFields(BindingFlags.Public | BindingFlags.Static);
+            var values = fields.Select(field => (int)Enum.Parse(Type, field.Name)).ToArray();
             var uniqueValues = new HashSet<int>(values).ToArray();
-            var nameHashes = GroBufHelpers.CalcHashesAndCheckForEnum(Type);
+            var nameHashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
             var hashSet = new HashSet<uint>();
             for(var x = (uint)values.Length;; ++x)
             {
                 hashSet.Clear();
-                bool ok = true;
+                var ok = true;
                 foreach(var value in uniqueValues)
                 {
                     var item = (uint)(value % x);
@@ -79,9 +80,9 @@ namespace GroBuf.SizeCounters
                 if(!ok) continue;
                 var hashCodes = new ulong[x];
                 var valuez = new int[x];
-                for(int i = 0; i < x; ++i)
+                for(var i = 0; i < x; ++i)
                     valuez[i] = -1;
-                for(int i = 0; i < values.Length; i++)
+                for(var i = 0; i < values.Length; i++)
                 {
                     var value = values[i];
                     var index = (int)(value % x);

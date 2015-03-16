@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Linq;
+using System.Reflection;
 
 using GroBuf.DataMembersExtracters;
 
@@ -105,13 +105,14 @@ namespace GroBuf.Readers
 
         private void BuildValuesTable(out int[] values, out ulong[] hashCodes)
         {
-            var arr = Enum.GetValues(Type);
-            var hashes = GroBufHelpers.CalcHashesAndCheckForEnum(Type);
+            var fields = Type.GetFields(BindingFlags.Public | BindingFlags.Static);
+            var arr = fields.Select(field => (int)Enum.Parse(Type, field.Name)).ToArray();
+            var hashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
             var hashSet = new HashSet<uint>();
             for(var x = (uint)hashes.Length;; ++x)
             {
                 hashSet.Clear();
-                bool ok = true;
+                var ok = true;
                 foreach(var hash in hashes)
                 {
                     var item = (uint)(hash % x);
@@ -125,7 +126,7 @@ namespace GroBuf.Readers
                 if(!ok) continue;
                 hashCodes = new ulong[x];
                 values = new int[x];
-                for(int i = 0; i < hashes.Length; i++)
+                for(var i = 0; i < hashes.Length; i++)
                 {
                     var hash = hashes[i];
                     var index = (int)(hash % x);

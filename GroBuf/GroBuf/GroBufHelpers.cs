@@ -32,14 +32,6 @@ namespace GroBuf
             }
         }
 
-        public static ulong[] CalcHashesAndCheckForEnum(Type type)
-        {
-            if(!type.IsEnum)
-                throw new InvalidOperationException(string.Format("Enum expected. Type: {0}", type));
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static).Select(DataMember.Create);
-            return CalcHashesAndCheck(fields);
-        }
-
         public static MethodInfo GetMethod<TAttribute>(Type type)
         {
             MethodInfo result = type.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method => method.GetCustomAttributes(typeof(TAttribute), true).Any());

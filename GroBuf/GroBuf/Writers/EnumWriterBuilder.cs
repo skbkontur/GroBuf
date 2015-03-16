@@ -74,9 +74,10 @@ namespace GroBuf.Writers
 
         private KeyValuePair<ulong[], int[]> BuildHashCodesTable()
         {
-            var values = (int[])Enum.GetValues(Type);
+            var fields = Type.GetFields(BindingFlags.Public | BindingFlags.Static);
+            var values = fields.Select(field => (int)Enum.Parse(Type, field.Name)).ToArray();
             var uniqueValues = new HashSet<int>(values).ToArray();
-            var nameHashes = GroBufHelpers.CalcHashesAndCheckForEnum(Type);
+            var nameHashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
             var hashSet = new HashSet<uint>();
             for (var x = (uint)values.Length; ; ++x)
             {

@@ -1,4 +1,6 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Reflection;
+using System.Runtime.Serialization;
 
 using GroBuf.DataMembersExtracters;
 
@@ -108,6 +110,60 @@ namespace GroBuf.Tests
             var data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Enum1>(data);
             Assert.AreEqual(Enum1.One, oo);
+        }
+
+        [Test]
+        public void Test()
+        {
+            var o = Enum_BadSort1.X;
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<Enum_BadSort2>(data);
+            Assert.AreEqual(Enum_BadSort2.X, oo);
+        }
+
+        [Test]
+        public void TestZ()
+        {
+            var values = Enum.GetValues(typeof(TaskState));
+            for(int i = 0; i < values.Length; ++i)
+               Console.WriteLine(values.GetValue(i));
+            Console.WriteLine(typeof(TaskState).GetField("Finished", BindingFlags.Public | BindingFlags.Static));
+            var fields = typeof(TaskState).GetFields(BindingFlags.Public | BindingFlags.Static);
+            for (int i = 0; i < fields.Length; ++i)
+                Console.WriteLine(fields.GetValue(i));
+        }
+
+        public enum TaskState
+        {
+            Unknown = 0,
+
+            New,
+
+            WaitingForRerun,
+
+            WaitingForRerunAfterError,
+
+            Finished,
+
+            InProcess,
+
+            Fatal,
+
+            Canceled,
+        }
+
+
+        public enum Enum_BadSort1
+        {
+            X = 3,
+            Y = 1
+        }
+
+        public enum Enum_BadSort2
+        {
+            X,
+            Z,
+            Y
         }
 
         public enum Enum1
