@@ -72,7 +72,7 @@ namespace GroBuf.SizeCounters
             il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, slot.hashCode]
             il.Ldc_I4(0); // stack: [size, slot.hashCode, 0]
             var nextLabel = il.DefineLabel("next");
-            il.Blt(typeof(int), nextLabel); // if(slot.hashCode < 0) goto next; stack: [size]
+            il.Blt(nextLabel, false); // if(slot.hashCode < 0) goto next; stack: [size]
 
 //            context.LoadSizeCounter(elementType);
 
@@ -90,7 +90,7 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [size, count, i + 1]
             il.Dup(); // stack: [size, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, count, i]
-            il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [size]
+            il.Bgt(cycleStartLabel, false); // if(count > i) goto cycleStart; stack: [size]
 
             il.MarkLabel(doneLabel);
         }

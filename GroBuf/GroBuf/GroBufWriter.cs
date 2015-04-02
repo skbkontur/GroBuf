@@ -255,15 +255,17 @@ namespace GroBuf
             IntPtr writer = GetWriter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}, module, true);
-            var il = new GroboIL(dynamicMethod);
-            il.Ldarg(0); // stack: [obj]
-            il.Ldarg(1); // stack: [obj, writeEmpty]
-            il.Ldarg(2); // stack: [obj, writeEmpty, result]
-            il.Ldarg(3); // stack: [obj, writeEmpty, result, ref index]
-            il.Ldarg(4); // stack: [obj, writeEmpty, result, ref index, context]
-            il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // writer.write<T>(obj, writeEmpty, result, ref index, context); stack: []
-            il.Ret();
+            using (var il = new GroboIL(dynamicMethod))
+            {
+                il.Ldarg(0); // stack: [obj]
+                il.Ldarg(1); // stack: [obj, writeEmpty]
+                il.Ldarg(2); // stack: [obj, writeEmpty, result]
+                il.Ldarg(3); // stack: [obj, writeEmpty, result, ref index]
+                il.Ldarg(4); // stack: [obj, writeEmpty, result, ref index, context]
+                il.Ldc_IntPtr(writer);
+                il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // writer.write<T>(obj, writeEmpty, result, ref index, context); stack: []
+                il.Ret();
+            }
 
             return (WriterDelegate<T>)dynamicMethod.CreateDelegate(typeof(WriterDelegate<T>));
         }
@@ -273,19 +275,21 @@ namespace GroBuf
             IntPtr writer = GetWriter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}, module, true);
-            var il = new GroboIL(dynamicMethod);
-            il.Ldarg(0); // stack: [obj]
-            if(type.IsValueType)
-                il.Unbox_Any(type); // stack: [(type)obj]
-            else
-                il.Castclass(type); // stack: [(type)obj]
-            il.Ldarg(1); // stack: [(type)obj, writeEmpty]
-            il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
-            il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
-            il.Ldc_IntPtr(writer);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // writer.write<T>((type)obj, writeEmpty, result, ref index, context); stack: []
-            il.Ret();
+            using (var il = new GroboIL(dynamicMethod))
+            {
+                il.Ldarg(0); // stack: [obj]
+                if(type.IsValueType)
+                    il.Unbox_Any(type); // stack: [(type)obj]
+                else
+                    il.Castclass(type); // stack: [(type)obj]
+                il.Ldarg(1); // stack: [(type)obj, writeEmpty]
+                il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
+                il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
+                il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
+                il.Ldc_IntPtr(writer);
+                il.Calli(CallingConventions.Standard, typeof(void), new[] {type, typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)}); // writer.write<T>((type)obj, writeEmpty, result, ref index, context); stack: []
+                il.Ret();
+            }
 
             return (WriterDelegate)dynamicMethod.CreateDelegate(typeof(WriterDelegate));
         }
@@ -315,14 +319,15 @@ namespace GroBuf
             IntPtr counter = GetCounter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}, GetType(), true);
-            var il = new GroboIL(dynamicMethod);
-            il.Ldarg(0); // stack: [obj]
-            il.Ldarg(1); // stack: [obj, writeEmpty]
-            il.Ldarg(2); // stack: [obj, writeEmpty, context]
-            il.Ldc_IntPtr(counter); // stack: [obj, writeEmpty, context, counter]
-            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // counter(obj, writeEmpty, context); stack: []
-            il.Ret();
-
+            using (var il = new GroboIL(dynamicMethod))
+            {
+                il.Ldarg(0); // stack: [obj]
+                il.Ldarg(1); // stack: [obj, writeEmpty]
+                il.Ldarg(2); // stack: [obj, writeEmpty, context]
+                il.Ldc_IntPtr(counter); // stack: [obj, writeEmpty, context, counter]
+                il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // counter(obj, writeEmpty, context); stack: []
+                il.Ret();
+            }
             return (SizeCounterDelegate<T>)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate<T>));
         }
 
@@ -331,17 +336,19 @@ namespace GroBuf
             IntPtr counter = GetCounter(type, ignoreCustomSerialization);
 
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(int), new[] {typeof(object), typeof(bool), typeof(WriterContext)}, GetType(), true);
-            var il = new GroboIL(dynamicMethod);
-            il.Ldarg(0); // stack: [obj]
-            if(type.IsValueType)
-                il.Unbox_Any(type); // stack: [(type)obj]
-            //            else
-            //                il.Castclass(type); // stack: [(type)obj]
-            il.Ldarg(1); // stack: [(type)obj, writeEmpty]
-            il.Ldarg(2); // stack: [(type)obj, writeEmpty, context]
-            il.Ldc_IntPtr(counter); // stack: [(type)obj, writeEmpty, context, counter]
-            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // counter((type)obj, writeEmpty, context); stack: []
-            il.Ret();
+            using (var il = new GroboIL(dynamicMethod))
+            {
+                il.Ldarg(0); // stack: [obj]
+                if(type.IsValueType)
+                    il.Unbox_Any(type); // stack: [(type)obj]
+                else
+                    il.Castclass(type); // stack: [(type)obj]
+                il.Ldarg(1); // stack: [(type)obj, writeEmpty]
+                il.Ldarg(2); // stack: [(type)obj, writeEmpty, context]
+                il.Ldc_IntPtr(counter); // stack: [(type)obj, writeEmpty, context, counter]
+                il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)}); // counter((type)obj, writeEmpty, context); stack: []
+                il.Ret();
+            }
 
             return (SizeCounterDelegate)dynamicMethod.CreateDelegate(typeof(SizeCounterDelegate));
         }

@@ -81,10 +81,12 @@ namespace GroBuf.SizeCounters
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {
             var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] {typeof(T)}, Module);
-            var il = new GroboIL(method);
-            il.Ldarg(0);
-            il.Stfld(field);
-            il.Ret();
+            using (var il = new GroboIL(method))
+            {
+                il.Ldarg(0);
+                il.Stfld(field);
+                il.Ret();
+            }
             var action = (Action<T>)method.CreateDelegate(typeof(Action<T>));
             return () => action(value);
         }

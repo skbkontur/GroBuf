@@ -31,6 +31,8 @@ namespace GroBuf.Readers
                 il.Call(getUninitializedObject);
                 if(type.IsValueType)
                     il.Unbox_Any(type);
+                else
+                    il.Castclass(type);
             }
         }
 

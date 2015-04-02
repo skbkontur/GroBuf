@@ -74,28 +74,30 @@ namespace GroBuf.Readers
                                                {
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), typeof(object).MakeByRefType(), typeof(ReaderContext)
                                                }, context.Context.Module, true);
-            var il = new GroboIL(method);
-            il.Ldarg(2); // stack: [ref result]
-            il.Ldarg(0); // stack: [ref result, data]
-            il.Ldarg(1); // stack: [ref result, data, ref index]
-            var value = il.DeclareLocal(type);
-            il.Ldloca(value); // stack: [ref result, data, ref index, ref value]
-            il.Ldarg(3); // stack: [ref result, data, ref index, ref value, context]
+            using (var il = new GroboIL(method))
+            {
+                il.Ldarg(2); // stack: [ref result]
+                il.Ldarg(0); // stack: [ref result, data]
+                il.Ldarg(1); // stack: [ref result, data, ref index]
+                var value = il.DeclareLocal(type);
+                il.Ldloca(value); // stack: [ref result, data, ref index, ref value]
+                il.Ldarg(3); // stack: [ref result, data, ref index, ref value, context]
 
-            ReaderMethodBuilderContext.CallReader(il, type, context.Context);
+                ReaderMethodBuilderContext.CallReader(il, type, context.Context);
 
-//            var reader = context.GetReader(type).Pointer;
-//            if(reader == IntPtr.Zero)
-//                throw new InvalidOperationException();
-//            il.Ldc_IntPtr(reader);
-//            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // read<type>(data, ref index, ref value, context); stack: [ref result]
-            il.Ldloc(value); // stack: [ref result, value]
-            if(type.IsValueType)
-                il.Box(type); // stack: [ref result, (object)value]
-            else
-                il.Castclass(type);
-            il.Stind(typeof(object)); // result = (object)value
-            il.Ret();
+                //            var reader = context.GetReader(type).Pointer;
+                //            if(reader == IntPtr.Zero)
+                //                throw new InvalidOperationException();
+                //            il.Ldc_IntPtr(reader);
+                //            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // read<type>(data, ref index, ref value, context); stack: [ref result]
+                il.Ldloc(value); // stack: [ref result, value]
+                if(type.IsValueType)
+                    il.Box(type); // stack: [ref result, (object)value]
+                else
+                    il.Castclass(type);
+                il.Stind(typeof(object)); // result = (object)value
+                il.Ret();
+            }
             var @delegate = method.CreateDelegate(typeof(ReaderDelegate));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }

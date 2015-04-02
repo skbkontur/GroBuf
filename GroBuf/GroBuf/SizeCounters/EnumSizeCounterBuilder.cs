@@ -36,7 +36,7 @@ namespace GroBuf.SizeCounters
             context.LoadField(valuesField); // stack: [values]
             context.LoadObj(); // stack: [values, obj]
             il.Ldc_I4(values.Length); // stack: [values, obj, values.Length]
-            il.Rem(typeof(uint)); // stack: [values, obj % values.Length]
+            il.Rem(true); // stack: [values, obj % values.Length]
             il.Ldelem(typeof(int)); // stack: [values[obj % values.Length]]
             context.LoadObj(); // stack: [values[obj % values.Length], obj]
             il.Ceq(); // stack: [values[obj % values.Length] == obj]
@@ -45,7 +45,7 @@ namespace GroBuf.SizeCounters
             context.LoadField(hashCodesField); // stack: [hashCodes]
             context.LoadObj(); // stack: [hashCodes, obj]
             il.Ldc_I4(hashCodes.Length); // stack: [hashCodes, obj, hashCodes.Length]
-            il.Rem(typeof(uint)); // stack: [hashCodes, obj % hashCodes.Length]
+            il.Rem(true); // stack: [hashCodes, obj % hashCodes.Length]
             il.Ldelem(typeof(long)); // stack: [hashCodes[obj % hashCodes.Length] = hashCode]
             il.Brfalse(countAsIntLabel); // if(hashCode == 0) goto countAsInt;
             il.Ldc_I4(9); // stack: [9]

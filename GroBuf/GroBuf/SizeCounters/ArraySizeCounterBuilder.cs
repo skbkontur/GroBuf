@@ -76,7 +76,7 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [size, length, i + 1]
             il.Dup(); // stack: [size, length, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [size, length, i]
-            il.Bgt(typeof(int), cycleStartLabel); // if(length > i) goto cycleStart; stack: [size]
+            il.Bgt(cycleStartLabel, false); // if(length > i) goto cycleStart; stack: [size]
             il.MarkLabel(doneLabel);
         }
 

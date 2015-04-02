@@ -73,12 +73,12 @@ namespace GroBuf.Readers
             if(!Type.IsValueType)
             {
                 context.LoadResultByRef(); // stack: [data length, ref result]
-                il.Ldind(typeof(object)); // stack: [data length, result]
+                il.Ldind(Type); // stack: [data length, result]
                 var notNullLabel = il.DefineLabel("notNull");
                 il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data length]
                 context.LoadResultByRef(); // stack: [data length, ref result]
                 ObjectConstructionHelper.EmitConstructionOfType(Type, il);
-                il.Stind(typeof(object)); // result = new type(); stack: [data length]
+                il.Stind(Type); // result = new type(); stack: [data length]
                 il.MarkLabel(notNullLabel);
             }
 
@@ -107,8 +107,8 @@ namespace GroBuf.Readers
 
             il.Dup(); // stack: [hashCode, hashCode]
             il.Ldc_I8(dataMembers.Length); // stack: [hashCode, hashCode, (int64)hashCodes.Length]
-            il.Rem(typeof(ulong)); // stack: [hashCode, hashCode % hashCodes.Length]
-            il.Conv_I4(); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
+            il.Rem(true); // stack: [hashCode, hashCode % hashCodes.Length]
+            il.Conv<int>(); // stack: [hashCode, (int)(hashCode % hashCodes.Length)]
             var idx = il.DeclareLocal(typeof(int));
             il.Stloc(idx); // idx = (int)(hashCode % hashCodes.Length); stack: [hashCode]
 
@@ -117,7 +117,7 @@ namespace GroBuf.Readers
             il.Ldelem(typeof(long)); // stack: [hashCode, hashCodes[idx]]
 
             var skipDataLabel = il.DefineLabel("skipData");
-            il.Bne(skipDataLabel); // if(hashCode != hashCodes[idx]) goto skipData; stack: []
+            il.Bne_Un(skipDataLabel); // if(hashCode != hashCodes[idx]) goto skipData; stack: []
 
             // Read data
             context.LoadData(); // stack: [pinnedData]
@@ -147,7 +147,7 @@ namespace GroBuf.Readers
 
             context.LoadIndex(); // stack: [index]
             il.Ldloc(end); // stack: [index, end]
-            il.Blt(typeof(uint), cycleStartLabel); // if(index < end) goto cycleStart; stack: []
+            il.Blt(cycleStartLabel, true); // if(index < end) goto cycleStart; stack: []
 
             il.MarkLabel(doneLabel);
         }
@@ -176,53 +176,54 @@ namespace GroBuf.Readers
                                                {
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, context.Module, true);
-            var il = new GroboIL(method);
-
-//            ReaderMethodBuilderContext.LoadReader(il, member.GetMemberType(), context);
-
-            il.Ldarg(0); // stack: [data]
-            il.Ldarg(1); // stack: [data, ref index]
-            switch(member.MemberType)
+            using (var il = new GroboIL(method))
             {
-            case MemberTypes.Field:
-                il.Ldarg(2); // stack: [data, ref index, ref result]
-                if(!Type.IsValueType)
-                    il.Ldind(typeof(object)); // stack: [data, ref index, result]
-                var field = (FieldInfo)member;
-                il.Ldflda(field); // stack: [data, ref index, ref result.field]
-                il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
-                ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, ref result.field, context); stack: []
-                break;
-            case MemberTypes.Property:
-                var property = (PropertyInfo)member;
-                var propertyValue = il.DeclareLocal(property.PropertyType);
-                if (context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+                //            ReaderMethodBuilderContext.LoadReader(il, member.GetMemberType(), context);
+
+                il.Ldarg(0); // stack: [data]
+                il.Ldarg(1); // stack: [data, ref index]
+                switch(member.MemberType)
                 {
-                    MethodInfo getter = property.GetGetMethod(true);
-                    if(getter == null)
-                        throw new MissingMethodException(Type.Name, property.Name + "_get");
+                case MemberTypes.Field:
                     il.Ldarg(2); // stack: [data, ref index, ref result]
-                    if (!Type.IsValueType)
-                        il.Ldind(typeof(object)); // stack: [data, ref index, result]
-                    il.Call(getter, Type); // stack: [ data, ref index, result.property]
-                    il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index]
+                    if(!Type.IsValueType)
+                        il.Ldind(Type); // stack: [data, ref index, result]
+                    var field = (FieldInfo)member;
+                    il.Ldflda(field); // stack: [data, ref index, ref result.field]
+                    il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
+                    ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, ref result.field, context); stack: []
+                    break;
+                case MemberTypes.Property:
+                    var property = (PropertyInfo)member;
+                    var propertyValue = il.DeclareLocal(property.PropertyType);
+                    if(context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+                    {
+                        MethodInfo getter = property.GetGetMethod(true);
+                        if(getter == null)
+                            throw new MissingMethodException(Type.Name, property.Name + "_get");
+                        il.Ldarg(2); // stack: [data, ref index, ref result]
+                        if(!Type.IsValueType)
+                            il.Ldind(Type); // stack: [data, ref index, result]
+                        il.Call(getter, Type); // stack: [ data, ref index, result.property]
+                        il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index]
+                    }
+                    il.Ldloca(propertyValue); // stack: [data, ref index, ref propertyValue]
+                    il.Ldarg(3); // stack: [data, ref index, ref propertyValue, context]
+                    ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, ref propertyValue, context); stack: []
+                    il.Ldarg(2); // stack: [ref result]
+                    if(!Type.IsValueType)
+                        il.Ldind(Type); // stack: [result]
+                    il.Ldloc(propertyValue); // stack: [result, propertyValue]
+                    MethodInfo setter = property.GetSetMethod(true);
+                    if(setter == null)
+                        throw new MissingMethodException(Type.Name, property.Name + "_set");
+                    il.Call(setter, Type); // result.property = propertyValue
+                    break;
+                default:
+                    throw new NotSupportedException("Data member of type '" + member.MemberType + "' is not supported");
                 }
-                il.Ldloca(propertyValue); // stack: [data, ref index, ref propertyValue]
-                il.Ldarg(3); // stack: [data, ref index, ref propertyValue, context]
-                ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, ref propertyValue, context); stack: []
-                il.Ldarg(2); // stack: [ref result]
-                if(!Type.IsValueType)
-                    il.Ldind(typeof(object)); // stack: [result]
-                il.Ldloc(propertyValue); // stack: [result, propertyValue]
-                MethodInfo setter = property.GetSetMethod(true);
-                if(setter == null)
-                    throw new MissingMethodException(Type.Name, property.Name + "_set");
-                il.Call(setter, Type); // result.property = propertyValue
-                break;
-            default:
-                throw new NotSupportedException("Data member of type '" + member.MemberType + "' is not supported");
+                il.Ret();
             }
-            il.Ret();
             var @delegate = method.CreateDelegate(typeof(ReaderDelegate<>).MakeGenericType(Type));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }

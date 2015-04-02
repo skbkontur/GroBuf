@@ -90,7 +90,7 @@ namespace GroBuf.Writers
             il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [current, slot.hashCode]
             il.Ldc_I4(0); // stack: [current, slot.hashCode, 0]
             var nextLabel = il.DefineLabel("next");
-            il.Blt(typeof(int), nextLabel); // if(slot.hashCode < 0) goto next; stack: [current]
+            il.Blt(nextLabel, false); // if(slot.hashCode < 0) goto next; stack: [current]
             il.Dup(); // stack: [current, current]
             il.Ldloc(slot); // stack: [current, current, slot]
             il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [current, current, slot.value]
@@ -104,7 +104,7 @@ namespace GroBuf.Writers
             il.Add(); // stack: [current, count, i + 1]
             il.Dup(); // stack: [current, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [current, count, i]
-            il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [current]
+            il.Bgt(cycleStartLabel, false); // if(count > i) goto cycleStart; stack: [current]
 
             il.Pop(); // stack: []
             context.LoadIndexByRef(); // stack: [ref index]

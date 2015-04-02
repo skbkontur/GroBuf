@@ -45,16 +45,15 @@ namespace GroBuf.Writers
             context.LoadObj(); // stack: [&result[index], obj]
             il.Stloc(str); // str = obj
             il.Ldloc(str); // stack: [&result[index], str]
-            il.Conv_U(); // stack: [&result[index], (int)str]
+            il.Conv<IntPtr>(); // stack: [&result[index], (IntPtr)str]
             il.Ldc_I4(RuntimeHelpers.OffsetToStringData); // stack: [&result[index], (IntPtr)str, offset]
             il.Add(); // stack: [&result[index], (IntPtr)str + offset]
             il.Ldloc(length); // stack: [&result[index], (IntPtr)str + offset, length]
-            if(sizeof(IntPtr) == 8)
-                il.Unaligned(1L);
-            il.Cpblk(); // &result[index] = str
-            il.Ldc_I4(0); // stack: [0]
-            il.Conv_U(); // stack: [(uint)0]
-            il.Stloc(str); // str = (uint)0;
+            il.Cpblk(unaligned: sizeof(IntPtr) == 8 ? 1 : (int?)null); // &result[index] = str
+            //il.Ldc_I4(0); // stack: [0]
+            //il.Conv(typeof(IntPtr)); // stack: [(IntPtr)0]
+            il.Ldnull(); // stack: [null]
+            il.Stloc(str); // str = null;
 
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]

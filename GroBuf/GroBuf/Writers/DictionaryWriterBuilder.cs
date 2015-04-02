@@ -85,7 +85,7 @@ namespace GroBuf.Writers
             il.Ldfld(entryType.GetField("hashCode")); // stack: [entry.hashCode]
             il.Ldc_I4(0); // stack: [entry.hashCode, 0]
             var nextLabel = il.DefineLabel("next");
-            il.Blt(typeof(int), nextLabel); // if(entry.hashCode < 0) goto next; stack: []
+            il.Blt(nextLabel, false); // if(entry.hashCode < 0) goto next; stack: []
             
 //            context.LoadWriter(keyType);
 
@@ -114,7 +114,7 @@ namespace GroBuf.Writers
             il.Add(); // stack: [count, i + 1]
             il.Dup(); // stack: [count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [count, i]
-            il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: []
+            il.Bgt(cycleStartLabel, false); // if(count > i) goto cycleStart; stack: []
 
             il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]
