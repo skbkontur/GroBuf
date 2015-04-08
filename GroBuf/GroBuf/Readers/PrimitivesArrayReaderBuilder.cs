@@ -11,14 +11,10 @@ namespace GroBuf.Readers
         public PrimitivesArrayReaderBuilder(Type type)
             : base(type)
         {
-            if(Type != typeof(Array))
-            {
-                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
-                elementType = Type.GetElementType();
-                if(!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
-            }
-            else elementType = typeof(object);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            elementType = Type.GetElementType();
+            if(!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
@@ -34,7 +30,6 @@ namespace GroBuf.Readers
             il.Ldc_I4((int)GroBufTypeCodeMap.GetTypeCode(Type)); // stack: [type code, GroBufTypeCode(Type)]
             var tryReadArrayElementLabel = il.DefineLabel("tryReadArrayElement");
             il.Bne_Un(tryReadArrayElementLabel); // if(type code != GroBufTypeCode(Type)) goto tryReadArrayElement; stack: []
-
 
             context.IncreaseIndexBy1();
 
@@ -55,7 +50,7 @@ namespace GroBuf.Readers
             CountArrayLength(elementType, il); // stack: [array length]
             il.Stloc(length); // length = array length
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -101,7 +96,7 @@ namespace GroBuf.Readers
             context.GoToCurrentLocation(); // stack: [arr, &data[index]]
             il.Ldloc(length); // stack: [arr, &data[index], length]
             CountArraySize(elementType, il); // stack: [arr, &data[index], size]
-            il.Cpblk(unaligned: sizeof(IntPtr) == 8 ? 1 : (int?)null); // arr = &data[index]
+            il.Cpblk(unaligned : sizeof(IntPtr) == 8 ? 1 : (int?)null); // arr = &data[index]
             il.Ldnull(); // stack: [null]
             il.Stloc(arr); // arr = null;
             context.LoadIndexByRef(); // stack: [ref index]
@@ -112,7 +107,7 @@ namespace GroBuf.Readers
             il.Br(doneLabel);
 
             il.MarkLabel(tryReadArrayElementLabel);
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]

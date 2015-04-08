@@ -9,13 +9,9 @@ namespace GroBuf.SizeCounters
         public ArraySizeCounterBuilder(Type type)
             : base(type)
         {
-            if(Type != typeof(Array))
-            {
-                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
-                elementType = Type.GetElementType();
-            }
-            else elementType = typeof(object);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            elementType = Type.GetElementType();
         }
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
@@ -60,9 +56,9 @@ namespace GroBuf.SizeCounters
             il.Stloc(i); // i = 0; stack: [size]
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
-            
+
 //            context.LoadSizeCounter(elementType);
-            
+
             context.LoadObj(); // stack: [size, obj]
             il.Ldloc(i); // stack: [size, obj, i]
             il.Ldelem(elementType);

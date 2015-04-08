@@ -9,13 +9,9 @@ namespace GroBuf.Readers
         public ArrayReaderBuilder(Type type)
             : base(type)
         {
-            if(Type != typeof(Array))
-            {
-                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
-                elementType = Type.GetElementType();
-            }
-            else elementType = typeof(object);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            elementType = Type.GetElementType();
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
@@ -51,7 +47,7 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Stloc(length); // length = array length; stack: []
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -95,7 +91,7 @@ namespace GroBuf.Readers
             il.MarkLabel(cycleStartLabel);
 
 //            context.LoadReader(elementType);
-            
+
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadResult(Type); // stack: [pinnedData, ref index, result]
@@ -116,7 +112,7 @@ namespace GroBuf.Readers
 
             il.MarkLabel(tryReadArrayElementLabel);
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -161,7 +157,6 @@ namespace GroBuf.Readers
             context.CallReader(elementType); // reader(pinnedData, ref index, ref result[0], context); stack: []
 
             il.MarkLabel(doneLabel); // stack: []
-
         }
 
         protected override bool IsReference { get { return true; } }

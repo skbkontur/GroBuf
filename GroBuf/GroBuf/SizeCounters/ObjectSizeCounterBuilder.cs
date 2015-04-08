@@ -77,10 +77,10 @@ namespace GroBuf.SizeCounters
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
             context.LoadContext(); // stack: [obj, writeEmpty, context]
             context.LoadField(countersField); // stack: [obj, writeEmpty, context, counters]
-            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(Array))); // stack: [obj, writeEmpty, context, counters, index of typeof(Array)]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, context, counters[index of typeof(Array)]]
+            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(object[]))); // stack: [obj, writeEmpty, context, counters, index of typeof(object[])]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, context, counters[index of typeof(object[])]]
             parameterTypes = new[] {typeof(object), typeof(bool), typeof(WriterContext)};
-            il.Calli(CallingConventions.Standard, typeof(int), parameterTypes); // stack: [counters[index of typeof(Array)](obj, writeEmpty)]
+            il.Calli(CallingConventions.Standard, typeof(int), parameterTypes); // stack: [counters[index of typeof(object[])](obj, writeEmpty)]
             il.Ret();
 
             il.MarkLabel(returnForNullLabel);

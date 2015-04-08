@@ -81,10 +81,10 @@ namespace GroBuf.Writers
             context.LoadIndexByRef(); // stack: [obj, writeEmpty, result, ref index]
             context.LoadContext(); // stack: [obj, writeEmpty, result, ref index, context]
             context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, context, writers]
-            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(Array))); // stack: [obj, writeEmpty, result, ref index, context, writers, index of typeof(Array)]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[index of typeof(Array)]]
+            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(object[]))); // stack: [obj, writeEmpty, result, ref index, context, writers, index of typeof(object[])]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[index of typeof(object[])]]
             parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType(), typeof(WriterContext)};
-            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // stack: [writers[index of typeof(Array)](obj, writeEmpty, result, ref index, context)]
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // stack: [writers[index of typeof(object[])](obj, writeEmpty, result, ref index, context)]
             il.Ret();
 
             il.MarkLabel(writeNullLabel);

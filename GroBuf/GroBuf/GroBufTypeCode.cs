@@ -11,7 +11,7 @@ namespace GroBuf
         [DataLength(-1)]
         Object = 1,
 
-        [DataLength(-1), LeafType(typeof(Array))]
+        [DataLength(-1), LeafType(typeof(object[]))]
         Array = 2,
 
         [DataLength(1), LeafType(typeof(sbyte))]

@@ -56,8 +56,8 @@ namespace GroBuf
                 return result;
             if (type.IsEnum)
                 return GroBufTypeCode.Enum;
-            if (type.IsArray || type == typeof(Array))
-                return mapItemToArray[(int)GetTypeCode(type.GetElementType() ?? typeof(object))];
+            if (type.IsArray && type.GetArrayRank() == 1)
+                return mapItemToArray[(int)GetTypeCode(type.GetElementType())];
             if(type == typeof(Guid)) return GroBufTypeCode.Guid;
             if(type == typeof(Hashtable)) return GroBufTypeCode.Dictionary;
             return GroBufTypeCode.Object;
