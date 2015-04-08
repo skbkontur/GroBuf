@@ -6,7 +6,14 @@ namespace GroBuf
 {
     internal class DebugViewBuilder
     {
-        private int margin;
+        private static string[] BuildMargins()
+        {
+            var result = new string[1024];
+            result[0] = "";
+            for(var i = 1; i < 1024; ++i)
+                result[i] = new string(' ', i);
+            return result;
+        }
 
         public unsafe void Print(byte* data, ref int index, int length, StringBuilder result)
         {
@@ -16,16 +23,77 @@ namespace GroBuf
             switch(typeCode)
             {
             case GroBufTypeCode.Empty:
+                result.Append(margins[margin]);
                 result.Append("<null>");
                 break;
             case GroBufTypeCode.Object:
                 {
+                    if(index + 3 >= length)
+                        throw new InvalidOperationException("Unexpected end of data");
+                    var dataLength = *(int*)(data + index);
+                    index += 4;
+                    if(index + dataLength >= length)
+                        throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.AppendLine("<object>");
-
+                    margin += 4;
+                    var start = index;
+                    while(index < start + dataLength)
+                    {
+                        result.Append(margins[margin]);
+                        result.Append("<field:hash=");
+                        result.Append(*(ulong*)(data + index));
+                        result.AppendLine(">");
+                        result.Append(margins[margin]);
+                        result.AppendLine("<value>");
+                        margin += 4;
+                        index += 8;
+                        Print(data, ref index, length, result);
+                        margin -= 4;
+                        result.Append(margins[margin]);
+                        result.AppendLine("</value>");
+                    }
+                    margin -= 4;
+                    result.Append(margins[margin]);
+                    result.AppendLine("</object>");
                 }
+                break;
+            case GroBufTypeCode.Array:
+                {
+                    if(index + 3 >= length)
+                        throw new InvalidOperationException("Unexpected end of data");
+                    var dataLength = *(int*)(data + index);
+                    index += 4;
+                    if(index + dataLength >= length)
+                        throw new InvalidOperationException("Unexpected end of data");
+                    var arrayLength = *(int*)(data + index);
+                    index += 4;
+                    result.Append(margins[margin]);
+                    result.AppendLine("<array>");
+                    margin += 4;
+                    for(var i = 0; i < arrayLength; ++i)
+                    {
+                        result.Append(margins[margin]);
+                        result.Append("<item:index=");
+                        result.Append(i);
+                        result.AppendLine(">");
+                        result.Append(margins[margin]);
+                        result.AppendLine("<value>");
+                        margin += 4;
+                        Print(data, ref index, length, result);
+                        margin -= 4;
+                        result.Append(margins[margin]);
+                        result.AppendLine("</value>");
+                    }
+                    margin -= 4;
+                    result.Append(margins[margin]);
+                    result.AppendLine("</array>");
+                }
+                break;
             case GroBufTypeCode.Boolean:
                 if(index >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<bool:");
                 result.Append(*(data + index) > 0);
                 result.Append(">");
@@ -34,6 +102,7 @@ namespace GroBuf
             case GroBufTypeCode.Int8:
                 if(index >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<sbyte:");
                 result.Append(*(sbyte*)(data + index));
                 result.Append(">");
@@ -42,6 +111,7 @@ namespace GroBuf
             case GroBufTypeCode.UInt8:
                 if(index >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<byte:");
                 result.Append(*(data + index));
                 result.Append(">");
@@ -50,6 +120,7 @@ namespace GroBuf
             case GroBufTypeCode.Int16:
                 if(index + 1 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<short:");
                 result.Append(*(short*)(data + index));
                 result.Append(">");
@@ -58,6 +129,7 @@ namespace GroBuf
             case GroBufTypeCode.UInt16:
                 if(index + 1 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<ushort:");
                 result.Append(*(ushort*)(data + index));
                 result.Append(">");
@@ -66,6 +138,7 @@ namespace GroBuf
             case GroBufTypeCode.Int32:
                 if(index + 3 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<int:");
                 result.Append(*(int*)(data + index));
                 result.Append(">");
@@ -74,6 +147,7 @@ namespace GroBuf
             case GroBufTypeCode.UInt32:
                 if(index + 3 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<uint:");
                 result.Append(*(uint*)(data + index));
                 result.Append(">");
@@ -82,6 +156,7 @@ namespace GroBuf
             case GroBufTypeCode.Int64:
                 if(index + 7 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<long:");
                 result.Append(*(long*)(data + index));
                 result.Append(">");
@@ -90,6 +165,7 @@ namespace GroBuf
             case GroBufTypeCode.UInt64:
                 if(index + 7 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<ulong:");
                 result.Append(*(ulong*)(data + index));
                 result.Append(">");
@@ -98,6 +174,7 @@ namespace GroBuf
             case GroBufTypeCode.Single:
                 if(index + 3 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<float:");
                 result.Append(*(float*)(data + index));
                 result.Append(">");
@@ -106,6 +183,7 @@ namespace GroBuf
             case GroBufTypeCode.Double:
                 if(index + 7 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<double:");
                 result.Append(*(double*)(data + index));
                 result.Append(">");
@@ -114,6 +192,7 @@ namespace GroBuf
             case GroBufTypeCode.Decimal:
                 if(index + 15 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<decimal:");
                 result.Append(*(decimal*)(data + index));
                 result.Append(">");
@@ -122,6 +201,7 @@ namespace GroBuf
             case GroBufTypeCode.Guid:
                 if(index + 15 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<Guid:");
                 result.Append(*(Guid*)(data + index));
                 result.Append(">");
@@ -130,6 +210,7 @@ namespace GroBuf
             case GroBufTypeCode.Enum:
                 if(index + 7 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<enum:hash=");
                 result.Append(*(ulong*)(data + index));
                 result.Append(">");
@@ -146,6 +227,7 @@ namespace GroBuf
                     var arr = new char[dataLength / 2];
                     fixed(char* dest = &arr[0])
                         memoryCopier((IntPtr)dest, (IntPtr)(data + index), dataLength);
+                    result.Append(margins[margin]);
                     result.Append("<string:");
                     result.Append(new string(arr));
                     result.Append(">");
@@ -155,8 +237,9 @@ namespace GroBuf
             case GroBufTypeCode.DateTimeOld:
                 throw new NotSupportedException("Old DateTime format is not supported");
             case GroBufTypeCode.DateTimeNew:
-                if (index + 7 >= length)
+                if(index + 7 >= length)
                     throw new InvalidOperationException("Unexpected end of data");
+                result.Append(margins[margin]);
                 result.Append("<DateTime:");
                 result.Append(DateTime.FromBinary(*(long*)(data + index)));
                 result.Append(">");
@@ -170,6 +253,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<bool[]:length=");
                     result.Append(dataLength);
                     result.Append(">");
@@ -184,6 +268,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<sbyte[]:length=");
                     result.Append(dataLength);
                     result.Append(">");
@@ -198,6 +283,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<byte[]:length=");
                     result.Append(dataLength);
                     result.Append(">");
@@ -212,6 +298,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<short[]:length=");
                     result.Append(dataLength / 2);
                     result.Append(">");
@@ -226,6 +313,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<ushort[]:length=");
                     result.Append(dataLength / 2);
                     result.Append(">");
@@ -240,6 +328,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<int[]:length=");
                     result.Append(dataLength / 4);
                     result.Append(">");
@@ -254,6 +343,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<uint[]:length=");
                     result.Append(dataLength / 4);
                     result.Append(">");
@@ -268,6 +358,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<long[]:length=");
                     result.Append(dataLength / 8);
                     result.Append(">");
@@ -282,6 +373,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<ulong[]:length=");
                     result.Append(dataLength / 8);
                     result.Append(">");
@@ -296,6 +388,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<float[]:length=");
                     result.Append(dataLength / 4);
                     result.Append(">");
@@ -310,6 +403,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<double[]:length=");
                     result.Append(dataLength / 8);
                     result.Append(">");
@@ -324,6 +418,7 @@ namespace GroBuf
                     index += 4;
                     if(index + dataLength >= length)
                         throw new InvalidOperationException("Unexpected end of data");
+                    result.Append(margins[margin]);
                     result.Append("<custom data:length=");
                     result.Append(dataLength);
                     result.Append(">");
@@ -345,6 +440,10 @@ namespace GroBuf
             il.Emit(OpCodes.Ret);
             return (Action<IntPtr, IntPtr, int>)method.CreateDelegate(typeof(Action<IntPtr, IntPtr, int>));
         }
+
+        private int margin;
+
+        private static readonly string[] margins = BuildMargins();
 
         private static readonly Action<IntPtr, IntPtr, int> memoryCopier = BuildMemoryCopier();
     }
