@@ -87,6 +87,7 @@
     <Compile Include="DataMembersExtracters\GroboMemberAttribute.cs" />
     <Compile Include="DataMembersExtracters\IDataMember.cs" />
     <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
+    <Compile Include="DebugViewBuilder.cs" />
     <Compile Include="DefaultGroBufCustomSerializerCollection.cs" />
     <Compile Include="EmptyGroBufCustomSerializerCollection.cs" />
     <Compile Include="GroBufCustomSerializationAttribute.cs" />

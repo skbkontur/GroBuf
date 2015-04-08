@@ -27,5 +27,7 @@ namespace GroBuf
         object Deserialize(Type type, IntPtr result, ref int index, int length);
         object ChangeType(Type from, Type to, object obj);
         object Copy(Type type, object obj);
+
+        string DebugView(byte[] data);
     }
 }
