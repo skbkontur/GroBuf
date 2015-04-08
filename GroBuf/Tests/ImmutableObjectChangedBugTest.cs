@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
+using System.Runtime.Serialization;
 
 using GroBuf.DataMembersExtracters;
 
@@ -13,6 +14,12 @@ namespace GroBuf.Tests
         public void SetUp()
         {
             serializer = new Serializer(new PropertiesExtractor());
+        }
+
+        [Test]
+        public void Test()
+        {
+            Console.WriteLine(serializer.DebugView(serializer.Serialize<int>(123)));
         }
 
         [Test]
