@@ -19,7 +19,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            Console.WriteLine(serializer.DebugView(serializer.Serialize<int>(123)));
+            Console.WriteLine(DebugViewBuilder.DebugView(serializer.Serialize<int>(123)));
         }
 
         [Test]
