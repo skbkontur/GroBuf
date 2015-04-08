@@ -4,8 +4,26 @@ using System.Text;
 
 namespace GroBuf
 {
-    internal class DebugViewBuilder
+    public class DebugViewBuilder
     {
+        public static unsafe string DebugView(byte[] data)
+        {
+            if(data == null || data.Length == 0)
+                throw new ArgumentNullException("data");
+            var result = new StringBuilder();
+            var debugViewBuilder = new DebugViewBuilder();
+            fixed(byte* ptr = &data[0])
+            {
+                var index = 0;
+                while(index < data.Length)
+                {
+                    debugViewBuilder.Print(ptr, ref index, data.Length, result);
+                    result.AppendLine();
+                }
+            }
+            return result.ToString();
+        }
+
         private static string[] BuildMargins()
         {
             var result = new string[1024];
@@ -15,7 +33,7 @@ namespace GroBuf
             return result;
         }
 
-        public unsafe void Print(byte* data, ref int index, int length, StringBuilder result)
+        private unsafe void Print(byte* data, ref int index, int length, StringBuilder result)
         {
             if(index >= length)
                 throw new InvalidOperationException("Unexpected end of data");

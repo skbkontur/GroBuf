@@ -19,7 +19,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            Console.WriteLine(serializer.DebugView(serializer.Serialize(new[]
+            Console.WriteLine(DebugViewBuilder.DebugView(serializer.Serialize(new[]
                 {
                     new RSV1DisabledPerson {Validation = new ValidationResult("zaa", ValidationResultType.Error)},
                     new RSV1DisabledPerson {Validation = ValidationResult.Ok},

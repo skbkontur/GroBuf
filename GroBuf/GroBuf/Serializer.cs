@@ -142,24 +142,6 @@ namespace GroBuf
             return ChangeType(type, type, obj);
         }
 
-        public unsafe string DebugView(byte[] data)
-        {
-            if(data == null || data.Length == 0)
-                throw new ArgumentNullException("data");
-            var result = new StringBuilder();
-            var debugViewBuilder = new DebugViewBuilder();
-            fixed (byte* ptr = &data[0])
-            {
-                int index = 0;
-                while(index < data.Length)
-                {
-                    debugViewBuilder.Print(ptr, ref index, data.Length, result);
-                    result.AppendLine();
-                }
-            }
-            return result.ToString();
-        }
-
         private void ChangeType<TFrom, TTo>(TFrom obj, ref TTo result)
         {
             var size = writerWritingEmptyObjects.GetSize(obj);
