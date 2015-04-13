@@ -248,33 +248,35 @@ namespace GroBuf
             var type = typeof(T);
             var reader = GetReadMethod(type, ignoreCustomSerialization);
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}, GetType(), true);
-            var il = new GroboIL(dynamicMethod);
-            il.Ldarg(0); // stack: [data]
-            il.Ldarg(1); // stack: [data, ref index]
-            il.Ldarg(2); // stack: [data, ref index, ref result]
-
-            if(!type.IsValueType && type != typeof(string) && (ignoreCustomSerialization || customSerializerCollection.Get(type, factory, baseFactory(type)) == null))
+            using (var il = new GroboIL(dynamicMethod))
             {
-                il.Dup(); // stack: [data, ref index, ref result, ref result]
-                il.Ldind(typeof(object)); // stack: [data, ref index, ref result, result]
-                var notNullLabel = il.DefineLabel("notNull");
-                il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, ref result]
-                il.Dup(); // stack: [data, ref index, ref result, ref result]
-                if(type.IsArray)
-                {
-                    il.Ldc_I4(0); // stack: [data, ref index, ref result, ref result, 0]
-                    il.Newarr(type.GetElementType()); // stack: [data, ref index, ref result, ref result, new elementType[0]]
-                }
-                else
-                    ObjectConstructionHelper.EmitConstructionOfType(type, il); // stack: [data, ref index, ref result, ref result, new type()]
-                il.Stind(typeof(object)); // result = new type(); stack: [data, ref index, ref result]
-                il.MarkLabel(notNullLabel);
-            }
+                il.Ldarg(0); // stack: [data]
+                il.Ldarg(1); // stack: [data, ref index]
+                il.Ldarg(2); // stack: [data, ref index, ref result]
 
-            il.Ldarg(3); // stack: [data, ref index, ref result, context]
-            il.Ldc_IntPtr(reader);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // reader(data, ref index, ref result, context); stack: []
-            il.Ret();
+                if(!type.IsValueType && type != typeof(string) && (ignoreCustomSerialization || customSerializerCollection.Get(type, factory, baseFactory(type)) == null))
+                {
+                    il.Dup(); // stack: [data, ref index, ref result, ref result]
+                    il.Ldind(type); // stack: [data, ref index, ref result, result]
+                    var notNullLabel = il.DefineLabel("notNull");
+                    il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, ref result]
+                    il.Dup(); // stack: [data, ref index, ref result, ref result]
+                    if(!type.IsArray)
+                        ObjectConstructionHelper.EmitConstructionOfType(type, il); // stack: [data, ref index, ref result, ref result, new type()]
+                    else
+                    {
+                        il.Ldc_I4(0); // stack: [data, ref index, ref result, ref result, 0]
+                        il.Newarr(type.GetElementType()); // stack: [data, ref index, ref result, ref result, new elementType[0]]
+                    }
+                    il.Stind(type); // result = new type(); stack: [data, ref index, ref result]
+                    il.MarkLabel(notNullLabel);
+                }
+
+                il.Ldarg(3); // stack: [data, ref index, ref result, context]
+                il.Ldc_IntPtr(reader);
+                il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // reader(data, ref index, ref result, context); stack: []
+                il.Ret();
+            }
 
             return (ReaderDelegate<T>)dynamicMethod.CreateDelegate(typeof(ReaderDelegate<T>));
         }
@@ -283,63 +285,66 @@ namespace GroBuf
         {
             var reader = GetReadMethod(type, ignoreCustomSerialization);
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), typeof(object).MakeByRefType(), typeof(ReaderContext)}, GetType(), true);
-            var il = new GroboIL(dynamicMethod);
-            il.Ldarg(0); // stack: [data]
-            il.Ldarg(1); // stack: [data, ref index]
-            il.Ldarg(2); // stack: [data, ref index, ref result]
-
-            var local = il.DeclareLocal(type);
-            if(!type.IsValueType)
+            using (var il = new GroboIL(dynamicMethod))
             {
-                if(type != typeof(string) && (ignoreCustomSerialization || customSerializerCollection.Get(type, factory, baseFactory(type)) == null))
+                il.Ldarg(0); // stack: [data]
+                il.Ldarg(1); // stack: [data, ref index]
+                il.Ldarg(2); // stack: [data, ref index, ref result]
+
+                var local = il.DeclareLocal(type);
+                if(!type.IsValueType)
                 {
-                    il.Dup(); // stack: [data, ref index, ref result, ref result]
-                    il.Ldind(typeof(object)); // stack: [data, ref index, ref result, result]
-                    var notNullLabel = il.DefineLabel("notNull");
-                    il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, ref result]
-                    il.Dup(); // stack: [data, ref index, ref result, ref result]
-                    if(type.IsArray)
+                    if(type != typeof(string) && (ignoreCustomSerialization || customSerializerCollection.Get(type, factory, baseFactory(type)) == null))
                     {
-                        il.Ldc_I4(0); // stack: [data, ref index, ref result, ref result, 0]
-                        il.Newarr(type.GetElementType()); // stack: [data, ref index, ref result, ref result, new elementType[0]]
+                        il.Dup(); // stack: [data, ref index, ref result, ref result]
+                        il.Ldind(typeof(object)); // stack: [data, ref index, ref result, result]
+                        var notNullLabel = il.DefineLabel("notNull");
+                        il.Brtrue(notNullLabel); // if(result != null) goto notNull; stack: [data, ref index, ref result]
+                        il.Dup(); // stack: [data, ref index, ref result, ref result]
+                        if(!type.IsArray)
+                            ObjectConstructionHelper.EmitConstructionOfType(type, il); // stack: [data, ref index, ref result, ref result, new type()]
+                        else
+                        {
+                            il.Ldc_I4(0); // stack: [data, ref index, ref result, ref result, 0]
+                            il.Newarr(type.GetElementType()); // stack: [data, ref index, ref result, ref result, new elementType[0]]
+                        }
+                        il.Stind(typeof(object)); // result = new type(); stack: [data, ref index, ref result]
+                        il.MarkLabel(notNullLabel);
                     }
-                    else
-                        ObjectConstructionHelper.EmitConstructionOfType(type, il); // stack: [data, ref index, ref result, ref result, new type()]
-                    il.Stind(typeof(object)); // result = new type(); stack: [data, ref index, ref result]
+                    il.Ldind(typeof(object)); // stack: [data, ref index, result]
+                    il.Castclass(type); // stack: [data, ref index, (type)result]
+                    il.Stloc(local); // local = (type)result; stack: [data, ref index]
+                }
+                else
+                {
+                    il.Ldind(type); // stack: [data, ref index, result]
+                    var nullLabel = il.DefineLabel("null");
+                    il.Dup(); // stack: [data, ref index, length, result]
+                    il.Brfalse(nullLabel); // if(result == null) goto null; stack: [data, ref index, result]
+                    il.Unbox_Any(type); // stack: [data, ref result, (type)result]
+                    il.Stloc(local); // local = (type)result, stack: [data, ref result]
+                    var notNullLabel = il.DefineLabel("notNull");
+                    il.Br(notNullLabel);
+                    il.MarkLabel(nullLabel);
+                    il.Pop(); // stack: [data, ref index]
+                    il.Ldloca(local); // stack: [data, ref index, ref local]
+                    il.Initobj(type); // local = default(type); stack: [data, ref index]
                     il.MarkLabel(notNullLabel);
                 }
-            }
-            else
-            {
-                il.Ldind(typeof(object)); // stack: [data, ref index, result]
-                var nullLabel = il.DefineLabel("null");
-                il.Dup(); // stack: [data, ref index, length, result]
-                il.Brfalse(nullLabel); // if(result == null) goto null; stack: [data, ref index, result]
-                il.Unbox_Any(type); // stack: [data, ref result, (type)result]
-                il.Stloc(local); // local = (type)result, stack: [data, ref result]
-                var notNullLabel = il.DefineLabel("notNull");
-                il.Br(notNullLabel);
-                il.MarkLabel(nullLabel);
-                il.Pop(); // stack: [data, ref index]
-                il.Ldloca(local); // stack: [data, ref index, ref local]
-                il.Initobj(type); // local = default(type); stack: [data, ref index]
-                il.MarkLabel(notNullLabel);
-                il.Ldloca(local); // stack: [data, ref index, ref local]
-            }
 
-            il.Ldarg(3); // stack: [data, ref index, ref result, context]
-            il.Ldc_IntPtr(reader);
-            il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // reader(data, ref index, ref result, context); stack: []
+                il.Ldloca(local); // stack: [data, ref index, ref local]
+                il.Ldarg(3); // stack: [data, ref index, ref result, context]
+                il.Ldc_IntPtr(reader);
+                il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)}); // reader(data, ref index, ref result, context); stack: []
 
-            if(type.IsValueType)
-            {
                 il.Ldarg(2); // stack: [ref result]
                 il.Ldloc(local); // stack: [ref result, local]
-                il.Box(type); // stack: [ref result, (object)local]
+                if(type.IsValueType)
+                    il.Box(type); // stack: [ref result, (object)local]
                 il.Stind(typeof(object)); // result = (object)local
-            }
 
-            il.Ret();
+                il.Ret();
+            }
 
             return (ReaderDelegate)dynamicMethod.CreateDelegate(typeof(ReaderDelegate));
         }

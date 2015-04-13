@@ -55,7 +55,7 @@ namespace GroBuf.Readers
                 il.Ldloc(length); // stack: [result._items.Length, length]
 
                 var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-                il.Bge(typeof(int), arrayCreatedLabel); // if(result._items.Length >= length) goto arrayCreated;
+                il.Bge(arrayCreatedLabel, false); // if(result._items.Length >= length) goto arrayCreated;
 
                 context.LoadResult(Type); // stack: [result]
                 il.Ldflda(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [ref result._items]
@@ -111,14 +111,14 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [i]
             il.Ldloc(length); // stack: [i, length]
-            il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
+            il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
 
             if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 context.LoadResult(Type); // stack: [result]
                 il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result.Count]
                 il.Ldloc(length); // stack: [result.Count, length]
-                il.Bge(typeof(int), doneLabel); // if(result.Count >= length) goto done; stack: []
+                il.Bge(doneLabel, false); // if(result.Count >= length) goto done; stack: []
             }
             context.LoadResult(Type); // stack: [result]
             il.Ldloc(length); // stack: [result.Count, length]

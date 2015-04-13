@@ -39,19 +39,21 @@ namespace GroBuf.Readers
             context.LoadField(customSerializerField); // stack: [customSerializer]
             context.LoadData(); // stack: [customSerializer, data]
             context.LoadIndexByRef(); // stack: [customSerializer, data, ref index]
-            if(!Type.IsValueType)
-                context.LoadResultByRef(); // stack: [customSerializer, data, ref index, ref result]
-            else
-                il.Ldloca(local); // stack: [customSerializer, data, ref index, ref local]
-            context.LoadContext(); // stack: [customSerializer, data, ref index, ref result, context]
+            il.Ldloca(local); // stack: [customSerializer, data, ref index, ref local]
+            context.LoadContext(); // stack: [customSerializer, data, ref index, ref local, context]
             int dummy = 0;
             object dummyObj = null;
-            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Read(IntPtr.Zero, ref dummy, ref dummyObj, null)), typeof(IGroBufCustomSerializer)); // customSerializer.Read(data, ref index, length, ref local); stack: []
+            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Read(IntPtr.Zero, ref dummy, ref dummyObj, null))); // customSerializer.Read(data, ref index, length, ref local); stack: []
 
-            if(Type.IsValueType)
+            context.LoadResultByRef(); // stack: [ref result]
+            il.Ldloc(local); // stack: [ref result, ref local]
+            if(!Type.IsValueType)
             {
-                context.LoadResultByRef(); // stack: [ref result]
-                il.Ldloc(local); // stack: [ref result, ref local]
+                il.Castclass(Type);
+                il.Stind(Type);
+            }
+            else
+            {
                 il.Unbox_Any(Type); // stack: [ref result, (Type)local]
                 il.Stobj(Type); // result = (Type)local
             }

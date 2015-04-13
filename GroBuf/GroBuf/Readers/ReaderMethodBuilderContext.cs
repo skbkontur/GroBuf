@@ -155,7 +155,7 @@ namespace GroBuf.Readers
             Il.Add(); // stack: [length + index]
             LoadDataLength(); // stack: [length + index, dataLength]
             var bigEnoughLabel = Il.DefineLabel("bigEnough");
-            Il.Ble(typeof(uint), bigEnoughLabel);
+            Il.Ble(bigEnoughLabel, true);
             Il.Ldstr("Unexpected end of data");
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
             if(constructor == null)
@@ -177,7 +177,7 @@ namespace GroBuf.Readers
             Il.Brtrue(okLabel); // if(lengths[typeCode] != 0) goto ok;
             Il.Ldstr("Unknown type code: ");
             Il.Ldloca(TypeCode);
-            Il.Call(HackHelpers.GetMethodDefinition<byte>(x => x.ToString()), typeof(byte));
+            Il.Call(HackHelpers.GetMethodDefinition<int>(x => x.ToString()), typeof(int));
             Il.Call(HackHelpers.GetMethodDefinition<string>(s => s + "zzz"));
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
             if(constructor == null)
@@ -196,7 +196,7 @@ namespace GroBuf.Readers
             Il.Ldloc(TypeCode); // stack: [ref index, index, TypeCode]
             Il.Ldc_I4((int)GroBufTypeCode.DateTimeOld); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTimeOld]
             var notDateTimeLabel = Il.DefineLabel("notDateTime");
-            Il.Bne(notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTimeOld) goto notDateTime; stack: [ref index, index]
+            Il.Bne_Un(notDateTimeLabel); // if(TypeCode != GroBufTypeCode.DateTimeOld) goto notDateTime; stack: [ref index, index]
             Il.Ldc_I4(8); // stack: [ref index, index, 8]
             AssertLength();
             GoToCurrentLocation(); // stack: [ref index, index, &data[index]]
@@ -204,7 +204,7 @@ namespace GroBuf.Readers
             Il.Add();
             Il.Ldind(typeof(int)); // stack: [ref index, index, (int)(&data[index])]
             Il.Ldc_I4(31); // stack: [ref index, index, (int)&data[index], 31]
-            Il.Shr(typeof(uint)); // stack: [ref index, index, (int)&data[index] >> 31]
+            Il.Shr(true); // stack: [ref index, index, (int)&data[index] >> 31]
             Il.Ldc_I4(8); // stack: [ref index, index, (int)&data[index] >> 31, 8]
             Il.Add(); // stack: [ref index, index, (int)&data[index] >> 31 + 8]
             var increaseLabel = Il.DefineLabel("increase");
@@ -217,7 +217,7 @@ namespace GroBuf.Readers
             Il.Ldelem(typeof(int)); // stack: [ref index, index, lengths[typeCode]]
             Il.Dup(); // stack: [ref index, index, lengths[typeCode], lengths[typeCode]]
             Il.Ldc_I4(-1); // stack: [ref index, index, lengths[typeCode], lengths[typeCode], -1]
-            Il.Bne(increaseLabel); // if(lengths[typeCode] != -1) goto increase;
+            Il.Bne_Un(increaseLabel); // if(lengths[typeCode] != -1) goto increase;
 
             Il.Ldc_I4(4);
             AssertLength();
@@ -275,6 +275,7 @@ namespace GroBuf.Readers
                 il.Ldfld(context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
+                //il.Conv<IntPtr>();
             }
             il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)});
         }
@@ -306,7 +307,7 @@ namespace GroBuf.Readers
             Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
             Il.Ldloc(Index); // stack: [context.objects, index]
             LoadResult(type); // stack: [context.objects, index, result]
-            Il.Call(HackHelpers.GetMethodDefinition<Dictionary<int,object>>(dict => dict.Add(0, null)), typeof(Dictionary<int, object>)); // context.objects.Add(index, result)
+            Il.Call(HackHelpers.GetMethodDefinition<Dictionary<int,object>>(dict => dict.Add(0, null))); // context.objects.Add(index, result)
             Il.MarkLabel(doneLabel);
         }
 

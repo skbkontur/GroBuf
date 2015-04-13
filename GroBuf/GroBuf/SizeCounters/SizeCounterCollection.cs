@@ -59,8 +59,6 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new NullableSizeCounterBuilder(type);
             else if(type.IsArray)
                 sizeCounterBuilder = type.GetElementType().IsPrimitive ? (ISizeCounterBuilder)new PrimitivesArraySizeCounterBuilder(type) : new ArraySizeCounterBuilder(type);
-            else if(type == typeof(Array))
-                sizeCounterBuilder = new ArraySizeCounterBuilder(type);
             else if(type == typeof(Hashtable))
                 sizeCounterBuilder = new HashtableSizeCounterBuilder();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))

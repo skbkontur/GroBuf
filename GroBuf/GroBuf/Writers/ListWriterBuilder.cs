@@ -92,7 +92,7 @@ namespace GroBuf.Writers
             il.Add(); // stack: [count, i + 1]
             il.Dup(); // stack: [count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [count, i]
-            il.Bgt(typeof(int), cycleStart); // if(count > i) goto cycleStart; stack: []
+            il.Bgt(cycleStart, false); // if(count > i) goto cycleStart; stack: []
 
             il.MarkLabel(writeDataLengthLabel);
             context.LoadResult(); // stack: [result]

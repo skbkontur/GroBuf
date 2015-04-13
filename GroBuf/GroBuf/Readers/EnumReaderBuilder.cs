@@ -37,7 +37,7 @@ namespace GroBuf.Readers
             il.Ldloc(context.TypeCode); // stack: [typeCode]
             il.Ldc_I4((int)GroBufTypeCode.Enum);
             var tryParseLabel = il.DefineLabel("tryParse");
-            il.Bne(tryParseLabel); // if(typeCode != GroBufTypeCode.Enum) goto tryParse;
+            il.Bne_Un(tryParseLabel); // if(typeCode != GroBufTypeCode.Enum) goto tryParse;
             context.IncreaseIndexBy1();
             il.Ldc_I4(8); // stack: [8]
             context.AssertLength();
@@ -51,8 +51,8 @@ namespace GroBuf.Readers
 
             il.Dup(); // stack: [ref result, hashCode, hashCode]
             il.Ldc_I8(hashCodes.Length); // stack: [ref result, hashCode, hashCode, (int64)hashCodes.Length]
-            il.Rem(typeof(ulong)); // stack: [ref result, hashCode, hashCode % hashCodes.Length = idx]
-            il.Conv_I4(); // stack: [ref result, hashCode, (int)(hashCode % hashCodes.Length)]
+            il.Rem(true); // stack: [ref result, hashCode, hashCode % hashCodes.Length = idx]
+            il.Conv<int>(); // stack: [ref result, hashCode, (int)(hashCode % hashCodes.Length)]
             var idx = context.Length;
             il.Stloc(idx); // idx = (int)(hashCode % hashCodes.Length); stack: [ref result, hashCode]
 
@@ -60,7 +60,7 @@ namespace GroBuf.Readers
             il.Ldloc(idx); // stack: [ref result, hashCode, hashCodes, idx]
             il.Ldelem(typeof(long)); // stack: [ref result, hashCode, hashCodes[idx]]
             var returnDefaultLabel = il.DefineLabel("returnDefault");
-            il.Bne(returnDefaultLabel); // if(hashCode != hashCodes[idx]) goto returnDefault; stack: [ref result]
+            il.Bne_Un(returnDefaultLabel); // if(hashCode != hashCodes[idx]) goto returnDefault; stack: [ref result]
             context.LoadField(valuesField); // stack: [ref result, values]
             il.Ldloc(idx); // stack: [ref result, values, idx]
             il.Ldelem(typeof(int)); // stack: [ref result, values[idx]]
@@ -75,7 +75,7 @@ namespace GroBuf.Readers
             il.Ldloc(context.TypeCode); // stack: [typeCode]
             il.Ldc_I4((int)GroBufTypeCode.String); // stack: [typeCode, GroBufTypeCode.String]
             var readAsIntLabel = il.DefineLabel("readAsInt");
-            il.Bne(readAsIntLabel); // if(typeCode != GroBufTypeCode.String) goto readAsInt;
+            il.Bne_Un(readAsIntLabel); // if(typeCode != GroBufTypeCode.String) goto readAsInt;
             var str = il.DeclareLocal(typeof(string));
 
 //            context.LoadReader(typeof(string));

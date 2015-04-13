@@ -9,13 +9,9 @@ namespace GroBuf.Readers
         public ArrayReaderBuilder(Type type)
             : base(type)
         {
-            if(Type != typeof(Array))
-            {
-                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
-                elementType = Type.GetElementType();
-            }
-            else elementType = typeof(object);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            elementType = Type.GetElementType();
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
@@ -30,7 +26,7 @@ namespace GroBuf.Readers
             il.Ldloc(context.TypeCode); // stack: [type code]
             il.Ldc_I4((int)GroBufTypeCode.Array); // stack: [type code, GroBufTypeCode.Array]
             var tryReadArrayElementLabel = il.DefineLabel("tryReadArrayElement");
-            il.Bne(tryReadArrayElementLabel); // if(type code != GroBufTypeCode.Array) goto tryReadArrayElement; stack: []
+            il.Bne_Un(tryReadArrayElementLabel); // if(type code != GroBufTypeCode.Array) goto tryReadArrayElement; stack: []
 
             context.IncreaseIndexBy1();
             var length = context.Length;
@@ -51,7 +47,7 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Stloc(length); // length = array length; stack: []
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -60,7 +56,7 @@ namespace GroBuf.Readers
                 il.Ldlen(); // stack: [result.Length]
                 il.Ldloc(length); // stack: [result.Length, length]
                 var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
+                il.Bge(arrayCreatedLabel, false); // if(result.Length >= length) goto arrayCreated;
 
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldloc(length); // stack: [ref result, length]
@@ -71,7 +67,7 @@ namespace GroBuf.Readers
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldloc(length); // stack: [ref result, length]
                 il.Newarr(elementType); // stack: [ref result, new type[length]]
-                il.Stind(typeof(object)); // result = new type[length]; stack: []
+                il.Stind(Type); // result = new type[length]; stack: []
 
                 il.MarkLabel(arrayCreatedLabel);
             }
@@ -80,7 +76,7 @@ namespace GroBuf.Readers
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldloc(length); // stack: [ref result, length]
                 il.Newarr(elementType); // stack: [ref result, new type[length]]
-                il.Stind(typeof(object)); // result = new type[length]; stack: []
+                il.Stind(Type); // result = new type[length]; stack: []
             }
 
             context.StoreObject(Type);
@@ -95,7 +91,7 @@ namespace GroBuf.Readers
             il.MarkLabel(cycleStartLabel);
 
 //            context.LoadReader(elementType);
-            
+
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadResult(Type); // stack: [pinnedData, ref index, result]
@@ -111,12 +107,12 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [i]
             il.Ldloc(length); // stack: [i, length]
-            il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
+            il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
             il.Br(doneLabel);
 
             il.MarkLabel(tryReadArrayElementLabel);
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -125,7 +121,7 @@ namespace GroBuf.Readers
                 il.Ldlen(); // stack: [result.Length]
                 il.Ldc_I4(1); // stack: [result.Length, 1]
                 var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= 1) goto arrayCreated;
+                il.Bge(arrayCreatedLabel, false); // if(result.Length >= 1) goto arrayCreated;
 
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldc_I4(1); // stack: [ref result, 1]
@@ -136,7 +132,7 @@ namespace GroBuf.Readers
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldc_I4(1); // stack: [ref result, 1]
                 il.Newarr(elementType); // stack: [ref result, new type[1]]
-                il.Stind(typeof(object)); // result = new type[1]; stack: []
+                il.Stind(Type); // result = new type[1]; stack: []
 
                 il.MarkLabel(arrayCreatedLabel);
             }
@@ -145,7 +141,7 @@ namespace GroBuf.Readers
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldc_I4(1); // stack: [ref result, 1]
                 il.Newarr(elementType); // stack: [ref result, new type[1]]
-                il.Stind(typeof(object)); // result = new type[1]; stack: []
+                il.Stind(Type); // result = new type[1]; stack: []
             }
 
             context.StoreObject(Type);
@@ -161,7 +157,6 @@ namespace GroBuf.Readers
             context.CallReader(elementType); // reader(pinnedData, ref index, ref result[0], context); stack: []
 
             il.MarkLabel(doneLabel); // stack: []
-
         }
 
         protected override bool IsReference { get { return true; } }

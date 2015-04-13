@@ -59,8 +59,6 @@ namespace GroBuf.Writers
                 writerBuilder = new NullableWriterBuilder(type);
             else if(type.IsArray)
                 writerBuilder = type.GetElementType().IsPrimitive ? (IWriterBuilder)new PrimitivesArrayWriterBuilder(type) : new ArrayWriterBuilder(type);
-            else if(type == typeof(Array))
-                writerBuilder = new ArrayWriterBuilder(type);
             else if(type == typeof(Hashtable))
                 writerBuilder = new HashtableWriterBuilder();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))

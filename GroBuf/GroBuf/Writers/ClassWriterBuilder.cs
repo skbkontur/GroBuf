@@ -93,7 +93,7 @@ namespace GroBuf.Writers
                 il.Sub(); // stack: [index - 8]
                 il.Ldloc(prev); // stack: [index - 8, prev]
                 var writeHashCodeLabel = il.DefineLabel("writeHashCode");
-                il.Bgt(typeof(int), writeHashCodeLabel); // if(index - 8 > prev) goto writeHashCode;
+                il.Bgt(writeHashCodeLabel, false); // if(index - 8 > prev) goto writeHashCode;
                 context.LoadIndexByRef(); // stack: [ref index]
                 il.Ldloc(prev); // stack: [ref index, prev]
                 il.Stind(typeof(int)); // index = prev;

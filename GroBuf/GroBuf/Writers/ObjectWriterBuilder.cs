@@ -36,11 +36,11 @@ namespace GroBuf.Writers
 
             il.Ldfld(typeof(GroBufHelpers).GetField("LeafTypeHandles", BindingFlags.Public | BindingFlags.Static)); // stack: [LeafTypeHandles]
             context.LoadObj(); // stack: [LeafTypeHandles, obj]
-            il.Call(getTypeMethod, Type); // stack: [LeafTypeHandles, obj.GetType()]
+            il.Call(getTypeMethod); // stack: [LeafTypeHandles, obj.GetType()]
             var type = il.DeclareLocal(typeof(Type));
             il.Dup(); // stack: [LeafTypeHandles, obj.GetType(), obj.GetType()]
             il.Stloc(type); // type = obj.GetType(); stack: [LeafTypeHandles, obj.GetType()]
-            il.Call(typeTypeHandleProperty.GetGetMethod(), typeof(Type)); // stack: [LeafTypeHandles, obj.GetType().TypeHandle]
+            il.Call(typeTypeHandleProperty.GetGetMethod()); // stack: [LeafTypeHandles, obj.GetType().TypeHandle]
             var typeHandle = il.DeclareLocal(typeof(RuntimeTypeHandle));
             il.Stloc(typeHandle); // typeHandle = obj.GetType().TypeHandle; stack: [LeafTypeHandles]
             il.Ldloca(typeHandle); // stack: [LeafTypeHandles, ref typeHandle]
@@ -49,15 +49,15 @@ namespace GroBuf.Writers
             il.Dup(); // stack: [LeafTypeHandles, obj.GetType().TypeHandle.Value, obj.GetType().TypeHandle.Value]
             il.Stloc(handle); // handle = obj.GetType().TypeHandle.Value; stack: [LeafTypeHandles, handle]
             il.Ldc_I4(writers.Length); // stack: [LeafTypeHandles, handle, LeafTypeHandles.Length]
-            il.Rem(typeof(uint)); // stack: [LeafTypeHandles, handle % LeafTypeHandles.Length]
+            il.Rem(true); // stack: [LeafTypeHandles, handle % LeafTypeHandles.Length]
             var index = il.DeclareLocal(typeof(int));
-            il.Conv_I4(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length)]
+            il.Conv<int>(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length)]
             il.Dup(); // stack: [LeafTypeHandles, (int)(handle % LeafTypeHandles.Length), (int)(handle % LeafTypeHandles.Length)]
             il.Stloc(index); // index = (int)(handle % LeafTypeHandles.Length); stack: [LeafTypeHandles, index]
             il.Ldelem(typeof(IntPtr)); // stack: [LeafTypeHandles[index]]
             il.Ldloc(handle); // stack: [LeafTypeHandles[index], handle]
             var tryAsArrayLabel = il.DefineLabel("tryAsArray");
-            il.Bne(tryAsArrayLabel); // if(LeafTypeHandles[index] != handle) goto tryAsArray; stack: []
+            il.Bne_Un(tryAsArrayLabel); // if(LeafTypeHandles[index] != handle) goto tryAsArray; stack: []
             context.LoadObj(); // stack: [obj]
             context.LoadWriteEmpty(); // stack: [obj, writeEmpty]
             context.LoadResult(); // stack: [obj, writeEmpty, result]
@@ -72,7 +72,7 @@ namespace GroBuf.Writers
 
             il.MarkLabel(tryAsArrayLabel);
             il.Ldloc(type); // stack: [obj.GetType()]
-            il.Call(typeIsArrayProperty.GetGetMethod(), typeof(Type)); // stack: [obj.GetType().IsArray]
+            il.Call(typeIsArrayProperty.GetGetMethod()); // stack: [obj.GetType().IsArray]
             var writeNullLabel = il.DefineLabel("writeNull");
             il.Brfalse(writeNullLabel);
             context.LoadObj(); // stack: [obj]
@@ -81,10 +81,10 @@ namespace GroBuf.Writers
             context.LoadIndexByRef(); // stack: [obj, writeEmpty, result, ref index]
             context.LoadContext(); // stack: [obj, writeEmpty, result, ref index, context]
             context.LoadField(writersField); // stack: [obj, writeEmpty, result, ref index, context, writers]
-            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(Array))); // stack: [obj, writeEmpty, result, ref index, context, writers, index of typeof(Array)]
-            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[index of typeof(Array)]]
+            il.Ldc_I4(Array.IndexOf(GroBufHelpers.LeafTypes, typeof(object[]))); // stack: [obj, writeEmpty, result, ref index, context, writers, index of typeof(object[])]
+            il.Ldelem(typeof(IntPtr)); // stack: [obj, writeEmpty, result, ref index, context, writers[index of typeof(object[])]]
             parameterTypes = new[] {typeof(object), typeof(bool), typeof(byte*), typeof(int).MakeByRefType(), typeof(WriterContext)};
-            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // stack: [writers[index of typeof(Array)](obj, writeEmpty, result, ref index, context)]
+            il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // stack: [writers[index of typeof(object[])](obj, writeEmpty, result, ref index, context)]
             il.Ret();
 
             il.MarkLabel(writeNullLabel);
@@ -100,18 +100,20 @@ namespace GroBuf.Writers
                                                {
                                                    typeof(object), typeof(bool), typeof(IntPtr), typeof(int).MakeByRefType(), typeof(WriterContext)
                                                }, context.Context.Module, true);
-            var il = new GroboIL(method);
-            il.Ldarg(0); // stack: [obj]
-            if(type.IsValueType)
-                il.Unbox_Any(type); // stack: [(type)obj]
-            else
-                il.Castclass(type); // stack: [(type)obj]
-            il.Ldarg(1); // stack: [(type)obj, writeEmpty]
-            il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
-            il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
-            il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
-            context.CallWriter(il, type);
-            il.Ret();
+            using (var il = new GroboIL(method))
+            {
+                il.Ldarg(0); // stack: [obj]
+                if(type.IsValueType)
+                    il.Unbox_Any(type); // stack: [(type)obj]
+                else
+                    il.Castclass(type); // stack: [(type)obj]
+                il.Ldarg(1); // stack: [(type)obj, writeEmpty]
+                il.Ldarg(2); // stack: [(type)obj, writeEmpty, result]
+                il.Ldarg(3); // stack: [(type)obj, writeEmpty, result, ref index]
+                il.Ldarg(4); // stack: [(type)obj, writeEmpty, result, ref index, context]
+                context.CallWriter(il, type);
+                il.Ret();
+            }
             var @delegate = method.CreateDelegate(typeof(WriterDelegate<object>));
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }

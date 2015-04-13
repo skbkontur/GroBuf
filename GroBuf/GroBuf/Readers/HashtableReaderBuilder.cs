@@ -75,11 +75,11 @@ namespace GroBuf.Readers
             context.LoadResult(Type);
             il.Ldloc(key);
             il.Ldloc(value);
-            il.Call(Type.GetMethod("Add"), Type);
+            il.Call(Type.GetMethod("Add"));
 
-            il.Ldnull(typeof(object));
+            il.Ldnull();
             il.Stloc(key);
-            il.Ldnull(typeof(object));
+            il.Ldnull();
             il.Stloc(value);
 
             il.Ldloc(i); // stack: [i]
@@ -88,7 +88,7 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [i]
             il.Ldloc(length); // stack: [i, length]
-            il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
+            il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
 

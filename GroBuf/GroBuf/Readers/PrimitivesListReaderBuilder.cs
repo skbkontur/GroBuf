@@ -59,7 +59,7 @@ namespace GroBuf.Readers
                 il.Ldloc(length); // stack: [result.Length, length]
 
                 var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
+                il.Bge(arrayCreatedLabel, false); // if(result.Length >= length) goto arrayCreated;
 
                 context.LoadResult(Type); // stack: [result]
                 il.Ldflda(Type.GetField("_items", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [ref result._items]
@@ -96,12 +96,9 @@ namespace GroBuf.Readers
             context.GoToCurrentLocation(); // stack: [arr, &data[index]]
             il.Ldloc(length); // stack: [arr, &data[index], length]
             CountArraySize(elementType, il); // stack: [arr, &data[index], size]
-            if(sizeof(IntPtr) == 8)
-                il.Unaligned(1L);
-            il.Cpblk(); // arr = &data[index]
-            il.Ldc_I4(0); // stack: [0]
-            il.Conv_U(); // stack: [(uint)0]
-            il.Stloc(arr); // arr = (uint)0;
+            il.Cpblk(unaligned: sizeof(IntPtr) == 8 ? 1 : (int?)null); // arr = &data[index]
+            il.Ldnull(); // stack: [null]
+            il.Stloc(arr); // arr = null;
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(size); // stack: [ref index, index, size]
@@ -113,7 +110,7 @@ namespace GroBuf.Readers
                 context.LoadResult(Type); // stack: [result]
                 il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result.Count]
                 il.Ldloc(length); // stack: [result.Count, length]
-                il.Bge(typeof(int), doneLabel); // if(result.Count >= length) goto done; stack: []
+                il.Bge(doneLabel, false); // if(result.Count >= length) goto done; stack: []
             }
             context.LoadResult(Type); // stack: [result]
             il.Ldloc(length); // stack: [result.Count, length]
@@ -173,25 +170,25 @@ namespace GroBuf.Readers
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
                 il.Ldc_I4(1);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
                 il.Ldc_I4(2);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
                 il.Ldc_I4(3);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Single:
                 il.Ldc_I4(2);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Double:
                 il.Ldc_I4(3);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             default:
                 throw new NotSupportedException("Type '" + elementType + "' is not supported");

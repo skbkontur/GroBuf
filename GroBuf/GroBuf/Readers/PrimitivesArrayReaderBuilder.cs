@@ -11,14 +11,10 @@ namespace GroBuf.Readers
         public PrimitivesArrayReaderBuilder(Type type)
             : base(type)
         {
-            if(Type != typeof(Array))
-            {
-                if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-                if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
-                elementType = Type.GetElementType();
-                if(!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
-            }
-            else elementType = typeof(object);
+            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            elementType = Type.GetElementType();
+            if(!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
@@ -33,8 +29,7 @@ namespace GroBuf.Readers
             il.Ldloc(context.TypeCode); // stack: [type code]
             il.Ldc_I4((int)GroBufTypeCodeMap.GetTypeCode(Type)); // stack: [type code, GroBufTypeCode(Type)]
             var tryReadArrayElementLabel = il.DefineLabel("tryReadArrayElement");
-            il.Bne(tryReadArrayElementLabel); // if(type code != GroBufTypeCode(Type)) goto tryReadArrayElement; stack: []
-
+            il.Bne_Un(tryReadArrayElementLabel); // if(type code != GroBufTypeCode(Type)) goto tryReadArrayElement; stack: []
 
             context.IncreaseIndexBy1();
 
@@ -55,7 +50,7 @@ namespace GroBuf.Readers
             CountArrayLength(elementType, il); // stack: [array length]
             il.Stloc(length); // length = array length
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -65,7 +60,7 @@ namespace GroBuf.Readers
                 il.Ldloc(length); // stack: [result.Length, length]
 
                 var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= length) goto arrayCreated;
+                il.Bge(arrayCreatedLabel, false); // if(result.Length >= length) goto arrayCreated;
 
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldloc(length); // stack: [ref result, length]
@@ -101,12 +96,9 @@ namespace GroBuf.Readers
             context.GoToCurrentLocation(); // stack: [arr, &data[index]]
             il.Ldloc(length); // stack: [arr, &data[index], length]
             CountArraySize(elementType, il); // stack: [arr, &data[index], size]
-            if(sizeof(IntPtr) == 8)
-                il.Unaligned(1L);
-            il.Cpblk(); // arr = &data[index]
-            il.Ldc_I4(0); // stack: [0]
-            il.Conv_U(); // stack: [(uint)0]
-            il.Stloc(arr); // arr = (uint)0;
+            il.Cpblk(unaligned : sizeof(IntPtr) == 8 ? 1 : (int?)null); // arr = &data[index]
+            il.Ldnull(); // stack: [null]
+            il.Stloc(arr); // arr = null;
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(size); // stack: [ref index, index, size]
@@ -115,7 +107,7 @@ namespace GroBuf.Readers
             il.Br(doneLabel);
 
             il.MarkLabel(tryReadArrayElementLabel);
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -125,7 +117,7 @@ namespace GroBuf.Readers
                 il.Ldc_I4(1); // stack: [result.Length, 1]
 
                 var arrayCreatedLabel = il.DefineLabel("arrayCreated");
-                il.Bge(typeof(int), arrayCreatedLabel); // if(result.Length >= 1) goto arrayCreated;
+                il.Bge(arrayCreatedLabel, false); // if(result.Length >= 1) goto arrayCreated;
 
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldc_I4(1); // stack: [ref result, 1]
@@ -212,25 +204,25 @@ namespace GroBuf.Readers
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
                 il.Ldc_I4(1);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
                 il.Ldc_I4(2);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
                 il.Ldc_I4(3);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Single:
                 il.Ldc_I4(2);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Double:
                 il.Ldc_I4(3);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             default:
                 throw new NotSupportedException("Type '" + elementType + "' is not supported");

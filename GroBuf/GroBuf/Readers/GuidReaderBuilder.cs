@@ -36,8 +36,7 @@ namespace GroBuf.Readers
             il.Ldind(typeof(long)); // stack: [&result + 8, (int64)data[index]]
             il.Stind(typeof(long)); // *(&result + 8) = (int64)data[index]; stack: []
             context.IncreaseIndexBy8(); // index = index + 8
-            il.Ldc_I4(0); // stack: [0]
-            il.Conv_U(); // stack: [null]
+            il.Ldnull(); // stack: [null]
             il.Stloc(pinnedResult); // pinnedResult = null
         }
 

@@ -27,7 +27,7 @@ namespace GroBuf.Readers
             il.Ldloc(context.TypeCode); // stack: [typeCode]
             il.Ldc_I4((int)GroBufTypeCode.DateTimeNew); // stack: [typeCode, GroBufTypeCode.DateTimeNew]
             var processOldFormatLabel = il.DefineLabel("processOldFormat");
-            il.Bne(processOldFormatLabel); // if(typeCode != GroBufTypeCode.DateTimeNew) goto processOldFormat; stack: []
+            il.Bne_Un(processOldFormatLabel); // if(typeCode != GroBufTypeCode.DateTimeNew) goto processOldFormat; stack: []
             context.IncreaseIndexBy1();
             il.Ldc_I4(8); // stack: [8]
             context.AssertLength();

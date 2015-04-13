@@ -171,7 +171,7 @@ namespace GroBuf.Writers
             Il.Add(); // stack: [length + index]
             LoadResultLength(); // stack: [length + index, resultLength]
             var bigEnoughLabel = Il.DefineLabel("bigEnough");
-            Il.Ble(typeof(uint), bigEnoughLabel);
+            Il.Ble(bigEnoughLabel, true);
             Il.Ldstr("Seems like the object being serialized has been changed during serialization");
             var constructor = typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
             if (constructor == null)

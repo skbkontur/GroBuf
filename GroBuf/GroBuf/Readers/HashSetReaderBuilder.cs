@@ -47,8 +47,8 @@ namespace GroBuf.Readers
             il.Newobj(Type.GetConstructor(Type.EmptyTypes)); // stack: [ref result, new HashSet() = hashSet]
             il.Dup(); // stack: [ref result, hashSet, hashSet]
             il.Ldloc(length); // stack: [ref result, hashSet, hashSet, length]
-            il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic), Type); // hashSet.Initialize(length); stack: [ref result, hashSet]
-            il.Stind(typeof(object)); // result = hashSet; stack: []
+            il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)); // hashSet.Initialize(length); stack: [ref result, hashSet]
+            il.Stind(Type); // result = hashSet; stack: []
 
             context.StoreObject(Type);
 
@@ -72,12 +72,12 @@ namespace GroBuf.Readers
 
             context.LoadResult(Type); // stack: [result]
             il.Ldloc(value); // stack: [result, value]
-            il.Call(Type.GetMethod("Add"), Type); // stack: [result.Add(value)]
+            il.Call(Type.GetMethod("Add")); // stack: [result.Add(value)]
             il.Pop(); // stack: []
 
             if(!elementType.IsValueType)
             {
-                il.Ldnull(elementType);
+                il.Ldnull();
                 il.Stloc(value);
             }
 
@@ -87,7 +87,7 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [i]
             il.Ldloc(length); // stack: [i, length]
-            il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
+            il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
 

@@ -47,7 +47,7 @@ namespace GroBuf.Readers
             context.LoadResultByRef(); // stack: [ref result]
             il.Ldloc(length); // stack: [ref result, length]
             il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new Dictionary(length)]
-            il.Stind(typeof(object)); // result = new Dictionary(length); stack: []
+            il.Stind(Type); // result = new Dictionary(length); stack: []
 
             context.StoreObject(Type);
 
@@ -81,16 +81,16 @@ namespace GroBuf.Readers
             context.LoadResult(Type);
             il.Ldloc(key);
             il.Ldloc(value);
-            il.Call(Type.GetMethod("Add"), Type);
+            il.Call(Type.GetMethod("Add"));
 
             if(!keyType.IsValueType)
             {
-                il.Ldnull(keyType);
+                il.Ldnull();
                 il.Stloc(key);
             }
             if(!valueType.IsValueType)
             {
-                il.Ldnull(valueType);
+                il.Ldnull();
                 il.Stloc(value);
             }
 
@@ -100,7 +100,7 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [i]
             il.Ldloc(length); // stack: [i, length]
-            il.Blt(typeof(uint), cycleStartLabel); // if(i < length) goto cycleStart
+            il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
             il.MarkLabel(doneLabel); // stack: []
         }
 

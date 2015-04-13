@@ -50,8 +50,8 @@ namespace GroBuf.Readers
             il.Newobj(Type.GetConstructor(Type.EmptyTypes)); // stack: [ref result, new HashSet() = hashSet]
             il.Dup(); // stack: [ref result, hashSet, hashSet]
             il.Ldloc(count); // stack: [ref result, hashSet, hashSet, count]
-            il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic), Type); // hashSet.Initialize(count); stack: [ref result, hashSet]
-            il.Stind(typeof(object)); // result = hashSet; stack: []
+            il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)); // hashSet.Initialize(count); stack: [ref result, hashSet]
+            il.Stind(Type); // result = hashSet; stack: []
 
             il.Ldloc(count);
             var doneLabel = il.DefineLabel("done");
@@ -68,7 +68,7 @@ namespace GroBuf.Readers
             MakeShift(elementType, il); // stack: [result, &data[index], i << x]
             il.Add(); // stack: [result, current]
             il.Ldind(elementType); // stack: [result, *current]
-            il.Call(Type.GetMethod("Add"), Type); // stack: [result.Add(*current)]
+            il.Call(Type.GetMethod("Add")); // stack: [result.Add(*current)]
             il.Pop(); // stack: []
 
             il.Ldloc(count); // stack: [count]
@@ -77,7 +77,7 @@ namespace GroBuf.Readers
             il.Add(); // stack: [current, count, i + 1]
             il.Dup(); // stack: [current, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [current, count, i]
-            il.Bgt(typeof(int), cycleStartLabel); // if(count > i) goto cycleStart; stack: [current]
+            il.Bgt(cycleStartLabel, false); // if(count > i) goto cycleStart; stack: [current]
 
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
@@ -102,25 +102,25 @@ namespace GroBuf.Readers
             case GroBufTypeCode.Int16:
             case GroBufTypeCode.UInt16:
                 il.Ldc_I4(1);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Int32:
             case GroBufTypeCode.UInt32:
                 il.Ldc_I4(2);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Int64:
             case GroBufTypeCode.UInt64:
                 il.Ldc_I4(3);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Single:
                 il.Ldc_I4(2);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             case GroBufTypeCode.Double:
                 il.Ldc_I4(3);
-                il.Shr(typeof(int));
+                il.Shr(false);
                 break;
             default:
                 throw new NotSupportedException("Type '" + elementType + "' is not supported");
