@@ -7,6 +7,8 @@ using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
+using ProtoBuf;
+
 namespace GroBuf.Tests
 {
     [TestFixture]
@@ -133,14 +135,12 @@ namespace GroBuf.Tests
             Assert.AreEqual(1, list[2]);
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestPerformance()
         {
             var list = new List<int>();
             for(int i = 0; i < 10000; ++i)
                 list.Add(i);
-
-            var stream = new MemoryStream(128 * 1024);
 
             Console.WriteLine(serializer.GetSize(list));
             serializer.Deserialize<List<int>>(serializer.Serialize(list));
@@ -153,8 +153,6 @@ namespace GroBuf.Tests
             stopwatch = Stopwatch.StartNew();
             for(int iter = 0; iter < iterations; ++iter)
             {
-                stream.Position = 0;
-                stream.SetLength(0);
                 serializer.Serialize(list);
             }
             elapsed = stopwatch.Elapsed;
@@ -163,15 +161,45 @@ namespace GroBuf.Tests
             stopwatch = Stopwatch.StartNew();
             for(int iter = 0; iter < iterations; ++iter)
             {
-                stream.Position = 0;
-                stream.SetLength(0);
                 serializer.Deserialize<List<int>>(buf);
             }
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        [Test]
+        [Test, Ignore]
+        public void TestPerformance2()
+        {
+            var obj = new A{Items = new List<Item>()};
+            for(int i = 0; i < 10000; ++i)
+                obj.Items.Add(new Item{X = i});
+
+            Console.WriteLine(serializer.GetSize(obj));
+            serializer.Deserialize<A>(serializer.Serialize(obj));
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            const int iterations = 100000;
+            for(int iter = 0; iter < iterations; ++iter)
+                serializer.GetSize(obj);
+            TimeSpan elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Size computing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " size computations per second)");
+            stopwatch = Stopwatch.StartNew();
+            for(int iter = 0; iter < iterations; ++iter)
+            {
+                serializer.Serialize(obj);
+            }
+            elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
+            byte[] buf = serializer.Serialize(obj);
+            stopwatch = Stopwatch.StartNew();
+            for(int iter = 0; iter < iterations; ++iter)
+            {
+                serializer.Deserialize<A>(buf);
+            }
+            elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
+        }
+
+        [Test, Ignore]
         public void TestPerformanceGuid()
         {
             var list = new List<Guid>();
@@ -209,7 +237,7 @@ namespace GroBuf.Tests
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        [Test]
+        [Test, Ignore]
         public void TestPerformanceProtobuf()
         {
             var list = new List<int>();
@@ -219,7 +247,7 @@ namespace GroBuf.Tests
             var stream = new MemoryStream(128 * 1024);
             ProtoBuf.Serializer.Serialize(stream, list);
             stream.Position = 0;
-            stream.SetLength(0);
+            //stream.SetLength(0);
             ProtoBuf.Serializer.Deserialize<List<int>>(stream);
 
             const int iterations = 10000;
@@ -227,7 +255,7 @@ namespace GroBuf.Tests
             for(int iter = 0; iter < iterations; ++iter)
             {
                 stream.Position = 0;
-                stream.SetLength(0);
+                //stream.SetLength(0);
                 ProtoBuf.Serializer.Serialize(stream, list);
             }
             TimeSpan elapsed = stopwatch.Elapsed;
@@ -236,10 +264,50 @@ namespace GroBuf.Tests
             for(int iter = 0; iter < iterations; ++iter)
             {
                 stream.Position = 0;
-                stream.SetLength(0);
+                //stream.SetLength(0);
                 ProtoBuf.Serializer.Deserialize<List<int>>(stream);
             }
             elapsed = stopwatch.Elapsed;
+            Assert.AreEqual(10000, list.Count);
+            for (int i = 0; i < 10000; ++i)
+                Assert.AreEqual(i, list[i]);
+            Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
+        }
+
+        [Test, Ignore]
+        public void TestPerformanceProtobuf2()
+        {
+            var obj = new A {Items = new List<Item>()};
+            for(int i = 0; i < 10000; ++i)
+                obj.Items.Add(new Item{X = i});
+
+            var stream = new MemoryStream(128 * 1024);
+            ProtoBuf.Serializer.Serialize(stream, obj);
+            stream.Position = 0;
+            var a = ProtoBuf.Serializer.Deserialize<A>(stream);
+            Assert.AreEqual(10000, a.Items.Count);
+
+            const int iterations = 10000;
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            for(int iter = 0; iter < iterations; ++iter)
+            {
+                stream.Position = 0;
+                //stream.SetLength(0);
+                ProtoBuf.Serializer.Serialize(stream, obj);
+            }
+            TimeSpan elapsed = stopwatch.Elapsed;
+            Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
+            stopwatch = Stopwatch.StartNew();
+            for(int iter = 0; iter < iterations; ++iter)
+            {
+                stream.Position = 0;
+                //stream.SetLength(0);
+                a = ProtoBuf.Serializer.Deserialize<A>(stream);
+            }
+            elapsed = stopwatch.Elapsed;
+            Assert.AreEqual(10000, a.Items.Count);
+            for(int i = 0; i < 10000; ++i)
+                Assert.AreEqual(i, a.Items[i].X);
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
@@ -281,8 +349,18 @@ namespace GroBuf.Tests
 
         private Serializer serializer;
 
+        [ProtoContract]
+        private class A
+        {
+            [ProtoMember(1)]
+            public List<Item> Items { get; set; }
+        }
+
+        [ProtoContract]
         private class Item
         {
+            [ProtoMember(1)]
+            public int X { get; set; }
         }
 
         private class BadContract
