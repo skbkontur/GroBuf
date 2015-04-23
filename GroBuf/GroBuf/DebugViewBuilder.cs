@@ -454,7 +454,8 @@ namespace GroBuf
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Ldarg_2);
-            il.Emit(OpCodes.Unaligned, 1L);
+            if(IntPtr.Size == 8)
+                il.Emit(OpCodes.Unaligned, 1L);
             il.Emit(OpCodes.Cpblk); // dest, source, number of bytes
             il.Emit(OpCodes.Ret);
             return (Action<IntPtr, IntPtr, int>)method.CreateDelegate(typeof(Action<IntPtr, IntPtr, int>));
