@@ -815,5 +815,15 @@
             </param>
             <param name="optionalParameterTypes">The types of the optional arguments for varargs calls.</param>
         </member>
+        <member name="M:GrEmit.GroboIL.Calli(System.Runtime.InteropServices.CallingConvention,System.Type,System.Type[])">
+            <summary>
+                Calls the method indicated on the evaluation stack (as a pointer to an entry point) with arguments described by a calling convention.
+            </summary>
+            <param name="callingConvention">The unmanaged calling convention to be used.</param>
+            <param name="returnType">
+                The <see cref="T:System.Type">Type</see> of the result.
+            </param>
+            <param name="parameterTypes">The types of the required arguments to the instruction.</param>
+        </member>
     </members>
 </doc>
