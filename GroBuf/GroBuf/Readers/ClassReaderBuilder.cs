@@ -208,6 +208,26 @@ namespace GroBuf.Readers
                     il.Ldloca(propertyValue); // stack: [data, ref index, ref propertyValue]
                     il.Ldarg(3); // stack: [data, ref index, ref propertyValue, context]
                     ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, ref propertyValue, context); stack: []
+                    if(member.GetCustomAttributes(typeof(RewriteDefaultAttribute), false).Length > 0 && property.PropertyType.IsValueType)
+                    {
+                        var equalityOperator = property.PropertyType.GetMethod("op_Equality", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                        if(property.PropertyType.IsPrimitive || equalityOperator != null)
+                        {
+                            var temp = il.DeclareLocal(property.PropertyType);
+                            il.Ldloca(temp);
+                            il.Initobj(property.PropertyType);
+                            il.Ldloc(temp);
+                            il.Ldloc(propertyValue);
+                            if(property.PropertyType.IsPrimitive)
+                                il.Ceq();
+                            else
+                                il.Call(equalityOperator);
+                            var notDefaultLabel = il.DefineLabel("notDefault");
+                            il.Brfalse(notDefaultLabel);
+                            il.Ret();
+                            il.MarkLabel(notDefaultLabel);
+                        }
+                    }
                     il.Ldarg(2); // stack: [ref result]
                     if(!Type.IsValueType)
                         il.Ldind(Type); // stack: [result]

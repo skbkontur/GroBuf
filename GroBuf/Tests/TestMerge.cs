@@ -114,6 +114,33 @@ namespace GroBuf.Tests
             second.AssertEqualsTo(new As {Bool = true, B = new Bs {S = "qxx", Long = 12341234}, Bs = new[] {new Bs {S = "xxx"}, new Bs {S = "qzz", Long = 1287346}}});
         }
 
+        [Test]
+        public void TestRewriteDefaultPrimitive()
+        {
+            var z = new Z{X = 3};
+            var z2 = new Z {X = 0};
+            serializer.Merge(z2, ref z);
+            Assert.AreEqual(3, z.X);
+        }
+
+        [Test]
+        public void TestRewriteDefaultStruct()
+        {
+            var z = new Z{Y = 3m};
+            var z2 = new Z {Y = 0m};
+            serializer.Merge(z2, ref z);
+            Assert.AreEqual(3m, z.Y);
+        }
+
+        public class Z
+        {
+            [RewriteDefault]
+            public int X { get; set; }
+
+            [RewriteDefault]
+            public decimal Y { get; set; }
+        }
+
         public class A
         {
             public B[] Bs { get; set; }
