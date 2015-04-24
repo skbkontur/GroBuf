@@ -115,7 +115,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestRewriteDefaultPrimitive()
+        public void TestIgnoreDefaultPropPrimitive()
         {
             var z = new Z{X = 3};
             var z2 = new Z {X = 0};
@@ -124,7 +124,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestRewriteDefaultStruct()
+        public void TestIgnoreDefaultPropStruct()
         {
             var z = new Z{Y = 3m};
             var z2 = new Z {Y = 0m};
@@ -132,13 +132,42 @@ namespace GroBuf.Tests
             Assert.AreEqual(3m, z.Y);
         }
 
+        [Test]
+        public void TestIgnoreDefaultFieldPrimitive()
+        {
+            var serializer2 = new Serializer(new FieldsExtractor(), null, GroBufOptions.MergeOnRead);
+            var z = new ZZ{X = 3};
+            var z2 = new ZZ {X = 0};
+            serializer2.Merge(z2, ref z);
+            Assert.AreEqual(3, z.X);
+        }
+
+        [Test]
+        public void TestIgnoreDefaultFieldStruct()
+        {
+            var serializer2 = new Serializer(new FieldsExtractor(), null, GroBufOptions.MergeOnRead);
+            var z = new ZZ { Y = 3m };
+            var z2 = new ZZ {Y = 0m};
+            serializer2.Merge(z2, ref z);
+            Assert.AreEqual(3m, z.Y);
+        }
+
         public class Z
         {
-            [RewriteDefault]
+            [IgnoreDefaultOnMerge]
             public int X { get; set; }
 
-            [RewriteDefault]
+            [IgnoreDefaultOnMerge]
             public decimal Y { get; set; }
+        }
+
+        public class ZZ
+        {
+            [IgnoreDefaultOnMerge]
+            public int X;
+
+            [IgnoreDefaultOnMerge]
+            public decimal Y;
         }
 
         public class A

@@ -137,7 +137,7 @@
     <Compile Include="Readers\ReaderTypeBuilder.cs" />
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
     <Compile Include="Readers\TimeSpanReaderBuilder.cs" />
-    <Compile Include="RewriteDefaultAttribute.cs" />
+    <Compile Include="IgnoreDefaultOnMergeAttribute.cs" />
     <Compile Include="SerializerExtensions.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="SizeCounterDelegate.cs" />
