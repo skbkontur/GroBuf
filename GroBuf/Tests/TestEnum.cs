@@ -2,7 +2,7 @@
 using System.Reflection;
 using System.Runtime.Serialization;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 
 using NUnit.Framework;
 

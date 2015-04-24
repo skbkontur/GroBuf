@@ -7,7 +7,7 @@ using System.Reflection.Emit;
 
 using GrEmit;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 
 namespace GroBuf.Writers
 {

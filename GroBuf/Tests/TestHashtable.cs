@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 
 using NUnit.Framework;
 

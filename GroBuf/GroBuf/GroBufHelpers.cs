@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices;
 
 using GrEmit;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 
 namespace GroBuf
 {

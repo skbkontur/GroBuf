@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace GroBuf.DataMembersExtracters
+namespace GroBuf.DataMembersExtractors
 {
     public interface IDataMember
     {

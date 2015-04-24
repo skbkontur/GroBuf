@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 using GroBuf.Tests.TestData.Desadv;
 using GroBuf.Tests.TestData.Orders;
 using GroBuf.Tests.TestTools;

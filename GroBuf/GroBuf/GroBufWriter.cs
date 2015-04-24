@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 
 using GrEmit;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 using GroBuf.SizeCounters;
 using GroBuf.Writers;
 

@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 
-namespace GroBuf.DataMembersExtracters
+namespace GroBuf.DataMembersExtractors
 {
     public class DataMembersByAttributeExtractor : IDataMembersExtractor
     {

@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 using GroBuf.Tests.TestTools;
 
 using NUnit.Framework;

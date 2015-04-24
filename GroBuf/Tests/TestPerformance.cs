@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Xml.Serialization;
 
-using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtractors;
 using GroBuf.Tests.TestData.Invoic;
 using GroBuf.Tests.TestData.Orders;
 using GroBuf.Tests.TestTools;
