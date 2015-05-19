@@ -76,8 +76,6 @@ namespace GroBuf.Writers
             var cycleStart = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStart);
 
-//            context.LoadWriter(elementType);
-
             il.Ldloc(items); // stack: [items]
             il.Ldloc(i); // stack: [items, i]
             il.Ldelem(elementType);

@@ -90,16 +90,12 @@ namespace GroBuf.Writers
             il.Ldfld(bucketsField); // stack: [key, obj.buckets]
             il.Beq(nextLabel); // if(key == obj.buckets) goto next; stack: []
 
-            //            context.LoadWriter(typeof(object));
-
             il.Ldloc(key); // stack: [obj[i].key]
             il.Ldc_I4(1); // stack: [obj[i].key, true]
             context.LoadResult(); // stack: [obj[i].key, true, result]
             context.LoadIndexByRef(); // stack: [obj[i].key, true, result, ref index]
             context.LoadContext(); // stack: [obj[i].key, true, result, ref index, context]
             context.CallWriter(typeof(object)); // write<object>(obj[i].key, true, result, ref index, context); stack: []
-
-//            context.LoadWriter(typeof(object));
 
             il.Ldloc(bucket); // stack: [bucket]
             il.Ldfld(bucketType.GetField("val")); // stack: [bucket.val]

@@ -21,7 +21,7 @@ namespace GroBuf.SizeCounters
             sizeCounterBuilderContext.SetSizeCounterMethod(Type, method);
             using (var il = new GroboIL(method))
             {
-                var context = new SizeCounterMethodBuilderContext(sizeCounterBuilderContext, il, sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences));
+                var context = new SizeCounterMethodBuilderContext(sizeCounterBuilderContext, il);
 
                 var notEmptyLabel = il.DefineLabel("notEmpty");
                 if(CheckEmpty(context, notEmptyLabel)) // Check if obj is empty

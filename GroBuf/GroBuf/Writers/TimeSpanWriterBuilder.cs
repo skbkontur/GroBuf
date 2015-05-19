@@ -19,8 +19,6 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
 
-//            context.LoadWriter(Type.GetGenericArguments()[0]);
-
             context.LoadObjByRef(); // stack: [obj]
             il.Ldfld(Type.GetField("_ticks", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj._ticks]
             context.LoadWriteEmpty(); // stack: [obj._ticks, writeEmpty]

@@ -19,8 +19,6 @@ namespace GroBuf.Writers
         {
             var il = context.Il;
 
-//            context.LoadWriter(Type.GetGenericArguments()[0]);
-
             context.LoadObj(); // stack: [obj]
             il.Call(Type.GetMethod("GetAddressBytes", BindingFlags.Instance | BindingFlags.Public)); // stack: [obj.GetAddressBytes()]
             context.LoadWriteEmpty(); // stack: [obj.GetAddressBytes(), writeEmpty]

@@ -26,9 +26,9 @@ namespace GroBuf.Writers
 
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
-            var table = BuildHashCodesTable();
-            var hashCodes = table.Key;
-            var values = table.Value;
+            int[] values;
+            ulong[] hashCodes;
+            BuildHashCodesTable(out values, out hashCodes);
             var hashCodesField = context.Context.InitConstField(Type, 0, hashCodes);
             var valuesField = context.Context.InitConstField(Type, 1, values);
 
@@ -72,40 +72,40 @@ namespace GroBuf.Writers
 
         protected override bool IsReference { get { return false; } }
 
-        private KeyValuePair<ulong[], int[]> BuildHashCodesTable()
+        private void BuildHashCodesTable(out int[] values, out ulong[] hashCodes)
         {
             var fields = Type.GetFields(BindingFlags.Public | BindingFlags.Static);
-            var values = fields.Select(field => (int)Enum.Parse(Type, field.Name)).ToArray();
-            var uniqueValues = new HashSet<int>(values).ToArray();
+            var enumValues = fields.Select(field => (int)Enum.Parse(Type, field.Name)).ToArray();
+            var uniqueValues = new HashSet<int>(enumValues).ToArray();
             var nameHashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
             var hashSet = new HashSet<uint>();
-            for (var x = (uint)values.Length; ; ++x)
+            for(var x = (uint)enumValues.Length;; ++x)
             {
                 hashSet.Clear();
-                bool ok = true;
-                foreach (var value in uniqueValues)
+                var ok = true;
+                foreach(var value in uniqueValues)
                 {
                     var item = (uint)(value % x);
-                    if (hashSet.Contains(item))
+                    if(hashSet.Contains(item))
                     {
                         ok = false;
                         break;
                     }
                     hashSet.Add(item);
                 }
-                if (!ok) continue;
-                var hashCodes = new ulong[x];
-                var valuez = new int[x];
-                for (int i = 0; i < x; ++i)
-                    valuez[i] = -1;
-                for (int i = 0; i < values.Length; i++)
+                if(!ok) continue;
+                hashCodes = new ulong[x];
+                values = new int[x];
+                for(var i = 0; i < x; ++i)
+                    values[i] = -1;
+                for(var i = 0; i < enumValues.Length; i++)
                 {
-                    var value = values[i];
+                    var value = enumValues[i];
                     var index = (int)(value % x);
                     hashCodes[index] = nameHashes[i];
-                    valuez[index] = value;
+                    values[index] = value;
                 }
-                return new KeyValuePair<ulong[], int[]>(hashCodes, valuez);
+                break;
             }
         }
     }

@@ -74,9 +74,9 @@ namespace GroBuf.Writers
             return writer;
         }
 
-        public GroBufWriter GroBufWriter { get; set; }
-        public ModuleBuilder Module { get; set; }
-        public Type ConstantsType { get; set; }
+        public GroBufWriter GroBufWriter { get; private set; }
+        public ModuleBuilder Module { get; private set; }
+        public Type ConstantsType { get; private set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {

@@ -11,7 +11,7 @@ namespace GroBuf.Readers
     {
         public ReaderTypeBuilder(GroBufReader groBufReader, ModuleBuilder module, IReaderCollection readerCollection, IDataMembersExtractor dataMembersExtractor)
         {
-            GroBufReader = groBufReader;
+            this.groBufReader = groBufReader;
             this.module = module;
             this.readerCollection = readerCollection;
             this.dataMembersExtractor = dataMembersExtractor;
@@ -22,11 +22,11 @@ namespace GroBuf.Readers
             var constantsBuilder = module.DefineType(type.Name + "_GroBufReader_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
             constantsBuilder.DefineField("pointers", typeof(IntPtr[]), FieldAttributes.Private | FieldAttributes.Static);
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
-            var constantsBuilderContext = new ReaderConstantsBuilderContext(GroBufReader, constantsBuilder, readerCollection, dataMembersExtractor);
+            var constantsBuilderContext = new ReaderConstantsBuilderContext(groBufReader, constantsBuilder, readerCollection, dataMembersExtractor);
             constantsBuilderContext.BuildConstants(type, ignoreCustomSerialization);
             var constantsType = constantsBuilder.CreateType();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
-            var context = new ReaderTypeBuilderContext(GroBufReader, module, constantsType, fields, readerCollection, dataMembersExtractor);
+            var context = new ReaderTypeBuilderContext(groBufReader, module, constantsType, fields, readerCollection, dataMembersExtractor);
             var reader = context.GetReader(type, ignoreCustomSerialization);
 
             var initializer = BuildInitializer(constantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic), constantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
@@ -36,15 +36,13 @@ namespace GroBuf.Readers
             var delegates = new Delegate[compiledDynamicMethods.Length];
             foreach(var compiledDynamicMethod in compiledDynamicMethods)
             {
-                int index = compiledDynamicMethod.Index;
+                var index = compiledDynamicMethod.Index;
                 pointers[index] = compiledDynamicMethod.Pointer;
                 delegates[index] = compiledDynamicMethod.Delegate;
             }
             initializer(pointers, delegates, context.GetFieldInitializers());
             return reader.Pointer;
         }
-
-        public GroBufReader GroBufReader { get; private set; }
 
         private Action<IntPtr[], Delegate[], Action[]> BuildInitializer(FieldInfo pointersField, FieldInfo delegatesField)
         {
@@ -80,6 +78,7 @@ namespace GroBuf.Readers
             return (Action<IntPtr[], Delegate[], Action[]>)initializer.CreateDelegate(typeof(Action<IntPtr[], Delegate[], Action[]>));
         }
 
+        private readonly GroBufReader groBufReader;
         private readonly ModuleBuilder module;
         private readonly IReaderCollection readerCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;

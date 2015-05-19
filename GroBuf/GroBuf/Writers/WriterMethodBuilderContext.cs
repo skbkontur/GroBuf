@@ -15,7 +15,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>obj</c> onto the evaluation stack
+        ///     Loads <c>obj</c> onto the evaluation stack
         /// </summary>
         public void LoadObj()
         {
@@ -23,7 +23,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>ref obj</c> onto the evaluation stack
+        ///     Loads <c>ref obj</c> onto the evaluation stack
         /// </summary>
         public void LoadObjByRef()
         {
@@ -31,7 +31,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>writeEmpty</c> onto the evaluation stack
+        ///     Loads <c>writeEmpty</c> onto the evaluation stack
         /// </summary>
         public void LoadWriteEmpty()
         {
@@ -39,7 +39,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>result</c> onto the evaluation stack
+        ///     Loads <c>result</c> onto the evaluation stack
         /// </summary>
         public void LoadResult()
         {
@@ -47,7 +47,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>ref index</c> onto the evaluation stack
+        ///     Loads <c>ref index</c> onto the evaluation stack
         /// </summary>
         public void LoadIndexByRef()
         {
@@ -55,7 +55,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>index</c> onto the evaluation stack
+        ///     Loads <c>index</c> onto the evaluation stack
         /// </summary>
         public void LoadIndex()
         {
@@ -64,7 +64,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>context</c> onto the evaluation stack
+        ///     Loads <c>context</c> onto the evaluation stack
         /// </summary>
         public void LoadContext()
         {
@@ -72,7 +72,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads <c>length</c> onto the evaluation stack
+        ///     Loads <c>length</c> onto the evaluation stack
         /// </summary>
         public void LoadResultLength()
         {
@@ -81,7 +81,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads the specified field onto the evaluation stack
+        ///     Loads the specified field onto the evaluation stack
         /// </summary>
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
@@ -90,7 +90,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 1
+        ///     Increases <c>index</c> by 1
         /// </summary>
         public void IncreaseIndexBy1()
         {
@@ -102,7 +102,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 2
+        ///     Increases <c>index</c> by 2
         /// </summary>
         public void IncreaseIndexBy2()
         {
@@ -114,7 +114,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 4
+        ///     Increases <c>index</c> by 4
         /// </summary>
         public void IncreaseIndexBy4()
         {
@@ -126,7 +126,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 8
+        ///     Increases <c>index</c> by 8
         /// </summary>
         public void IncreaseIndexBy8()
         {
@@ -138,7 +138,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Loads &amp;<c>result</c>[<c>index</c>] onto the evaluation stack
+        ///     Loads &amp;<c>result</c>[<c>index</c>] onto the evaluation stack
         /// </summary>
         public void GoToCurrentLocation()
         {
@@ -148,7 +148,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Puts TypeCode.Empty in <c>result</c> if <c>writeEmpty</c> = true and returns
+        ///     Puts TypeCode.Empty in <c>result</c> if <c>writeEmpty</c> = true and returns
         /// </summary>
         public void WriteNull()
         {
@@ -161,9 +161,9 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Asserts that the specified number of bytes can be written to <c>result</c> starting at <c>index</c>
-        /// <para></para>
-        /// The number of bytes must be pushed onto the evaluation stack
+        ///     Asserts that the specified number of bytes can be written to <c>result</c> starting at <c>index</c>
+        ///     <para></para>
+        ///     The number of bytes must be pushed onto the evaluation stack
         /// </summary>
         public void AssertLength()
         {
@@ -173,8 +173,8 @@ namespace GroBuf.Writers
             var bigEnoughLabel = Il.DefineLabel("bigEnough");
             Il.Ble(bigEnoughLabel, true);
             Il.Ldstr("Seems like the object being serialized has been changed during serialization");
-            var constructor = typeof(InvalidOperationException).GetConstructor(new[] { typeof(string) });
-            if (constructor == null)
+            var constructor = typeof(InvalidOperationException).GetConstructor(new[] {typeof(string)});
+            if(constructor == null)
                 throw new MissingConstructorException(typeof(InvalidOperationException), typeof(string));
             Il.Newobj(constructor);
             Il.Throw();
@@ -182,7 +182,7 @@ namespace GroBuf.Writers
         }
 
         /// <summary>
-        /// Puts the specified type code at <c>result</c>[<c>index</c>]
+        ///     Puts the specified type code at <c>result</c>[<c>index</c>]
         /// </summary>
         /// <param name="typeCode">Type code to put</param>
         public void WriteTypeCode(GroBufTypeCode typeCode)
@@ -195,18 +195,8 @@ namespace GroBuf.Writers
             IncreaseIndexBy1(); // index = index + 1
         }
 
-//        public void LoadWriter(Type type)
-//        {
-//            var counter = Context.GetWriter(type);
-//            Il.Ldfld(Context.ConstantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
-//            Il.Ldc_I4(counter.Index);
-//            Il.Ldelem(typeof(WriterDelegate<>).MakeGenericType(type));
-//        }
-
         public void CallWriter(GroboIL il, Type type)
         {
-//            var delegateType = typeof(WriterDelegate<>).MakeGenericType(type);
-//            il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
             var counter = Context.GetWriter(type);
             if(counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);

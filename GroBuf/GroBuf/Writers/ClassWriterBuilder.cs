@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 
 namespace GroBuf.Writers
@@ -47,11 +46,9 @@ namespace GroBuf.Writers
             var dataMembers = context.Context.GetDataMembers(Type);
             var hashCodes = GroBufHelpers.CalcHashesAndCheck(dataMembers);
             var prev = il.DeclareLocal(typeof(int));
-            for(int i = 0; i < dataMembers.Length; i++)
+            for(var i = 0; i < dataMembers.Length; i++)
             {
                 var member = dataMembers[i];
-
-//                context.LoadWriter(member.Member.GetMemberType());
 
                 if(Type.IsValueType)
                     context.LoadObjByRef(); // stack: [ref obj]

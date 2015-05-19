@@ -78,8 +78,6 @@ namespace GroBuf.Readers
             il.Bne_Un(readAsIntLabel); // if(typeCode != GroBufTypeCode.String) goto readAsInt;
             var str = il.DeclareLocal(typeof(string));
 
-//            context.LoadReader(typeof(string));
-
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             il.Ldloca(str); // stack: [pinnedData, ref index, ref str]
@@ -91,8 +89,6 @@ namespace GroBuf.Readers
             il.Br(parseByHashCodeLabel);
 
             il.MarkLabel(readAsIntLabel);
-
-//            context.LoadReader(typeof(int));
 
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]

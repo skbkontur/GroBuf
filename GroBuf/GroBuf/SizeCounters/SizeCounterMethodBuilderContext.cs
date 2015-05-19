@@ -2,22 +2,19 @@ using System;
 using System.Reflection;
 
 using GrEmit;
-using GrEmit.Utils;
 
 namespace GroBuf.SizeCounters
 {
     internal class SizeCounterMethodBuilderContext
     {
-        public SizeCounterMethodBuilderContext(SizeCounterBuilderContext context, GroboIL il, bool packReferences)
+        public SizeCounterMethodBuilderContext(SizeCounterBuilderContext context, GroboIL il)
         {
-            this.packReferences = packReferences;
-            size = packReferences ? il.DeclareLocal(typeof(int)) : null;
             Context = context;
             Il = il;
         }
 
         /// <summary>
-        /// Loads <c>obj</c> onto the evaluation stack
+        ///     Loads <c>obj</c> onto the evaluation stack
         /// </summary>
         public void LoadObj()
         {
@@ -25,7 +22,7 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
-        /// Loads <c>ref obj</c> onto the evaluation stack
+        ///     Loads <c>ref obj</c> onto the evaluation stack
         /// </summary>
         public void LoadObjByRef()
         {
@@ -33,7 +30,7 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
-        /// Loads <c>writeEmpty</c> onto the evaluation stack
+        ///     Loads <c>writeEmpty</c> onto the evaluation stack
         /// </summary>
         public void LoadWriteEmpty()
         {
@@ -41,7 +38,7 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
-        /// Loads <c>context</c> onto the evaluation stack
+        ///     Loads <c>context</c> onto the evaluation stack
         /// </summary>
         public void LoadContext()
         {
@@ -49,7 +46,7 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
-        /// Loads the specified field onto the evaluation stack
+        ///     Loads the specified field onto the evaluation stack
         /// </summary>
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
@@ -58,7 +55,7 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
-        /// <c>obj</c> is empty. Return (int)<c>writeEmpty</c>
+        ///     <c>obj</c> is empty. Return (int)<c>writeEmpty</c>
         /// </summary>
         public void ReturnForNull()
         {
@@ -66,20 +63,10 @@ namespace GroBuf.SizeCounters
             Il.Ret();
         }
 
-//        public void LoadSizeCounter(Type type)
-//        {
-//            var counter = Context.GetCounter(type);
-//            Il.Ldfld(Context.ConstantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
-//            Il.Ldc_I4(counter.Index);
-//            Il.Ldelem(typeof(SizeCounterDelegate<>).MakeGenericType(type));
-//        }
-
         public void CallSizeCounter(GroboIL il, Type type)
         {
-            //            var delegateType = typeof(SizeCounterDelegate<>).MakeGenericType(type);
-            //            il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
             var counter = Context.GetCounter(type);
-            if (counter.Pointer != IntPtr.Zero)
+            if(counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
             else
             {
@@ -87,7 +74,7 @@ namespace GroBuf.SizeCounters
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
             }
-            il.Calli(CallingConventions.Standard, typeof(int), new[] { type, typeof(bool), typeof(WriterContext) });
+            il.Calli(CallingConventions.Standard, typeof(int), new[] {type, typeof(bool), typeof(WriterContext)});
         }
 
         public void CallSizeCounter(Type type)
@@ -97,7 +84,5 @@ namespace GroBuf.SizeCounters
 
         public SizeCounterBuilderContext Context { get; private set; }
         public GroboIL Il { get; private set; }
-        private readonly bool packReferences;
-        private GroboIL.Local size;
     }
 }

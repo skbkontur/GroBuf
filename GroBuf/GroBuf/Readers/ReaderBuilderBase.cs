@@ -28,9 +28,9 @@ namespace GroBuf.Readers
 
                 ReadTypeCodeAndCheck(context); // Read TypeCode and check
 
-                if(!Type.IsValueType && IsReference /* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/)
+                if(!Type.IsValueType && IsReference)
                 {
-                    // Pack reference
+                    // Read reference
                     context.LoadContext(); // stack: [context]
                     il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
                     var notReadLabel = il.DefineLabel("notRead");
@@ -101,7 +101,7 @@ namespace GroBuf.Readers
                     il.Ret();
                     il.MarkLabel(readObjectLabel);
 
-                    // Referenced object has not been read - this means that the object reference belongs to is property that has been deleted
+                    // Referenced object has not been read - this means that the object reference belongs to is a property that had been deleted
                     context.LoadData(); // stack: [data]
                     il.Ldloc(reference); // stack: [data, reference]
                     context.LoadContext(); // stack: [data, reference, context]
