@@ -74,7 +74,7 @@ namespace GroBuf.Writers
             il.Stloc(arr); // arr = &obj._items[0]; stack: [&result[index]]
             il.Ldloc(arr); // stack: [&result[index], arr]
             il.Ldloc(size); // stack: [&result[index], arr, size]
-            context.Il.Cpblk(unaligned: sizeof(IntPtr) == 8 ? 1 : (int?)null); // &result[index] = arr
+            context.Il.Cpblk(); // &result[index] = arr
             il.Ldnull(); // stack: [null]
             context.Il.Stloc(arr); // arr = null;
             context.LoadIndexByRef(); // stack: [ref index]
