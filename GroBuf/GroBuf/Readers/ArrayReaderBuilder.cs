@@ -90,8 +90,6 @@ namespace GroBuf.Readers
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
 
-//            context.LoadReader(elementType);
-
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             context.LoadResult(Type); // stack: [pinnedData, ref index, result]

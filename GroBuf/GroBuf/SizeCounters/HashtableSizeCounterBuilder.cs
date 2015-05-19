@@ -79,15 +79,11 @@ namespace GroBuf.SizeCounters
             il.Ldfld(bucketsField); // stack: [size, key, obj.buckets]
             il.Beq(nextLabel); // if(key == obj.buckets) goto next; stack: [size]
 
-            //            context.LoadSizeCounter(typeof(object));
-
             il.Ldloc(key); // stack: [size, key]
             il.Ldc_I4(1); // stack: [size, key, true]
             context.LoadContext(); // stack: [size, key, true, context]
             context.CallSizeCounter(typeof(object)); // stack: [size, writer(key, true, context) = keySize]
             il.Add(); // stack: [size + keySize]
-
-            //            context.LoadSizeCounter(typeof(object));
 
             il.Ldloc(bucket); // stack: [size, bucket]
             il.Ldfld(bucketType.GetField("val", BindingFlags.Public | BindingFlags.Instance)); // stack: [size, bucket.val]

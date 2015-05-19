@@ -21,8 +21,6 @@ namespace GroBuf.Readers
             var il = context.Il;
             context.LoadResultByRef(); // stack: [ref result]
 
-//            context.LoadReader(Type.GetGenericArguments()[0]);
-
             context.LoadData(); // stack: [ref result, data]
             context.LoadIndexByRef(); // stack: [ref result, data, ref index]
             var argumentType = Type.GetGenericArguments()[0];

@@ -19,7 +19,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>pinnedData</c> onto the evaluation stack
+        ///     Loads <c>pinnedData</c> onto the evaluation stack
         /// </summary>
         public void LoadData()
         {
@@ -27,7 +27,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>ref index</c> onto the evaluation stack
+        ///     Loads <c>ref index</c> onto the evaluation stack
         /// </summary>
         public void LoadIndexByRef()
         {
@@ -35,7 +35,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>index</c> onto the evaluation stack
+        ///     Loads <c>index</c> onto the evaluation stack
         /// </summary>
         public void LoadIndex()
         {
@@ -44,7 +44,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>dataLength</c> onto the evaluation stack
+        ///     Loads <c>dataLength</c> onto the evaluation stack
         /// </summary>
         public void LoadDataLength()
         {
@@ -53,7 +53,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>context</c> onto the evaluation stack
+        ///     Loads <c>context</c> onto the evaluation stack
         /// </summary>
         public void LoadContext()
         {
@@ -61,7 +61,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>ref result</c> onto the evaluation stack
+        ///     Loads <c>ref result</c> onto the evaluation stack
         /// </summary>
         public void LoadResultByRef()
         {
@@ -69,7 +69,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads <c>result</c> onto the evaluation stack
+        ///     Loads <c>result</c> onto the evaluation stack
         /// </summary>
         public void LoadResult(Type resultType)
         {
@@ -78,7 +78,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads the specified field onto the evaluation stack
+        ///     Loads the specified field onto the evaluation stack
         /// </summary>
         /// <param name="field">Field to load</param>
         public void LoadField(FieldInfo field)
@@ -87,7 +87,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 1
+        ///     Increases <c>index</c> by 1
         /// </summary>
         public void IncreaseIndexBy1()
         {
@@ -99,7 +99,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 2
+        ///     Increases <c>index</c> by 2
         /// </summary>
         public void IncreaseIndexBy2()
         {
@@ -111,7 +111,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 4
+        ///     Increases <c>index</c> by 4
         /// </summary>
         public void IncreaseIndexBy4()
         {
@@ -123,7 +123,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Increases <c>index</c> by 8
+        ///     Increases <c>index</c> by 8
         /// </summary>
         public void IncreaseIndexBy8()
         {
@@ -135,7 +135,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Loads &amp;<c>data</c>[<c>index</c>] onto the evaluation stack
+        ///     Loads &amp;<c>data</c>[<c>index</c>] onto the evaluation stack
         /// </summary>
         public void GoToCurrentLocation()
         {
@@ -145,9 +145,9 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Asserts that the specified number of bytes can be read from <c>data</c> starting at <c>index</c>
-        /// <para></para>
-        /// The number of bytes must be pushed onto the evaluation stack
+        ///     Asserts that the specified number of bytes can be read from <c>data</c> starting at <c>index</c>
+        ///     <para></para>
+        ///     The number of bytes must be pushed onto the evaluation stack
         /// </summary>
         public void AssertLength()
         {
@@ -166,7 +166,7 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        /// Checks TypeCode and throws Exception if it is invalid
+        ///     Checks TypeCode and throws Exception if it is invalid
         /// </summary>
         public void CheckTypeCode()
         {
@@ -250,23 +250,8 @@ namespace GroBuf.Readers
             Il.MarkLabel(okLabel);
         }
 
-//        public static void LoadReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
-//        {
-//            var counter = context.GetReader(type);
-//            il.Ldfld(context.ConstantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
-//            il.Ldc_I4(counter.Index);
-//            il.Ldelem(typeof(ReaderDelegate<>).MakeGenericType(type));
-//        }
-//
-//        public void LoadReader(Type type)
-//        {
-//            LoadReader(Il, type, Context);
-//        }
-
         public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
         {
-//            var delegateType = typeof(ReaderDelegate<>).MakeGenericType(type);
-//            il.Call(delegateType.GetMethod("Invoke", BindingFlags.Public | BindingFlags.Instance), delegateType);
             var counter = context.GetReader(type);
             if(counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
@@ -275,7 +260,6 @@ namespace GroBuf.Readers
                 il.Ldfld(context.ConstantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic));
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
-                //il.Conv<IntPtr>();
             }
             il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)});
         }
@@ -288,26 +272,19 @@ namespace GroBuf.Readers
         public void StoreObject(Type type)
         {
             if(Index == null) return;
-            if (type.IsValueType)
+            if(type.IsValueType)
                 throw new InvalidOperationException("A reference type expected");
             // Store in array of all references
             LoadContext(); // stack: [context]
             Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
             var doneLabel = Il.DefineLabel("done");
             Il.Brfalse(doneLabel); // if(context.objects == null) goto done; stack: []
-//
-//            Il.Ldloca(Index);
-//            Il.Call(HackHelpers.GetMethodDefinition<object>(o => o.ToString()), typeof(int));
-//            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
-//
-//            Il.Ldstr(type.Name);
-//            Il.Call(HackHelpers.GetMethodDefinition<int>(x => Console.WriteLine("")));
-//
+
             LoadContext(); // stack: [context]
             Il.Ldfld(ReaderContext.ObjectsField); // stack: [context.objects]
             Il.Ldloc(Index); // stack: [context.objects, index]
             LoadResult(type); // stack: [context.objects, index, result]
-            Il.Call(HackHelpers.GetMethodDefinition<Dictionary<int,object>>(dict => dict.Add(0, null))); // context.objects.Add(index, result)
+            Il.Call(HackHelpers.GetMethodDefinition<Dictionary<int, object>>(dict => dict.Add(0, null))); // context.objects.Add(index, result)
             Il.MarkLabel(doneLabel);
         }
 

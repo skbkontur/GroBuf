@@ -96,7 +96,7 @@ namespace GroBuf.Readers
             context.GoToCurrentLocation(); // stack: [arr, &data[index]]
             il.Ldloc(length); // stack: [arr, &data[index], length]
             CountArraySize(elementType, il); // stack: [arr, &data[index], size]
-            il.Cpblk(unaligned : sizeof(IntPtr) == 8 ? 1 : (int?)null); // arr = &data[index]
+            il.Cpblk(); // arr = &data[index]
             il.Ldnull(); // stack: [null]
             il.Stloc(arr); // arr = null;
             context.LoadIndexByRef(); // stack: [ref index]

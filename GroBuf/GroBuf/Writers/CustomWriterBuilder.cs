@@ -42,7 +42,8 @@ namespace GroBuf.Writers
             context.LoadIndexByRef(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index]
             context.LoadContext(); // stack: [customSerializer, (object)obj, writeEmpty, result, ref index, context]
             int dummy = 0;
-            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy, null))); // customSerializer.Write((object)obj, writeEmpty, result, ref index, context); stack: []
+            var writeMethod = HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Write(null, false, IntPtr.Zero, ref dummy, null));
+            il.Call(writeMethod); // customSerializer.Write((object)obj, writeEmpty, result, ref index, context); stack: []
 
             context.LoadIndex(); // stack: [index]
             il.Ldloc(start); // stack: [index, start]

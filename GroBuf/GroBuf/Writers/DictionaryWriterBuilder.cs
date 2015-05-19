@@ -86,8 +86,6 @@ namespace GroBuf.Writers
             il.Ldc_I4(0); // stack: [entry.hashCode, 0]
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(entry.hashCode < 0) goto next; stack: []
-            
-//            context.LoadWriter(keyType);
 
             il.Ldloc(entry); // stack: [entry]
             il.Ldfld(entryType.GetField("key")); // stack: [entry.key]
@@ -97,8 +95,6 @@ namespace GroBuf.Writers
             context.LoadContext(); // stack: [obj[i].key, true, result, ref index, context]
             context.CallWriter(keyType); // write<keyType>(obj[i].key, true, result, ref index, context); stack: []
 
-//            context.LoadWriter(valueType);
-            
             il.Ldloc(entry); // stack: [entry]
             il.Ldfld(entryType.GetField("value")); // stack: [entry.value]
             il.Ldc_I4(1); // stack: [obj[i].value, true]

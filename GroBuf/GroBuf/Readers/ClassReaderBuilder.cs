@@ -47,15 +47,15 @@ namespace GroBuf.Readers
             ulong[] hashCodes;
             BuildMembersTable(context.Context, out hashCodes, out dataMembers);
 
-            GroboIL il = context.Il;
+            var il = context.Il;
             var end = context.Length;
             var typeCode = context.TypeCode;
 
-            KeyValuePair<Delegate, IntPtr>[] setters = dataMembers.Select(member => member == null ? default(KeyValuePair<Delegate, IntPtr>) : GetMemberSetter(context.Context, member)).ToArray();
+            var setters = dataMembers.Select(member => member == null ? default(KeyValuePair<Delegate, IntPtr>) : GetMemberSetter(context.Context, member)).ToArray();
 
-            FieldInfo settersField = context.Context.InitConstField(Type, 0, setters.Select(pair => pair.Value).ToArray());
+            var settersField = context.Context.InitConstField(Type, 0, setters.Select(pair => pair.Value).ToArray());
             context.Context.InitConstField(Type, 1, setters.Select(pair => pair.Key).ToArray());
-            FieldInfo hashCodesField = context.Context.InitConstField(Type, 2, hashCodes);
+            var hashCodesField = context.Context.InitConstField(Type, 2, hashCodes);
 
             context.IncreaseIndexBy1(); // index = index + 1
             context.AssertTypeCode(GroBufTypeCode.Object);
@@ -157,11 +157,11 @@ namespace GroBuf.Readers
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {
             var members = context.GetDataMembers(Type);
-            ulong[] hashes = GroBufHelpers.CalcHashesAndCheck(members);
+            var hashes = GroBufHelpers.CalcHashesAndCheck(members);
             var n = GroBufHelpers.CalcSize(hashes);
             hashCodes = new ulong[n];
             dataMembers = new MemberInfo[n];
-            for(int i = 0; i < members.Length; i++)
+            for(var i = 0; i < members.Length; i++)
             {
                 var index = (int)(hashes[i] % n);
                 hashCodes[index] = hashes[i];
@@ -176,10 +176,8 @@ namespace GroBuf.Readers
                                                {
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, context.Module, true);
-            using (var il = new GroboIL(method))
+            using(var il = new GroboIL(method))
             {
-                //            ReaderMethodBuilderContext.LoadReader(il, member.GetMemberType(), context);
-
                 il.Ldarg(0); // stack: [data]
                 il.Ldarg(1); // stack: [data, ref index]
                 switch(member.MemberType)
@@ -198,7 +196,7 @@ namespace GroBuf.Readers
                     var propertyValue = il.DeclareLocal(property.PropertyType);
                     if(context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
                     {
-                        MethodInfo getter = property.GetGetMethod(true);
+                        var getter = property.GetGetMethod(true);
                         if(getter == null)
                             throw new MissingMethodException(Type.Name, property.Name + "_get");
                         il.Ldarg(2); // stack: [data, ref index, ref result]
@@ -214,7 +212,7 @@ namespace GroBuf.Readers
                     if(!Type.IsValueType)
                         il.Ldind(Type); // stack: [result]
                     il.Ldloc(propertyValue); // stack: [result, propertyValue]
-                    MethodInfo setter = property.GetSetMethod(true);
+                    var setter = property.GetSetMethod(true);
                     if(setter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_set");
                     il.Call(setter, Type); // result.property = propertyValue

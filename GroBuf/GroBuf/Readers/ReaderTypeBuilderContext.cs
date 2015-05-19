@@ -76,14 +76,14 @@ namespace GroBuf.Readers
         }
 
         public GroBufReader GroBufReader { get; private set; }
-        public ModuleBuilder Module { get; set; }
-        public Type ConstantsType { get; set; }
+        public ModuleBuilder Module { get; private set; }
+        public Type ConstantsType { get; private set; }
         public FieldInfo Lengths { get; private set; }
 
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {
             var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] {typeof(T)}, Module);
-            using (var il = new GroboIL(method))
+            using(var il = new GroboIL(method))
             {
                 il.Ldarg(0);
                 il.Stfld(field);

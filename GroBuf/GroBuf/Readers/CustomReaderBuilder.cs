@@ -43,7 +43,8 @@ namespace GroBuf.Readers
             context.LoadContext(); // stack: [customSerializer, data, ref index, ref local, context]
             int dummy = 0;
             object dummyObj = null;
-            il.Call(HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Read(IntPtr.Zero, ref dummy, ref dummyObj, null))); // customSerializer.Read(data, ref index, length, ref local); stack: []
+            var readMethod = HackHelpers.GetMethodDefinition<IGroBufCustomSerializer>(serializer => serializer.Read(IntPtr.Zero, ref dummy, ref dummyObj, null));
+            il.Call(readMethod); // customSerializer.Read(data, ref index, length, ref local); stack: []
 
             context.LoadResultByRef(); // stack: [ref result]
             il.Ldloc(local); // stack: [ref result, ref local]

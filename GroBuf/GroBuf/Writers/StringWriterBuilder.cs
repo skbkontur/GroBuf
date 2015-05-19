@@ -49,9 +49,7 @@ namespace GroBuf.Writers
             il.Ldc_I4(RuntimeHelpers.OffsetToStringData); // stack: [&result[index], (IntPtr)str, offset]
             il.Add(); // stack: [&result[index], (IntPtr)str + offset]
             il.Ldloc(length); // stack: [&result[index], (IntPtr)str + offset, length]
-            il.Cpblk(unaligned: sizeof(IntPtr) == 8 ? 1 : (int?)null); // &result[index] = str
-            //il.Ldc_I4(0); // stack: [0]
-            //il.Conv(typeof(IntPtr)); // stack: [(IntPtr)0]
+            il.Cpblk(); // &result[index] = str
             il.Ldnull(); // stack: [null]
             il.Stloc(str); // str = null;
 

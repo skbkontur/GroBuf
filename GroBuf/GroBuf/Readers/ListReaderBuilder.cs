@@ -44,7 +44,7 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Stloc(length); // length = array length; stack: []
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -75,7 +75,7 @@ namespace GroBuf.Readers
             {
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldloc(length); // stack: [ref result, length]
-                il.Newobj(Type.GetConstructor(new[] { typeof(int) })); // stack: [ref result, new List(length)]
+                il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new List(length)]
                 il.Stind(Type); // result = new List(length); stack: []
             }
 
@@ -94,8 +94,6 @@ namespace GroBuf.Readers
             var cycleStartLabel = il.DefineLabel("cycleStart");
             il.MarkLabel(cycleStartLabel);
 
-//            context.LoadReader(elementType);
-            
             context.LoadData(); // stack: [pinnedData]
             context.LoadIndexByRef(); // stack: [pinnedData, ref index]
             il.Ldloc(items); // stack: [pinnedData, ref index, items]
@@ -113,7 +111,7 @@ namespace GroBuf.Readers
             il.Ldloc(length); // stack: [i, length]
             il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
 
-            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 context.LoadResult(Type); // stack: [result]
                 il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result.Count]

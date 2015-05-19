@@ -11,7 +11,7 @@ namespace GroBuf.SizeCounters
     {
         public SizeCounterTypeBuilder(GroBufWriter groBufWriter, ModuleBuilder module, ISizeCounterCollection sizeCounterCollection, IDataMembersExtractor dataMembersExtractor)
         {
-            GroBufWriter = groBufWriter;
+            this.groBufWriter = groBufWriter;
             this.module = module;
             this.sizeCounterCollection = sizeCounterCollection;
             this.dataMembersExtractor = dataMembersExtractor;
@@ -22,11 +22,11 @@ namespace GroBuf.SizeCounters
             var constantsBuilder = module.DefineType(type.Name + "_GroBufSizeCounterConstants_" + Guid.NewGuid(), TypeAttributes.Class | TypeAttributes.Public);
             constantsBuilder.DefineField("pointers", typeof(IntPtr[]), FieldAttributes.Private | FieldAttributes.Static);
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
-            var constantsBuilderContext = new SizeCounterConstantsBuilderContext(GroBufWriter, constantsBuilder, sizeCounterCollection, dataMembersExtractor);
+            var constantsBuilderContext = new SizeCounterConstantsBuilderContext(groBufWriter, constantsBuilder, sizeCounterCollection, dataMembersExtractor);
             constantsBuilderContext.BuildConstants(type, ignoreCustomSerialization);
             var constantsType = constantsBuilder.CreateType();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
-            var context = new SizeCounterBuilderContext(GroBufWriter, module, constantsType, fields, sizeCounterCollection, dataMembersExtractor);
+            var context = new SizeCounterBuilderContext(groBufWriter, module, constantsType, fields, sizeCounterCollection, dataMembersExtractor);
             var sizeCounter = context.GetCounter(type, ignoreCustomSerialization);
 
             var initializer = BuildInitializer(constantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic), constantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
@@ -36,15 +36,13 @@ namespace GroBuf.SizeCounters
             var delegates = new Delegate[compiledDynamicMethods.Length];
             foreach(var compiledDynamicMethod in compiledDynamicMethods)
             {
-                int index = compiledDynamicMethod.Index;
+                var index = compiledDynamicMethod.Index;
                 pointers[index] = compiledDynamicMethod.Pointer;
                 delegates[index] = compiledDynamicMethod.Delegate;
             }
             initializer(pointers, delegates, context.GetFieldInitializers());
             return sizeCounter.Pointer;
         }
-
-        public GroBufWriter GroBufWriter { get; private set; }
 
         private Action<IntPtr[], Delegate[], Action[]> BuildInitializer(FieldInfo pointersField, FieldInfo delegatesField)
         {
@@ -83,5 +81,6 @@ namespace GroBuf.SizeCounters
         private readonly ModuleBuilder module;
         private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly IDataMembersExtractor dataMembersExtractor;
+        private readonly GroBufWriter groBufWriter;
     }
 }

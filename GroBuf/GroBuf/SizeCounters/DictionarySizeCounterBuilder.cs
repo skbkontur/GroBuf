@@ -77,16 +77,12 @@ namespace GroBuf.SizeCounters
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(entry.hashCode < 0) goto next; stack: [size]
 
-//            context.LoadSizeCounter(keyType);
-
             il.Ldloc(entry); // stack: [size, entry]
             il.Ldfld(entryType.GetField("key")); // stack: [size, entry.key]
             il.Ldc_I4(1); // stack: [size, entry.key, true]
             context.LoadContext(); // stack: [size, entry.key, true, context]
             context.CallSizeCounter(keyType); // stack: [size, writer(entry.key, true, context) = keySize]
             il.Add(); // stack: [size + keySize]
-
-//            context.LoadSizeCounter(valueType);
 
             il.Ldloc(entry); // stack: [size, entry]
             il.Ldfld(entryType.GetField("value")); // stack: [size, entry.value]
