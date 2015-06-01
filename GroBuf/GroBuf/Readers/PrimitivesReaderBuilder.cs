@@ -301,10 +301,10 @@ namespace GroBuf.Readers
                     il.Newobj(decimalByULongConstructor);
                     break;
                 case GroBufTypeCode.Single:
-                    il.Newobj(decimalByFloatConstructor);
+                    il.Call(decimalByFloatMethod);
                     break;
                 case GroBufTypeCode.Double:
-                    il.Newobj(decimalByDoubleConstructor);
+                    il.Call(decimalByDoubleMethod);
                     break;
                 default:
                     throw new NotSupportedException("Type with type code '" + typeCode + "' is not supported");
@@ -356,12 +356,42 @@ namespace GroBuf.Readers
             }
         }
 
+        private static decimal DecimalFromDoubleSilent(double x)
+        {
+            if(double.IsNaN(x))
+                return 0;
+            if(double.IsPositiveInfinity(x))
+                return decimal.MaxValue;
+            if(double.IsNegativeInfinity(x))
+                return decimal.MinValue;
+            if(x - (double)decimal.MaxValue >= -1e-10)
+                return decimal.MaxValue;
+            if((double)decimal.MinValue - x >= -1e-10)
+                return decimal.MinValue;
+            return new decimal(x);
+        }
+
+        private static decimal DecimalFromFloatSilent(float x)
+        {
+            if (float.IsNaN(x))
+                return 0;
+            if (float.IsPositiveInfinity(x))
+                return decimal.MaxValue;
+            if (float.IsNegativeInfinity(x))
+                return decimal.MinValue;
+            if (x - (float)decimal.MaxValue >= -1e-8f)
+                return decimal.MaxValue;
+            if ((float)decimal.MinValue - x >= -1e-8f)
+                return decimal.MinValue;
+            return new decimal(x);
+        }
+
         private static readonly ConstructorInfo decimalByIntConstructor = ((NewExpression)((Expression<Func<int, decimal>>)(i => new decimal(i))).Body).Constructor;
         private static readonly ConstructorInfo decimalByUIntConstructor = ((NewExpression)((Expression<Func<uint, decimal>>)(i => new decimal(i))).Body).Constructor;
         private static readonly ConstructorInfo decimalByLongConstructor = ((NewExpression)((Expression<Func<long, decimal>>)(i => new decimal(i))).Body).Constructor;
         private static readonly ConstructorInfo decimalByULongConstructor = ((NewExpression)((Expression<Func<ulong, decimal>>)(i => new decimal(i))).Body).Constructor;
-        private static readonly ConstructorInfo decimalByFloatConstructor = ((NewExpression)((Expression<Func<float, decimal>>)(i => new decimal(i))).Body).Constructor;
-        private static readonly ConstructorInfo decimalByDoubleConstructor = ((NewExpression)((Expression<Func<double, decimal>>)(i => new decimal(i))).Body).Constructor;
+        private static readonly MethodInfo decimalByFloatMethod = ((MethodCallExpression)((Expression<Func<float, decimal>>)(x => DecimalFromFloatSilent(x))).Body).Method;
+        private static readonly MethodInfo decimalByDoubleMethod = ((MethodCallExpression)((Expression<Func<double, decimal>>)(x => DecimalFromDoubleSilent(x))).Body).Method;
 
         private static readonly MethodInfo decimalToInt8Method = ((UnaryExpression)((Expression<Func<decimal, sbyte>>)(d => (sbyte)d)).Body).Method;
         private static readonly MethodInfo decimalToUInt8Method = ((UnaryExpression)((Expression<Func<decimal, byte>>)(d => (byte)d)).Body).Method;

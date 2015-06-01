@@ -301,6 +301,15 @@ namespace GroBuf.Tests
                 Assert.AreEqual(3.1415926f, SerializeDeserialize<float, float>(3.1415926f));
                 Assert.AreEqual((double)3.1415926f, SerializeDeserialize<float, double>(3.1415926f));
                 Assert.AreEqual((decimal)3.1415926f, SerializeDeserialize<float, decimal>(3.1415926f));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<float, decimal>(1e30f));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<float, decimal>(float.MaxValue));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<float, decimal>(float.PositiveInfinity));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<float, decimal>((float)decimal.MaxValue));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<float, decimal>(-1e30f));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<float, decimal>(float.MinValue));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<float, decimal>(float.NegativeInfinity));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<float, decimal>((float)decimal.MinValue));
+                Assert.AreEqual(0m, SerializeDeserialize<float, decimal>(float.NaN));
                 Assert.IsTrue(SerializeDeserialize<float, bool>(3.1415926f));
             }
         }
@@ -321,6 +330,15 @@ namespace GroBuf.Tests
                 Assert.AreEqual((float)3.1415926, SerializeDeserialize<double, float>(3.1415926));
                 Assert.AreEqual(3.1415926, SerializeDeserialize<double, double>(3.1415926));
                 Assert.AreEqual((decimal)3.1415926, SerializeDeserialize<double, decimal>(3.1415926));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<double, decimal>(1e100));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<double, decimal>(double.MaxValue));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<double, decimal>(double.PositiveInfinity));
+                Assert.AreEqual(decimal.MaxValue, SerializeDeserialize<double, decimal>((double)decimal.MaxValue));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<double, decimal>(-1e100));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<double, decimal>(double.MinValue));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<double, decimal>(double.NegativeInfinity));
+                Assert.AreEqual(decimal.MinValue, SerializeDeserialize<double, decimal>((double)decimal.MinValue));
+                Assert.AreEqual(0m, SerializeDeserialize<double, decimal>(double.NaN));
                 Assert.IsTrue(SerializeDeserialize<double, bool>(3.1415926));
             }
         }
