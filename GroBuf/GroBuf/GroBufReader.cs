@@ -317,7 +317,7 @@ namespace GroBuf
                 }
                 else
                 {
-                    il.Ldind(type); // stack: [data, ref index, result]
+                    il.Ldind(typeof(object)); // stack: [data, ref index, result]
                     var nullLabel = il.DefineLabel("null");
                     il.Dup(); // stack: [data, ref index, length, result]
                     il.Brfalse(nullLabel); // if(result == null) goto null; stack: [data, ref index, result]

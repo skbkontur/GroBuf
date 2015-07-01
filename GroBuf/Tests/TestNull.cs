@@ -26,6 +26,21 @@ namespace GroBuf.Tests
             Assert.IsNull(oo.B);
         }
 
+        [Test]
+        public void Test()
+        {
+            string str1 = @"CcHanVu6d9II";
+            string str2 = @"CSPQYxIrDtII";
+            string str3 = @"CcVGItItgdII";
+            byte[] arr1 = Convert.FromBase64String(str1);
+            byte[] arr2 = Convert.FromBase64String(str2);
+            byte[] arr3 = Convert.FromBase64String(str3);
+
+            Console.WriteLine(serializer.Deserialize(typeof(long), arr1));
+            Console.WriteLine(serializer.Deserialize(typeof(long), arr2));
+            Console.WriteLine(serializer.Deserialize(typeof(long), arr3));
+        }
+
         public class A
         {
             public string S { get; set; }
