@@ -79,14 +79,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CompiledDynamicMethod.cs" />
-    <Compile Include="DataMembersExtractors\AllFieldsExtractor.cs" />
-    <Compile Include="DataMembersExtractors\AllPropertiesExtractor.cs" />
-    <Compile Include="DataMembersExtractors\DataMember.cs" />
-    <Compile Include="DataMembersExtractors\DataMembersByAttributeExtractor.cs" />
-    <Compile Include="DataMembersExtractors\FieldsExtractor.cs" />
-    <Compile Include="DataMembersExtractors\GroboMemberAttribute.cs" />
-    <Compile Include="DataMembersExtractors\IDataMember.cs" />
-    <Compile Include="DataMembersExtractors\PropertiesExtractor.cs" />
+    <Compile Include="DataMembersExtracters\AllFieldsExtractor.cs" />
+    <Compile Include="DataMembersExtracters\AllPropertiesExtractor.cs" />
+    <Compile Include="DataMembersExtracters\DataMember.cs" />
+    <Compile Include="DataMembersExtracters\DataMembersByAttributeExtractor.cs" />
+    <Compile Include="DataMembersExtracters\FieldsExtractor.cs" />
+    <Compile Include="DataMembersExtracters\GroboMemberAttribute.cs" />
+    <Compile Include="DataMembersExtracters\IDataMember.cs" />
+    <Compile Include="DataMembersExtracters\PropertiesExtractor.cs" />
     <Compile Include="DebugViewBuilder.cs" />
     <Compile Include="DefaultGroBufCustomSerializerCollection.cs" />
     <Compile Include="EmptyGroBufCustomSerializerCollection.cs" />
@@ -100,7 +100,7 @@
     <Compile Include="GroBufSizeCounterAttribute.cs" />
     <Compile Include="GroBufTypeCodeMap.cs" />
     <Compile Include="GroBufWriter.cs" />
-    <Compile Include="DataMembersExtractors\IDataMembersExtractor.cs" />
+    <Compile Include="DataMembersExtracters\IDataMembersExtractor.cs" />
     <Compile Include="GroBufWriterAttribute.cs" />
     <Compile Include="HashCalculator.cs" />
     <Compile Include="IGroBufCustomSerializer.cs" />
