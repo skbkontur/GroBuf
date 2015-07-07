@@ -1,6 +1,6 @@
 using System;
 
-namespace GroBuf.DataMembersExtractors
+namespace GroBuf.DataMembersExtracters
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class GroboMemberAttribute: Attribute

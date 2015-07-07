@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 
-namespace GroBuf.DataMembersExtractors
+namespace GroBuf.DataMembersExtracters
 {
     public class DataMember : IDataMember
     {

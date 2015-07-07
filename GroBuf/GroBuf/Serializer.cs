@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-using GroBuf.DataMembersExtractors;
+using GroBuf.DataMembersExtracters;
 
 namespace GroBuf
 {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 
-namespace GroBuf.DataMembersExtractors
+namespace GroBuf.DataMembersExtracters
 {
     public class PropertiesExtractor : IDataMembersExtractor
     {

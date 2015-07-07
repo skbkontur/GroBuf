@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GroBuf.DataMembersExtractors
+namespace GroBuf.DataMembersExtracters
 {
     public interface IDataMembersExtractor
     {

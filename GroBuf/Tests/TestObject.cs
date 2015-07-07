@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections;
 
-using GroBuf.DataMembersExtractors;
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 

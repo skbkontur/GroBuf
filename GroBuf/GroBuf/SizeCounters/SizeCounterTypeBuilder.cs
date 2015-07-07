@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 
-using GroBuf.DataMembersExtractors;
+using GroBuf.DataMembersExtracters;
 
 namespace GroBuf.SizeCounters
 {

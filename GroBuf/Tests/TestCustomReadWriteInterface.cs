@@ -1,6 +1,6 @@
 ﻿using System;
 
-using GroBuf.DataMembersExtractors;
+using GroBuf.DataMembersExtracters;
 using GroBuf.Tests.TestTools;
 
 using NUnit.Framework;
