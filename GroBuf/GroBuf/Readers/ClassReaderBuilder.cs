@@ -183,13 +183,53 @@ namespace GroBuf.Readers
                 switch(member.MemberType)
                 {
                 case MemberTypes.Field:
-                    il.Ldarg(2); // stack: [data, ref index, ref result]
-                    if(!Type.IsValueType)
-                        il.Ldind(Type); // stack: [data, ref index, result]
                     var field = (FieldInfo)member;
-                    il.Ldflda(field); // stack: [data, ref index, ref result.field]
-                    il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
-                    ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, ref result.field, context); stack: []
+                    var done = false;
+                    if(member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && field.FieldType.IsValueType)
+                    {
+                        var equalityOperator = field.FieldType.GetMethod("op_Equality", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                        if(field.FieldType.IsPrimitive || equalityOperator != null)
+                        {
+                            var fieldValue = il.DeclareLocal(field.FieldType);
+                            il.Ldarg(2); // stack: [data, ref index, ref result]
+                            if(!Type.IsValueType)
+                                il.Ldind(Type); // stack: [data, ref index, result]
+                            il.Ldfld(field);
+                            il.Stloc(fieldValue);
+                            il.Ldloca(fieldValue);
+                            il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
+                            ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, ref result.field, context); stack: []
+
+                            var temp = il.DeclareLocal(field.FieldType);
+                            il.Ldloca(temp);
+                            il.Initobj(field.FieldType);
+                            il.Ldloc(temp);
+                            il.Ldloc(fieldValue);
+                            if(field.FieldType.IsPrimitive)
+                                il.Ceq();
+                            else
+                                il.Call(equalityOperator);
+                            var notDefaultLabel = il.DefineLabel("notDefault");
+                            il.Brfalse(notDefaultLabel);
+                            il.Ret();
+                            il.MarkLabel(notDefaultLabel);
+                            il.Ldarg(2);
+                            if(!Type.IsValueType)
+                                il.Ldind(Type); // stack: [data, ref index, result]
+                            il.Ldloc(fieldValue);
+                            il.Stfld(field);
+                            done = true;
+                        }
+                    }
+                    if(!done)
+                    {
+                        il.Ldarg(2); // stack: [data, ref index, ref result]
+                        if(!Type.IsValueType)
+                            il.Ldind(Type); // stack: [data, ref index, result]
+                        il.Ldflda(field); // stack: [data, ref index, ref result.field]
+                        il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
+                        ReaderMethodBuilderContext.CallReader(il, field.FieldType, context); // reader(data, ref index, ref result.field, context); stack: []
+                    }
                     break;
                 case MemberTypes.Property:
                     var property = (PropertyInfo)member;
@@ -208,6 +248,26 @@ namespace GroBuf.Readers
                     il.Ldloca(propertyValue); // stack: [data, ref index, ref propertyValue]
                     il.Ldarg(3); // stack: [data, ref index, ref propertyValue, context]
                     ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, ref propertyValue, context); stack: []
+                    if(member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && property.PropertyType.IsValueType)
+                    {
+                        var equalityOperator = property.PropertyType.GetMethod("op_Equality", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
+                        if(property.PropertyType.IsPrimitive || equalityOperator != null)
+                        {
+                            var temp = il.DeclareLocal(property.PropertyType);
+                            il.Ldloca(temp);
+                            il.Initobj(property.PropertyType);
+                            il.Ldloc(temp);
+                            il.Ldloc(propertyValue);
+                            if(property.PropertyType.IsPrimitive)
+                                il.Ceq();
+                            else
+                                il.Call(equalityOperator);
+                            var notDefaultLabel = il.DefineLabel("notDefault");
+                            il.Brfalse(notDefaultLabel);
+                            il.Ret();
+                            il.MarkLabel(notDefaultLabel);
+                        }
+                    }
                     il.Ldarg(2); // stack: [ref result]
                     if(!Type.IsValueType)
                         il.Ldind(Type); // stack: [result]
