@@ -114,6 +114,62 @@ namespace GroBuf.Tests
             second.AssertEqualsTo(new As {Bool = true, B = new Bs {S = "qxx", Long = 12341234}, Bs = new[] {new Bs {S = "xxx"}, new Bs {S = "qzz", Long = 1287346}}});
         }
 
+        [Test]
+        public void TestIgnoreDefaultPropPrimitive()
+        {
+            var z = new Z{X = 3};
+            var z2 = new Z {X = 0};
+            serializer.Merge(z2, ref z);
+            Assert.AreEqual(3, z.X);
+        }
+
+        [Test]
+        public void TestIgnoreDefaultPropStruct()
+        {
+            var z = new Z{Y = 3m};
+            var z2 = new Z {Y = 0m};
+            serializer.Merge(z2, ref z);
+            Assert.AreEqual(3m, z.Y);
+        }
+
+        [Test]
+        public void TestIgnoreDefaultFieldPrimitive()
+        {
+            var serializer2 = new Serializer(new FieldsExtractor(), null, GroBufOptions.MergeOnRead);
+            var z = new ZZ{X = 3};
+            var z2 = new ZZ {X = 0};
+            serializer2.Merge(z2, ref z);
+            Assert.AreEqual(3, z.X);
+        }
+
+        [Test]
+        public void TestIgnoreDefaultFieldStruct()
+        {
+            var serializer2 = new Serializer(new FieldsExtractor(), null, GroBufOptions.MergeOnRead);
+            var z = new ZZ { Y = 3m };
+            var z2 = new ZZ {Y = 0m};
+            serializer2.Merge(z2, ref z);
+            Assert.AreEqual(3m, z.Y);
+        }
+
+        public class Z
+        {
+            [IgnoreDefaultOnMerge]
+            public int X { get; set; }
+
+            [IgnoreDefaultOnMerge]
+            public decimal Y { get; set; }
+        }
+
+        public class ZZ
+        {
+            [IgnoreDefaultOnMerge]
+            public int X;
+
+            [IgnoreDefaultOnMerge]
+            public decimal Y;
+        }
+
         public class A
         {
             public B[] Bs { get; set; }
