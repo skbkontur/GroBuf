@@ -4,7 +4,7 @@
         <name>GrEmit</name>
     </assembly>
     <members>
-        <member name="M:GrEmit.GroboIL.DeclareLocal(System.Type,System.String,System.Boolean)">
+        <member name="M:GrEmit.GroboIL.DeclareLocal(System.Type,System.String,System.Boolean,System.Boolean)">
             <summary>
                 Declares a local variable of the specified type, optionally pinning the object referred to by the variable.
             </summary>
@@ -13,6 +13,7 @@
             </param>
             <param name="name">Name of the local being declared.</param>
             <param name="pinned">true to pin the object in memory; otherwise, false.</param>
+            <param name="appendUniquePrefix">true if a unique prefix is to be appended.</param>
             <returns>
                 A <see cref="T:GrEmit.GroboIL.Local">Local</see> object that represents the local variable.
             </returns>
@@ -29,11 +30,12 @@
                 A <see cref="T:GrEmit.GroboIL.Local">Local</see> object that represents the local variable.
             </returns>
         </member>
-        <member name="M:GrEmit.GroboIL.DefineLabel(System.String)">
+        <member name="M:GrEmit.GroboIL.DefineLabel(System.String,System.Boolean)">
             <summary>
                 Declares a new label.
             </summary>
             <param name="name">Name of label.</param>
+            <param name="appendUniquePrefix">true if a unique prefix is to be appended.</param>
             <returns>
                 A <see cref="T:GrEmit.GroboIL.Label">Label</see> object that can be used as a token for branching.
             </returns>
@@ -377,6 +379,12 @@
         <member name="M:GrEmit.GroboIL.Ldc_R8(System.Double)">
             <summary>
                 Pushes a supplied value of type float64 onto the evaluation stack as type F (float).
+            </summary>
+            <param name="value">The value to push.</param>
+        </member>
+        <member name="M:GrEmit.GroboIL.Ldc_IntPtr(System.IntPtr)">
+            <summary>
+                Pushes a supplied value of type native int onto the evaluation stack.
             </summary>
             <param name="value">The value to push.</param>
         </member>
