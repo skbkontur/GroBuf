@@ -311,7 +311,16 @@
                 The <see cref="T:System.Type">Type</see> of object being initialized. Must be a value type.
             </param>
         </member>
-        <!-- Badly formed XML comment ignored for member "M:GrEmit.GroboIL.Cpobj(System.Type)" -->
+        <member name="M:GrEmit.GroboIL.Cpobj(System.Type)">
+            <summary>
+                Copies the value type located at the address of an object (type &amp;, * or native int) to the address of the destination object (type &amp;, * or native int).
+                <para></para>
+                The parameters are: a destination address and a source address.
+            </summary>
+            <param name="type">
+                The <see cref="T:System.Type">Type</see> of objects being copied. Must be a value type.
+            </param>
+        </member>
         <member name="M:GrEmit.GroboIL.Ldarg(System.Int32)">
             <summary>
                 Loads an argument (referenced by a specified index value) onto the evaluation stack.
@@ -511,6 +520,8 @@
         <member name="M:GrEmit.GroboIL.Cpblk(System.Boolean,System.Nullable{System.Int32})">
             <summary>
                 Copies a specified number of bytes from a source address to a destination address.
+                <para></para>
+                The parameters are: a destination address, a source address and a number of bytes to copy.
             </summary>
             <param name="isVolatile">True if an address on top of the evaluation stack must be treated as volatile.</param>
             <param name="unaligned">The value of alignment and null if address is aligned to the natural size.</param>
@@ -518,6 +529,8 @@
         <member name="M:GrEmit.GroboIL.Initblk(System.Boolean,System.Nullable{System.Int32})">
             <summary>
                 Initializes a specified block of memory at a specific address to a given size and initial value.
+                <para></para>
+                The parameters are: an address, an initial value and a number of bytes.
             </summary>
             <param name="isVolatile">True if an address on top of the evaluation stack must be treated as volatile.</param>
             <param name="unaligned">The value of alignment and null if address is aligned to the natural size.</param>
