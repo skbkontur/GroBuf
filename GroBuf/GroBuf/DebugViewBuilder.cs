@@ -243,8 +243,11 @@ namespace GroBuf
                     if(index + dataLength > length)
                         throw new InvalidOperationException("Unexpected end of data");
                     var arr = new char[dataLength / 2];
-                    fixed(char* dest = &arr[0])
-                        memoryCopier((IntPtr)dest, (IntPtr)(data + index), dataLength);
+                    if(dataLength > 0)
+                    {
+                        fixed(char* dest = &arr[0])
+                            memoryCopier((IntPtr)dest, (IntPtr)(data + index), dataLength);
+                    }
                     result.Append(margins[margin]);
                     result.Append("<string:");
                     result.Append(new string(arr));
