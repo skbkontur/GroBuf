@@ -2,16 +2,18 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Net;
+using System.Reflection.Emit;
 
 namespace GroBuf.Readers
 {
     internal class ReaderCollection : IReaderCollection
     {
-        public ReaderCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
+        public ReaderCollection(IGroBufCustomSerializerCollection customSerializerCollection, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory, ModuleBuilder module)
         {
             this.customSerializerCollection = customSerializerCollection;
             this.factory = factory;
             this.baseFactory = baseFactory;
+            this.module = module;
         }
 
         public IReaderBuilder GetReaderBuilder(Type type, bool ignoreCustomSerialization)
@@ -54,7 +56,7 @@ namespace GroBuf.Readers
             else if(type.IsEnum)
                 readerBuilder = new EnumReaderBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))
-                readerBuilder = new PrimitivesReaderBuilder(type);
+                readerBuilder = new PrimitivesReaderBuilder(type, module);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 readerBuilder = new NullableReaderBuilder(type);
             else if(type.IsArray)
@@ -77,6 +79,7 @@ namespace GroBuf.Readers
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly Func<Type, IGroBufCustomSerializer> factory;
         private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
+        private readonly ModuleBuilder module;
 
         private readonly Hashtable readerBuilders = new Hashtable();
         private readonly object readerBuildersLock = new object();

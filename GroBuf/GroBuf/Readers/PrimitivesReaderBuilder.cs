@@ -11,10 +11,12 @@ namespace GroBuf.Readers
 {
     internal class PrimitivesReaderBuilder : ReaderBuilderBase
     {
-        public PrimitivesReaderBuilder(Type type)
+        public PrimitivesReaderBuilder(Type type, ModuleBuilder module)
             : base(type)
         {
-            if(!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
+            if(!Type.IsPrimitive && Type != typeof(decimal))
+                throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
+            primitiveReaders = BuildPrimitiveValueReaders(module);
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
@@ -29,9 +31,8 @@ namespace GroBuf.Readers
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             context.IncreaseIndexBy1();
-            var readers = BuildPrimitiveValueReaders(context.Context);
-            var readersField = context.Context.InitConstField(Type, 0, readers.Select(pair => pair.Value).ToArray());
-            context.Context.InitConstField(Type, 1, readers.Select(pair => pair.Key).ToArray());
+            var readersField = context.Context.InitConstField(Type, 0, primitiveReaders.Select(pair => pair.Value).ToArray());
+            context.Context.InitConstField(Type, 1, primitiveReaders.Select(pair => pair.Key).ToArray());
             var il = context.Il;
 
             context.GoToCurrentLocation(); // stack: [&data[index]]
@@ -47,10 +48,10 @@ namespace GroBuf.Readers
 
         private delegate void PrimitiveValueReaderDelegate<T>(IntPtr data, ref T result);
 
-        private KeyValuePair<Delegate, IntPtr>[] BuildPrimitiveValueReaders(ReaderTypeBuilderContext context)
+        private KeyValuePair<Delegate, IntPtr>[] BuildPrimitiveValueReaders(ModuleBuilder module)
         {
             var result = new KeyValuePair<Delegate, IntPtr>[256];
-            var defaultReader = BuildDefaultValueReader(context);
+            var defaultReader = BuildDefaultValueReader(module);
             for(var i = 0; i < 256; ++i)
                 result[i] = defaultReader;
             foreach(var typeCode in new[]
@@ -63,14 +64,14 @@ namespace GroBuf.Readers
                     GroBufTypeCode.Boolean, GroBufTypeCode.DateTimeNew,
                     GroBufTypeCode.Decimal
                 })
-                result[(int)typeCode] = BuildPrimitiveValueReader(context, typeCode);
+                result[(int)typeCode] = BuildPrimitiveValueReader(module, typeCode);
             return result;
         }
 
         // todo: kill
-        private KeyValuePair<Delegate, IntPtr> BuildDefaultValueReader(ReaderTypeBuilderContext context)
+        private KeyValuePair<Delegate, IntPtr> BuildDefaultValueReader(ModuleBuilder module)
         {
-            var method = new DynamicMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, context.Module, true);
+            var method = new DynamicMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, module, true);
             using(var il = new GroboIL(method))
             {
                 il.Ldarg(1); // stack: [ref result]
@@ -81,9 +82,9 @@ namespace GroBuf.Readers
             return new KeyValuePair<Delegate, IntPtr>(@delegate, GroBufHelpers.ExtractDynamicMethodPointer(method));
         }
 
-        private KeyValuePair<Delegate, IntPtr> BuildPrimitiveValueReader(ReaderTypeBuilderContext context, GroBufTypeCode typeCode)
+        private KeyValuePair<Delegate, IntPtr> BuildPrimitiveValueReader(ModuleBuilder module, GroBufTypeCode typeCode)
         {
-            var method = new DynamicMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, context.Module, true);
+            var method = new DynamicMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, module, true);
             using(var il = new GroboIL(method))
             {
                 var expectedTypeCode = GroBufTypeCodeMap.GetTypeCode(Type);
@@ -385,6 +386,8 @@ namespace GroBuf.Readers
                 return decimal.MinValue;
             return new decimal(x);
         }
+
+        private readonly KeyValuePair<Delegate, IntPtr>[] primitiveReaders;
 
         private static readonly ConstructorInfo decimalByIntConstructor = ((NewExpression)((Expression<Func<int, decimal>>)(i => new decimal(i))).Body).Constructor;
         private static readonly ConstructorInfo decimalByUIntConstructor = ((NewExpression)((Expression<Func<uint, decimal>>)(i => new decimal(i))).Body).Constructor;
