@@ -226,7 +226,7 @@ namespace GroBuf
 
         private IntPtr GetReadMethod(Type type, bool ignoreCustomSerialization)
         {
-            var hashtable = ignoreCustomSerialization ? readMethods2 : readMethods;
+            var hashtable = ignoreCustomSerialization ? readMethodsWithoutCustomSerialization : readMethodsWithCustomSerialization;
             var readMethod = (IntPtr?)hashtable[type];
             if(readMethod == null)
             {
@@ -359,8 +359,8 @@ namespace GroBuf
         private readonly Hashtable readers2 = new Hashtable();
         private readonly Hashtable readers3 = new Hashtable();
         private readonly Hashtable readers4 = new Hashtable();
-        private readonly Hashtable readMethods = new Hashtable();
-        private readonly Hashtable readMethods2 = new Hashtable();
+        internal readonly Hashtable readMethodsWithCustomSerialization = new Hashtable();
+        private readonly Hashtable readMethodsWithoutCustomSerialization = new Hashtable();
         private readonly object readersLock = new object();
         private readonly object readMethodsLock = new object();
         private readonly ModuleBuilder module;

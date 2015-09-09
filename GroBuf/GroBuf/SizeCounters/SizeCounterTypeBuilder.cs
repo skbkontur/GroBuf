@@ -23,22 +23,26 @@ namespace GroBuf.SizeCounters
             constantsBuilder.DefineField("pointers", typeof(IntPtr[]), FieldAttributes.Private | FieldAttributes.Static);
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
             var constantsBuilderContext = new SizeCounterConstantsBuilderContext(groBufWriter, constantsBuilder, sizeCounterCollection, dataMembersExtractor);
-            constantsBuilderContext.BuildConstants(type, ignoreCustomSerialization);
+            constantsBuilderContext.BuildConstants(type, true, ignoreCustomSerialization);
             var constantsType = constantsBuilder.CreateType();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
             var context = new SizeCounterBuilderContext(groBufWriter, module, constantsType, fields, sizeCounterCollection, dataMembersExtractor);
-            var sizeCounter = context.GetCounter(type, ignoreCustomSerialization);
+            var sizeCounter = context.GetCounter(type, true, ignoreCustomSerialization);
 
-            var initializer = BuildInitializer(constantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic), constantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
+            var initializer = BuildInitializer(constantsType.GetField("pointers", BindingFlags.Static | BindingFlags.NonPublic),
+                                               constantsType.GetField("delegates", BindingFlags.Static | BindingFlags.NonPublic));
 
             var compiledDynamicMethods = context.GetMethods();
             var pointers = new IntPtr[compiledDynamicMethods.Length];
             var delegates = new Delegate[compiledDynamicMethods.Length];
-            foreach(var compiledDynamicMethod in compiledDynamicMethods)
+            foreach(var pair in compiledDynamicMethods)
             {
+                var compiledDynamicMethod = pair.Value;
                 var index = compiledDynamicMethod.Index;
                 pointers[index] = compiledDynamicMethod.Pointer;
                 delegates[index] = compiledDynamicMethod.Delegate;
+                if(compiledDynamicMethod.Pointer != sizeCounter.Pointer)
+                    groBufWriter.countersWithCustomSerialization[pair.Key] = (IntPtr?)compiledDynamicMethod.Pointer;
             }
             initializer(pointers, delegates, context.GetFieldInitializers());
             return sizeCounter.Pointer;

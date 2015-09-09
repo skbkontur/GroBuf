@@ -39,7 +39,7 @@ namespace GroBuf
         private void Write<T>(bool ignoreCustomSerialization, T obj, IntPtr result, ref int index, int length)
         {
             var writerAndSizeCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
-            if(/*!options.HasFlag(GroBufOptions.PackReferences)*/false)
+            if(!options.HasFlag(GroBufOptions.PackReferences))
                 writerAndSizeCounter.Item1(obj, true, result, ref index, new WriterContext(length, index));
             else
             {
@@ -125,7 +125,7 @@ namespace GroBuf
         private void Write(Type type, bool ignoreCustomSerialization, object obj, IntPtr result, ref int index, int length)
         {
             var writerAndSizeCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
-            if (/*!options.HasFlag(GroBufOptions.PackReferences)*/false)
+            if (!options.HasFlag(GroBufOptions.PackReferences))
                 writerAndSizeCounter.Item1(obj, true, result, ref index, new WriterContext(length, index));
             else
             {
@@ -232,7 +232,7 @@ namespace GroBuf
 
         private IntPtr GetWriter(Type type, bool ignoreCustomSerialization)
         {
-            var hashtable = ignoreCustomSerialization ? writers2 : writers;
+            var hashtable = ignoreCustomSerialization ? writersWithoutCustomSerialization : writersWithCustomSerialization;
             var writer = (IntPtr?)hashtable[type];
             if(writer == null)
             {
@@ -296,7 +296,7 @@ namespace GroBuf
 
         private IntPtr GetCounter(Type type, bool ignoreCustomSerialization)
         {
-            var hashtable = ignoreCustomSerialization ? counters2 : counters;
+            var hashtable = ignoreCustomSerialization ? countersWithoutCustomSerialization : countersWithCustomSerialization;
             var counter = (IntPtr?)hashtable[type];
             if(counter == null)
             {
@@ -360,10 +360,10 @@ namespace GroBuf
         private readonly Hashtable writersAndSizeCounters2 = new Hashtable();
         private readonly Hashtable writersAndSizeCounters3 = new Hashtable();
         private readonly Hashtable writersAndSizeCounters4 = new Hashtable();
-        private readonly Hashtable writers = new Hashtable();
-        private readonly Hashtable writers2 = new Hashtable();
-        private readonly Hashtable counters = new Hashtable();
-        private readonly Hashtable counters2 = new Hashtable();
+        internal readonly Hashtable writersWithCustomSerialization = new Hashtable();
+        private readonly Hashtable writersWithoutCustomSerialization = new Hashtable();
+        internal readonly Hashtable countersWithCustomSerialization = new Hashtable();
+        private readonly Hashtable countersWithoutCustomSerialization = new Hashtable();
         private readonly object writersAndSizeCountersLock = new object();
         private readonly object writersLock = new object();
         private readonly object countersLock = new object();

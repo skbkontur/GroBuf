@@ -31,10 +31,13 @@ namespace GroBuf.Writers
                 ConstantsBuilder.DefineField(field.Key, field.Value, FieldAttributes.Public | FieldAttributes.Static);
         }
 
-        public void BuildConstants(Type type, bool ignoreCustomSerialization = false)
+        public void BuildConstants(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
-            if(hashtable[type] == null)
+            if(isRoot || GroBufWriter.writersWithCustomSerialization[type] == null)
+            {
+                if(hashtable[type] == null)
                 writerCollection.GetWriterBuilder(type, ignoreCustomSerialization).BuildConstants(this);
+            }
         }
 
         public Dictionary<Type, string[]> GetFields()

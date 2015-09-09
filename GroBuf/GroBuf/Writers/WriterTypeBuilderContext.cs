@@ -40,9 +40,9 @@ namespace GroBuf.Writers
             return (from object value in initializers.Values select ((Action)value)).ToArray();
         }
 
-        public CompiledDynamicMethod[] GetMethods()
+        public KeyValuePair<Type, CompiledDynamicMethod>[] GetMethods()
         {
-            return writers.Values.Cast<CompiledDynamicMethod>().ToArray();
+            return writers.Cast<DictionaryEntry>().Select(entry => new KeyValuePair<Type, CompiledDynamicMethod>((Type)entry.Key, (CompiledDynamicMethod)entry.Value)).ToArray();
         }
 
         public void SetWriterMethod(Type type, DynamicMethod method)
@@ -61,11 +61,17 @@ namespace GroBuf.Writers
             compiledDynamicMethod.Delegate = writer;
         }
 
-        public CompiledDynamicMethod GetWriter(Type type, bool ignoreCustomSerialization = false)
+        public CompiledDynamicMethod GetWriter(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
             var writer = (CompiledDynamicMethod)writers[type];
             if(writer == null)
             {
+                if (!isRoot)
+                {
+                    var pointer = (IntPtr?)GroBufWriter.writersWithCustomSerialization[type];
+                    if (pointer != null)
+                        return new CompiledDynamicMethod { Pointer = pointer.Value };
+                }
                 writerCollection.GetWriterBuilder(type, ignoreCustomSerialization).BuildWriter(this);
                 writer = (CompiledDynamicMethod)writers[type];
                 if(writer == null)
