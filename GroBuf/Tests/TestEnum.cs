@@ -133,6 +133,14 @@ namespace GroBuf.Tests
                 Console.WriteLine(fields.GetValue(i));
         }
 
+        [Test]
+        public void TestEnumWithNegative()
+        {
+            var o = serializer.Serialize(EnumWithNegative.Positive);
+            var oo = serializer.Deserialize<EnumWithNegative>(o);
+            Assert.AreEqual(EnumWithNegative.Positive, oo);
+        }
+
         public enum TaskState
         {
             Unknown = 0,
@@ -254,6 +262,13 @@ namespace GroBuf.Tests
         {
             Pdf = 4,
             Excel = 5
+        }
+
+        private enum EnumWithNegative
+        {
+            Negative = -1,
+            Zero = 0,
+            Positive = 1
         }
     }
 }
