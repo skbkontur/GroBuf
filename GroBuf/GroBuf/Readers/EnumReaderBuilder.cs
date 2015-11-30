@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-
-using GroBuf.DataMembersExtracters;
 
 namespace GroBuf.Readers
 {
@@ -30,7 +27,7 @@ namespace GroBuf.Readers
         {
             int[] values;
             ulong[] hashCodes;
-            BuildValuesTable(out values, out hashCodes);
+            EnumHelpers.BuildValuesTable(Type, out values, out hashCodes);
             var valuesField = context.Context.InitConstField(Type, 0, values);
             var hashCodesField = context.Context.InitConstField(Type, 1, hashCodes);
             var il = context.Il;
@@ -98,39 +95,5 @@ namespace GroBuf.Readers
         }
 
         protected override bool IsReference { get { return false; } }
-
-        private void BuildValuesTable(out int[] values, out ulong[] hashCodes)
-        {
-            var fields = Type.GetFields(BindingFlags.Public | BindingFlags.Static);
-            var arr = fields.Select(field => (int)Enum.Parse(Type, field.Name)).ToArray();
-            var hashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
-            var hashSet = new HashSet<uint>();
-            for(var x = (uint)hashes.Length;; ++x)
-            {
-                hashSet.Clear();
-                var ok = true;
-                foreach(var hash in hashes)
-                {
-                    var item = (uint)(hash % x);
-                    if(hashSet.Contains(item))
-                    {
-                        ok = false;
-                        break;
-                    }
-                    hashSet.Add(item);
-                }
-                if(!ok) continue;
-                hashCodes = new ulong[x];
-                values = new int[x];
-                for(var i = 0; i < hashes.Length; i++)
-                {
-                    var hash = hashes[i];
-                    var index = (int)(hash % x);
-                    hashCodes[index] = hash;
-                    values[index] = (int)arr.GetValue(i);
-                }
-                return;
-            }
-        }
     }
 }
