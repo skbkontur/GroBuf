@@ -148,6 +148,7 @@
     <Compile Include="SizeCounterDelegate.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
+    <Compile Include="EnumHelpers.cs" />
     <Compile Include="SizeCounters\HashtableSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\IPAddressSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesHashSetSizeCounterBuilder.cs" />

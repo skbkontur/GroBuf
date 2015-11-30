@@ -40,9 +40,9 @@ namespace GroBuf.SizeCounters
             return (from object value in initializers.Values select ((Action)value)).ToArray();
         }
 
-        public CompiledDynamicMethod[] GetMethods()
+        public KeyValuePair<Type, CompiledDynamicMethod>[] GetMethods()
         {
-            return sizeCounters.Values.Cast<CompiledDynamicMethod>().ToArray();
+            return sizeCounters.Cast<DictionaryEntry>().Select(entry => new KeyValuePair<Type, CompiledDynamicMethod>((Type)entry.Key, (CompiledDynamicMethod)entry.Value)).ToArray();
         }
 
         public void SetSizeCounterMethod(Type type, DynamicMethod method)
@@ -61,11 +61,17 @@ namespace GroBuf.SizeCounters
             compiledDynamicMethod.Delegate = sizeCounter;
         }
 
-        public CompiledDynamicMethod GetCounter(Type type, bool ignoreCustomSerialization = false)
+        public CompiledDynamicMethod GetCounter(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
             var sizeCounter = (CompiledDynamicMethod)sizeCounters[type];
-            if(sizeCounter == null)
+            if (sizeCounter == null)
             {
+                if (!isRoot)
+                {
+                    var pointer = (IntPtr?)GroBufWriter.countersWithCustomSerialization[type];
+                    if (pointer != null)
+                        return new CompiledDynamicMethod { Pointer = pointer.Value };
+                }
                 sizeCounterCollection.GetSizeCounterBuilder(type, ignoreCustomSerialization).BuildSizeCounter(this);
                 sizeCounter = (CompiledDynamicMethod)sizeCounters[type];
                 if(sizeCounter == null)

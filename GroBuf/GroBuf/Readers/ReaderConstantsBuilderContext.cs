@@ -31,10 +31,13 @@ namespace GroBuf.Readers
                 ConstantsBuilder.DefineField(field.Key, field.Value, FieldAttributes.Public | FieldAttributes.Static);
         }
 
-        public void BuildConstants(Type type, bool ignoreCustomSerialization = false)
+        public void BuildConstants(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
-            if(hashtable[type] == null)
-                readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildConstants(this);
+            if (isRoot || GroBufReader.readMethodsWithCustomSerialization[type] == null)
+            {
+                if(hashtable[type] == null)
+                    readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildConstants(this);
+            }
         }
 
         public Dictionary<Type, string[]> GetFields()

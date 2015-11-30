@@ -19,9 +19,9 @@ namespace GroBuf
             this.options = options;
             this.factory = factory;
             this.baseFactory = baseFactory;
-            readerCollection = new ReaderCollection(customSerializerCollection, factory, baseFactory);
-            assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
+            var assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
+            readerCollection = new ReaderCollection(customSerializerCollection, factory, baseFactory, module);
         }
 
         public void Read<T>(IntPtr data, ref T result, int length)
@@ -226,7 +226,7 @@ namespace GroBuf
 
         private IntPtr GetReadMethod(Type type, bool ignoreCustomSerialization)
         {
-            var hashtable = ignoreCustomSerialization ? readMethods2 : readMethods;
+            var hashtable = ignoreCustomSerialization ? readMethodsWithoutCustomSerialization : readMethodsWithCustomSerialization;
             var readMethod = (IntPtr?)hashtable[type];
             if(readMethod == null)
             {
@@ -355,17 +355,15 @@ namespace GroBuf
         private readonly Func<Type, IGroBufCustomSerializer> factory;
         private readonly Func<Type, IGroBufCustomSerializer> baseFactory;
 
-        private readonly IReaderCollection readerCollection;
-
         private readonly Hashtable readers = new Hashtable();
         private readonly Hashtable readers2 = new Hashtable();
         private readonly Hashtable readers3 = new Hashtable();
         private readonly Hashtable readers4 = new Hashtable();
-        private readonly Hashtable readMethods = new Hashtable();
-        private readonly Hashtable readMethods2 = new Hashtable();
+        internal readonly Hashtable readMethodsWithCustomSerialization = new Hashtable();
+        private readonly Hashtable readMethodsWithoutCustomSerialization = new Hashtable();
         private readonly object readersLock = new object();
         private readonly object readMethodsLock = new object();
-        private readonly AssemblyBuilder assembly;
         private readonly ModuleBuilder module;
+        private readonly IReaderCollection readerCollection;
     }
 }

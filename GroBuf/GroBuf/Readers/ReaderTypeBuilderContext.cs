@@ -41,9 +41,9 @@ namespace GroBuf.Readers
             return (from object value in initializers.Values select ((Action)value)).ToArray();
         }
 
-        public CompiledDynamicMethod[] GetMethods()
+        public KeyValuePair<Type, CompiledDynamicMethod>[] GetMethods()
         {
-            return readers.Values.Cast<CompiledDynamicMethod>().ToArray();
+            return readers.Cast<DictionaryEntry>().Select(entry => new KeyValuePair<Type, CompiledDynamicMethod>((Type)entry.Key, (CompiledDynamicMethod)entry.Value)).ToArray();
         }
 
         public void SetReaderMethod(Type type, DynamicMethod method)
@@ -62,11 +62,17 @@ namespace GroBuf.Readers
             compiledDynamicMethod.Delegate = reader;
         }
 
-        public CompiledDynamicMethod GetReader(Type type, bool ignoreCustomSerialization = false)
+        public CompiledDynamicMethod GetReader(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
             var reader = (CompiledDynamicMethod)readers[type];
             if(reader == null)
             {
+                if (!isRoot)
+                {
+                    var pointer = (IntPtr?)GroBufReader.readMethodsWithCustomSerialization[type];
+                    if (pointer != null)
+                        return new CompiledDynamicMethod { Pointer = pointer.Value };
+                }
                 readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildReader(this);
                 reader = (CompiledDynamicMethod)readers[type];
                 if(reader == null)
