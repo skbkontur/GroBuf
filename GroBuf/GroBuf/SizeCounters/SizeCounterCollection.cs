@@ -51,6 +51,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new IPAddressSizeCounterBuilder();
             else if(type == typeof(TimeSpan))
                 sizeCounterBuilder = new TimeSpanSizeCounterBuilder();
+            else if(type == typeof(DateTimeOffset))
+                sizeCounterBuilder = new DateTimeOffsetSizeCounterBuilder();
             else if(type.IsEnum)
                 sizeCounterBuilder = new EnumSizeCounterBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

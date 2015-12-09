@@ -53,6 +53,8 @@ namespace GroBuf.Readers
                 readerBuilder = new IPAddressReaderBuilder();
             else if(type == typeof(TimeSpan))
                 readerBuilder = new TimeSpanReaderBuilder();
+            else if(type == typeof(DateTimeOffset))
+                readerBuilder = new DateTimeOffsetReaderBuilder();
             else if(type.IsEnum)
                 readerBuilder = new EnumReaderBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

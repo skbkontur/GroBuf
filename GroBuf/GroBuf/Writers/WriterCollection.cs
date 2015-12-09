@@ -51,6 +51,8 @@ namespace GroBuf.Writers
                 writerBuilder = new IPAddressWriterBuilder();
             else if(type == typeof(TimeSpan))
                 writerBuilder = new TimeSpanWriterBuilder();
+            else if(type == typeof(DateTimeOffset))
+                writerBuilder = new DateTimeOffsetWriterBuilder();
             else if(type.IsEnum)
                 writerBuilder = new EnumWriterBuilder(type);
             else if(type.IsPrimitive || type == typeof(decimal))

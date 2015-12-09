@@ -104,6 +104,9 @@ namespace GroBuf
         [DataLength(4)]
         Reference = 32,
 
+        [DataLength(10)]
+        DateTimeOffset = 33,
+
         [DataLength(-1)]
         CustomData = 255
     }
