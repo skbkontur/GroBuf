@@ -250,10 +250,10 @@ namespace GroBuf.Readers
             Il.MarkLabel(okLabel);
         }
 
-        public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
+        public static void LoadReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
         {
             var counter = context.GetReader(type);
-            if(counter.Pointer != IntPtr.Zero)
+            if (counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
             else
             {
@@ -261,12 +261,22 @@ namespace GroBuf.Readers
                 il.Ldc_I4(counter.Index);
                 il.Ldelem(typeof(IntPtr));
             }
+        }
+
+        public static void CallReader(GroboIL il, Type type, ReaderTypeBuilderContext context)
+        {
+            LoadReader(il, type, context);
             il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), type.MakeByRefType(), typeof(ReaderContext)});
         }
 
         public void CallReader(Type type)
         {
             CallReader(Il, type, Context);
+        }
+
+        public void LoadReader(Type type)
+        {
+            LoadReader(Il, type, Context);
         }
 
         public void StoreObject(Type type)

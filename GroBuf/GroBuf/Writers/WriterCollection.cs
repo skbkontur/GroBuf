@@ -69,6 +69,8 @@ namespace GroBuf.Writers
                 writerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IWriterBuilder)new PrimitivesHashSetWriterBuilder(type) : new HashSetWriterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 writerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IWriterBuilder)new PrimitivesListWriterBuilder(type) : new ListWriterBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(GroBufLazy<>))
+                writerBuilder = new GroBufLazyWriterBuilder(type);
             else if(type == typeof(object))
                 writerBuilder = new ObjectWriterBuilder();
             else

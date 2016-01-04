@@ -69,6 +69,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = type.GetGenericArguments()[0].IsPrimitive ? (ISizeCounterBuilder)new PrimitivesHashSetSizeCounterBuilder(type) : new HashSetSizeCounterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
                 sizeCounterBuilder = type.GetGenericArguments()[0].IsPrimitive ? (ISizeCounterBuilder)new PrimitivesListSizeCounterBuilder(type) : new ListSizeCounterBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(GroBufLazy<>))
+                sizeCounterBuilder = new GroBufLazySizeCounterBuilder(type);
             else if(type == typeof(object))
                 sizeCounterBuilder = new ObjectSizeCounterBuilder();
             else
