@@ -60,6 +60,14 @@ namespace GroBuf.Readers
             il.Cpblk(); // dest = source; stack: []
             il.Ldnull();
             il.Stloc(dest);
+            
+            context.LoadIndexByRef(); // stack: [ref index]
+            context.LoadIndex(); // stack: [ref index, index]
+            il.Ldloc(length); // stack: [ref index, index, length]
+            il.Ldc_I4(5); // stack: [ref index, index, length, 5]
+            il.Sub(); // stack: [ref index, index, length - 5]
+            il.Add(); // stack: [ref index, index + length - 5]
+            il.Stind(typeof(int)); // index = index + length - 5; stack: []
 
             var argumentType = Type.GetGenericArguments()[0];
             context.LoadResultByRef(); // stack: [ref result]

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Collections.Generic;
+using System.Reflection;
 
 using GroBuf.DataMembersExtracters;
 
@@ -38,7 +39,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestRead()
+        public void TestRead1()
         {
             var o = new A() {B = new GroBufLazy<B>(new B {S = "zzz"})};
             var data = serializer.Serialize(o);
@@ -56,6 +57,13 @@ namespace GroBuf.Tests
             Assert.That(rawField.GetValue(oo.B), Is.False);
         }
 
+        [Test]
+        public void TestRead2()
+        {
+            var o = new C{Dict = new GroBufLazy<Dictionary<string, string>>(new Dictionary<string, string>{{"zzz", "1"}})};
+            var oo = serializer.Copy(o);
+        }
+
         public class A
         {
             public GroBufLazy<B> B { get; set; }
@@ -69,6 +77,11 @@ namespace GroBuf.Tests
         public class B
         {
             public string S { get; set; }
+        }
+
+        public class C
+        {
+            public GroBufLazy<Dictionary<string, string>> Dict { get; set; }
         }
     }
 }
