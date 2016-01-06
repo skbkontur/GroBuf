@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 using GroBuf.DataMembersExtracters;
@@ -62,6 +63,11 @@ namespace GroBuf.Tests
         {
             var o = new C{Dict = new GroBufLazy<Dictionary<string, string>>(new Dictionary<string, string>{{"zzz", "1"}})};
             var oo = serializer.Copy(o);
+            var rawField = typeof(GroBufLazy<Dictionary<string, string>>).GetField("raw", BindingFlags.Instance | BindingFlags.NonPublic);
+            var dataField = typeof(GroBufLazy<Dictionary<string, string>>).GetField("data", BindingFlags.Instance | BindingFlags.NonPublic);
+            var valueField = typeof(GroBufLazy<Dictionary<string, string>>).GetField("value", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(rawField.GetValue(oo.Dict), Is.True);
+            Assert.That(valueField.GetValue(oo.Dict), Is.Null);
         }
 
         public class A

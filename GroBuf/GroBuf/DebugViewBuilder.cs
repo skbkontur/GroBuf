@@ -108,6 +108,45 @@ namespace GroBuf
                     result.Append("</array>");
                 }
                 break;
+            case GroBufTypeCode.Dictionary:
+                {
+                    if (index + 3 >= length)
+                        throw new InvalidOperationException("Unexpected end of data");
+                    var dataLength = *(int*)(data + index);
+                    index += 4;
+                    if (index + dataLength > length)
+                        throw new InvalidOperationException("Unexpected end of data");
+                    var dictLength = *(int*)(data + index);
+                    index += 4;
+                    result.Append(margins[margin]);
+                    result.AppendLine("<dict>");
+                    margin += 2;
+                    for (var i = 0; i < dictLength; ++i)
+                    {
+                        result.Append(margins[margin]);
+                        result.Append("<item:index=");
+                        result.Append(i);
+                        result.AppendLine(">");
+                        result.Append(margins[margin]);
+                        result.AppendLine("<key>");
+                        margin += 2;
+                        Print(data, ref index, length, result);
+                        margin -= 2;
+                        result.Append(margins[margin]);
+                        result.AppendLine("</key>");
+                        result.Append(margins[margin]);
+                        result.AppendLine("<value>");
+                        margin += 2;
+                        Print(data, ref index, length, result);
+                        margin -= 2;
+                        result.Append(margins[margin]);
+                        result.AppendLine("</value>");
+                    }
+                    margin -= 2;
+                    result.Append(margins[margin]);
+                    result.Append("</dict>");
+                }
+                break;
             case GroBufTypeCode.Boolean:
                 if(index >= length)
                     throw new InvalidOperationException("Unexpected end of data");
@@ -446,6 +485,8 @@ namespace GroBuf
                     index += dataLength;
                 }
                 break;
+                default:
+                    throw new NotSupportedException(string.Format("Type code '{0}' is not supported", typeCode));
             }
             result.AppendLine();
         }

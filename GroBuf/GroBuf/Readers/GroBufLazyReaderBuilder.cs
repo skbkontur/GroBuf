@@ -142,6 +142,15 @@ namespace GroBuf.Readers
                 il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), argument.MakeByRefType(), typeof(ReaderContext)});
                 il.Ldnull();
                 il.Stloc(pinnedData);
+                var retLabel = il.DefineLabel("ret");
+                il.Ldarg(1); // stack: [data]
+                il.Ldlen(); // stack: [data.Length]
+                il.Ldloc(index);
+                il.Beq(retLabel);
+                il.Ldstr("Encountered extra data");
+                il.Newobj(typeof(DataCorruptedException).GetConstructor(new [] {typeof(string)}));
+                il.Throw();
+                il.MarkLabel(retLabel);
                 il.Ldloc(result);
                 il.Ret();
             }
