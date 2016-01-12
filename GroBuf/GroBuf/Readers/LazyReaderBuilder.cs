@@ -142,27 +142,29 @@ namespace GroBuf.Readers
                 il.Ldlen(); // stack: [this.serializerId, data.Length]
                 il.Ldc_I4(0); // stack: [this.serializerId, data.Length, 0]
                 il.Ldc_I4(0); // stack: [this.serializerId, data.Length, 0, 0]
-                il.Newobj(typeof(ReaderContext).GetConstructor(new[] {typeof(long), typeof(int), typeof(int), typeof(int)}));
-                il.Stloc(context);
+                il.Newobj(typeof(ReaderContext).GetConstructor(new[] { typeof(long), typeof(int), typeof(int), typeof(int) })); // stack: [new ReaderContext(this.serializerId, data.Length, 0, 0)]
+                il.Stloc(context); // context = new ReaderContext(..); stack: []
 
-                il.Ldloc(pinnedData);
-                il.Conv<IntPtr>();
-                il.Ldloca(index);
-                il.Ldloca(result);
-                il.Ldloc(context);
-                il.Ldarg(0);
-                il.Ldfld(reader);
-                il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(IntPtr), typeof(int).MakeByRefType(), argument.MakeByRefType(), typeof(ReaderContext)});
+                il.Ldloc(pinnedData); // stack: [data]
+                il.Conv<IntPtr>(); // stack: [(IntPtr)data]
+                il.Ldloca(index); // stack: [(IntPtr)data, ref index]
+                il.Ldloca(result); // stack: [(IntPtr)data, ref index, ref result]
+                il.Ldloc(context); // stack: [(IntPtr)data, ref index, ref result, context]
+                il.Ldarg(0); // stack: [(IntPtr)data, ref index, ref result, context, this]
+                il.Ldfld(reader); // stack: [(IntPtr)data, ref index, ref result, context, this.reader]
+                var parameterTypes = new[] {typeof(IntPtr), typeof(int).MakeByRefType(), argument.MakeByRefType(), typeof(ReaderContext)};
+                il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // this.reader((IntPtr)data, ref index, ref result, context); stack: []
                 il.Ldnull();
-                il.Stloc(pinnedData);
+                il.Stloc(pinnedData); // pinnedData = null
                 var retLabel = il.DefineLabel("ret");
                 il.Ldarg(1); // stack: [data]
                 il.Ldlen(); // stack: [data.Length]
-                il.Ldloc(index);
-                il.Beq(retLabel);
+                il.Ldloc(index); // stack: [data.Length, index]
+                il.Beq(retLabel); // if(data.Length == index) goto ret; stack: []
                 il.Ldstr("Encountered extra data");
                 il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)}));
                 il.Throw();
+
                 il.MarkLabel(retLabel);
                 il.Ldloc(result);
                 il.Ret();
