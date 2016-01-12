@@ -6,13 +6,13 @@ using GrEmit;
 
 namespace GroBuf.Readers
 {
-    internal class GroBufLazyReaderBuilder : ReaderBuilderBase
+    internal class LazyReaderBuilder : ReaderBuilderBase
     {
-        public GroBufLazyReaderBuilder(Type type, ModuleBuilder module)
+        public LazyReaderBuilder(Type type, ModuleBuilder module)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(GroBufLazy<>)))
-                throw new InvalidOperationException("Expected GroBufLazy but was '" + Type + "'");
+            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Lazy<>)))
+                throw new InvalidOperationException("Expected Lazy but was '" + Type + "'");
             this.module = module;
             readerInvoker = BuildReaderInvoker();
         }
@@ -60,7 +60,7 @@ namespace GroBuf.Readers
             il.Cpblk(); // dest = source; stack: []
             il.Ldnull();
             il.Stloc(dest);
-            
+
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(length); // stack: [ref index, index, length]
@@ -71,13 +71,20 @@ namespace GroBuf.Readers
 
             var argumentType = Type.GetGenericArguments()[0];
             context.LoadResultByRef(); // stack: [ref result]
-            il.Ldloc(array); // stack: [ref result, array]
-            context.LoadReader(argumentType); // stack: [ref result, array, reader<argument>]
-            il.Newobj(readerInvoker.GetConstructor(new[] {typeof(IntPtr)})); // stack: [ref result, array, new ReaderInvoker(reader<argument>)]
+            context.LoadSerializerId(); // stack: [ref result, serializerId]
+            il.Ldloc(array); // stack: [ref result, serializerId, array]
+            context.LoadReader(argumentType); // stack: [ref result, serializerId, array, reader<arg>]
+            context.LoadSerializerId(); // stack: [ref result, serializerId, array, reader<arg>, serializerId]
+            il.Newobj(readerInvoker.GetConstructor(new[] { typeof(IntPtr), typeof(long) })); // stack: [ref result, serializerId, array, new ReaderInvoker(reader<arg>, serializerId)]
             il.Ldftn(readerInvoker.GetMethod("Read", BindingFlags.Instance | BindingFlags.Public));
-            var funcType = typeof(Func<,>).MakeGenericType(typeof(byte[]), argumentType);
-            il.Newobj(funcType.GetConstructor(new[] {typeof(object), typeof(IntPtr)})); // stack: [ref result, array, new Func<byte[], argument>(..)]
-            il.Newobj(Type.GetConstructor(new[] {typeof(byte[]), funcType})); // stack: [ref result, new Lazy<argument>(array, func)]
+            var readDataFuncType = typeof(Func<,>).MakeGenericType(typeof(byte[]), argumentType);
+            il.Newobj(readDataFuncType.GetConstructor(new[] {typeof(object), typeof(IntPtr)})); // stack: [ref result, serializerId, array, new Func<byte[], arg>(..)]
+            var rawDataType = typeof(RawData<>).MakeGenericType(argumentType);
+            il.Newobj(rawDataType.GetConstructor(new[] {typeof(long), typeof(byte[]), readDataFuncType})); // stack: [ref result, new RawData(serializerId, array, func)]
+            il.Ldftn(rawDataType.GetMethod("GetValue", BindingFlags.Instance | BindingFlags.Public)); // stack: [ref result, new RawData(..), RawData.GetValue]
+            var factoryType = typeof(Func<>).MakeGenericType(argumentType);
+            il.Newobj(factoryType.GetConstructor(new[] {typeof(object), typeof(IntPtr)})); // stack: [ref result, new Func<arg>(new RawData(), RawData.GetValue)]
+            il.Newobj(Type.GetConstructor(new[] {factoryType})); // stack: [ref result, new Lazy<arg>(new Func<arg>(new RawData(), RawData.GetValue))]
             il.Stind(Type); // result = new Lazy<argument>(array, func); stack: []
         }
 
@@ -88,12 +95,16 @@ namespace GroBuf.Readers
             var argument = Type.GetGenericArguments()[0];
             var typeBuilder = module.DefineType("ReaderInvoker_" + Type, TypeAttributes.Public | TypeAttributes.Class);
             var reader = typeBuilder.DefineField("reader", typeof(IntPtr), FieldAttributes.Private);
-            var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new[] {typeof(IntPtr)});
+            var serializerId = typeBuilder.DefineField("serializerId", typeof(long), FieldAttributes.Private);
+            var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new[] {typeof(IntPtr), typeof(long)});
             using(var il = new GroboIL(constructor))
             {
                 il.Ldarg(0); // stack: [this]
                 il.Ldarg(1); // stack: [this, reader]
                 il.Stfld(reader); // this.reader = reader; stack: []
+                il.Ldarg(0); // stack: [this]
+                il.Ldarg(2); // stack: [this, serializerId]
+                il.Stfld(serializerId); // this.serializerId = serializerId; stack: []
                 il.Ret();
             }
             var method = typeBuilder.DefineMethod("Read", MethodAttributes.Public, argument, new[] {typeof(byte[])});
@@ -125,11 +136,13 @@ namespace GroBuf.Readers
                     il.Stloc(result);
                 }
                 var context = il.DeclareLocal(typeof(ReaderContext), "context");
-                il.Ldarg(1); // stack: [data]
-                il.Ldlen(); // stack: [data.Length]
-                il.Ldc_I4(0); // stack: [data.Length, 0]
-                il.Ldc_I4(0); // stack: [data.Length, 0, 0]
-                il.Newobj(typeof(ReaderContext).GetConstructor(new[] {typeof(int), typeof(int), typeof(int)}));
+                il.Ldarg(0); // stack: [this]
+                il.Ldfld(serializerId); // stack: [this.serializerId]
+                il.Ldarg(1); // stack: [this.serializerId, data]
+                il.Ldlen(); // stack: [this.serializerId, data.Length]
+                il.Ldc_I4(0); // stack: [this.serializerId, data.Length, 0]
+                il.Ldc_I4(0); // stack: [this.serializerId, data.Length, 0, 0]
+                il.Newobj(typeof(ReaderContext).GetConstructor(new[] {typeof(long), typeof(int), typeof(int), typeof(int)}));
                 il.Stloc(context);
 
                 il.Ldloc(pinnedData);
@@ -148,7 +161,7 @@ namespace GroBuf.Readers
                 il.Ldloc(index);
                 il.Beq(retLabel);
                 il.Ldstr("Encountered extra data");
-                il.Newobj(typeof(DataCorruptedException).GetConstructor(new [] {typeof(string)}));
+                il.Newobj(typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)}));
                 il.Throw();
                 il.MarkLabel(retLabel);
                 il.Ldloc(result);

@@ -12,8 +12,9 @@ namespace GroBuf
 {
     internal class GroBufReader
     {
-        public GroBufReader(IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, GroBufOptions options, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
+        public GroBufReader(long serializerId, IDataMembersExtractor dataMembersExtractor, IGroBufCustomSerializerCollection customSerializerCollection, GroBufOptions options, Func<Type, IGroBufCustomSerializer> factory, Func<Type, IGroBufCustomSerializer> baseFactory)
         {
+            this.serializerId = serializerId;
             this.dataMembersExtractor = dataMembersExtractor;
             this.customSerializerCollection = customSerializerCollection;
             this.options = options;
@@ -94,7 +95,7 @@ namespace GroBuf
                 references = *(int*)(start + 1);
                 index += 5;
             }
-            GetReader<T>(false)(data, ref index, ref result, new ReaderContext(length, index, references));
+            GetReader<T>(false)(data, ref index, ref result, new ReaderContext(serializerId, length, index, references));
         }
 
         public T Read<T>(IntPtr data, ref int index, int length)
@@ -175,7 +176,7 @@ namespace GroBuf
                 references = *(int*)(start + 1);
                 index += 5;
             }
-            GetReader(type, false)(data, ref index, ref result, new ReaderContext(length, index, references));
+            GetReader(type, false)(data, ref index, ref result, new ReaderContext(serializerId, length, index, references));
         }
 
         public void Read(Type type, bool ignoreCustomSerialization, IntPtr data, ref int index, ref object result, ReaderContext context)
@@ -349,6 +350,7 @@ namespace GroBuf
             return (ReaderDelegate)dynamicMethod.CreateDelegate(typeof(ReaderDelegate));
         }
 
+        private readonly long serializerId;
         private readonly IDataMembersExtractor dataMembersExtractor;
         private readonly IGroBufCustomSerializerCollection customSerializerCollection;
         private readonly GroBufOptions options;

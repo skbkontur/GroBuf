@@ -24,7 +24,7 @@ namespace GroBuf.Readers
             readerTypeBuilderContext.SetReaderMethod(Type, method);
             using(var il = new GroboIL(method))
             {
-                var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, !Type.IsValueType && IsReference /* && sizeCounterBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences)*/);
+                var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, !Type.IsValueType && IsReference);
 
                 ReadTypeCodeAndCheck(context); // Read TypeCode and check
 

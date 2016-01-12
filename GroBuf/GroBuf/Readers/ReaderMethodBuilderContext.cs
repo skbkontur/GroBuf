@@ -44,20 +44,29 @@ namespace GroBuf.Readers
         }
 
         /// <summary>
-        ///     Loads <c>dataLength</c> onto the evaluation stack
-        /// </summary>
-        public void LoadDataLength()
-        {
-            Il.Ldarg(3);
-            Il.Ldfld(typeof(ReaderContext).GetField("length", BindingFlags.Public | BindingFlags.Instance));
-        }
-
-        /// <summary>
         ///     Loads <c>context</c> onto the evaluation stack
         /// </summary>
         public void LoadContext()
         {
             Il.Ldarg(3);
+        }
+
+        /// <summary>
+        ///     Loads <c>dataLength</c> onto the evaluation stack
+        /// </summary>
+        public void LoadDataLength()
+        {
+            LoadContext();
+            Il.Ldfld(ReaderContext.LengthField);
+        }
+
+        /// <summary>
+        ///     Loads <c>context.serializerId</c> onto the evaluation stack
+        /// </summary>
+        public void LoadSerializerId()
+        {
+            LoadContext();
+            Il.Ldfld(ReaderContext.SerializerIdField);
         }
 
         /// <summary>
