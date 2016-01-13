@@ -26,25 +26,16 @@ namespace GroBuf.Readers
         {
             var il = context.Il;
 
-            il.Ldc_I4(1); // stack: [1]
-            context.AssertLength(); // assert can read 1 byte; stack: []
             var source = il.DeclareLocal(typeof(IntPtr));
             context.GoToCurrentLocation(); // stack: [&data[index]]
             il.Stloc(source); // source = &data[index]; stack: []
-            context.IncreaseIndexBy1(); // index = index + 1; stack: []
-            il.Ldc_I4(4); // stack: [4]
-            context.AssertLength(); // assert can read 4 bytes; stack: []
-            var length = il.DeclareLocal(typeof(int));
+            context.IncreaseIndexBy1(); // skip type code
+            context.SkipValue();
             context.GoToCurrentLocation(); // stack: [&data[index]]
-            il.Ldind(typeof(int)); // stack: [*(int*)&data[index]]
-            il.Stloc(length); // length = *(int*)&data[index]; stack: []
-            context.IncreaseIndexBy4(); // index += 4; stack: []
-            il.Ldloc(length); // stack: [length]
-            context.AssertLength(); // assert can read length bytes; stack: []
-            il.Ldloc(length); // stack: [length]
-            il.Ldc_I4(5); // stack: [length, 5]
-            il.Add(); // stack: [length + 5]
-            il.Stloc(length); // length = length + 5; stack: []
+            il.Ldloc(source); // stack: [&data[index], source]
+            il.Sub(); // stack: [&data[index] - source = data length]
+            var length = il.DeclareLocal(typeof(int));
+            il.Stloc(length); // length = &data[index] - source; stack: []
             var array = il.DeclareLocal(typeof(byte[]));
             il.Ldloc(length); // stack: [length]
             il.Newarr(typeof(byte)); // stack: [new byte[length]]
@@ -59,15 +50,7 @@ namespace GroBuf.Readers
             il.Ldloc(length); // stack: [dest, source, length]
             il.Cpblk(); // dest = source; stack: []
             il.Ldnull();
-            il.Stloc(dest);
-
-            context.LoadIndexByRef(); // stack: [ref index]
-            context.LoadIndex(); // stack: [ref index, index]
-            il.Ldloc(length); // stack: [ref index, index, length]
-            il.Ldc_I4(5); // stack: [ref index, index, length, 5]
-            il.Sub(); // stack: [ref index, index, length - 5]
-            il.Add(); // stack: [ref index, index + length - 5]
-            il.Stind(typeof(int)); // index = index + length - 5; stack: []
+            il.Stloc(dest); // dest = null; stack: []
 
             var argumentType = Type.GetGenericArguments()[0];
             context.LoadResultByRef(); // stack: [ref result]
@@ -75,7 +58,7 @@ namespace GroBuf.Readers
             il.Ldloc(array); // stack: [ref result, serializerId, array]
             context.LoadReader(argumentType); // stack: [ref result, serializerId, array, reader<arg>]
             context.LoadSerializerId(); // stack: [ref result, serializerId, array, reader<arg>, serializerId]
-            il.Newobj(readerInvoker.GetConstructor(new[] { typeof(IntPtr), typeof(long) })); // stack: [ref result, serializerId, array, new ReaderInvoker(reader<arg>, serializerId)]
+            il.Newobj(readerInvoker.GetConstructor(new[] {typeof(IntPtr), typeof(long)})); // stack: [ref result, serializerId, array, new ReaderInvoker(reader<arg>, serializerId)]
             il.Ldftn(readerInvoker.GetMethod("Read", BindingFlags.Instance | BindingFlags.Public));
             var readDataFuncType = typeof(Func<,>).MakeGenericType(typeof(byte[]), argumentType);
             il.Newobj(readDataFuncType.GetConstructor(new[] {typeof(object), typeof(IntPtr)})); // stack: [ref result, serializerId, array, new Func<byte[], arg>(..)]
@@ -142,7 +125,7 @@ namespace GroBuf.Readers
                 il.Ldlen(); // stack: [this.serializerId, data.Length]
                 il.Ldc_I4(0); // stack: [this.serializerId, data.Length, 0]
                 il.Ldc_I4(0); // stack: [this.serializerId, data.Length, 0, 0]
-                il.Newobj(typeof(ReaderContext).GetConstructor(new[] { typeof(long), typeof(int), typeof(int), typeof(int) })); // stack: [new ReaderContext(this.serializerId, data.Length, 0, 0)]
+                il.Newobj(typeof(ReaderContext).GetConstructor(new[] {typeof(long), typeof(int), typeof(int), typeof(int)})); // stack: [new ReaderContext(this.serializerId, data.Length, 0, 0)]
                 il.Stloc(context); // context = new ReaderContext(..); stack: []
 
                 il.Ldloc(pinnedData); // stack: [data]

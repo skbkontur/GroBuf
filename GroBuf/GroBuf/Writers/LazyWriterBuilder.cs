@@ -20,16 +20,22 @@ namespace GroBuf.Writers
         protected override void WriteNotEmpty(WriterMethodBuilderContext context)
         {
             var il = context.Il;
+            var argument = Type.GetGenericArguments()[0];
 
             context.LoadObj(); // stack: [obj]
             var factoryField = Type.GetField("m_valueFactory", BindingFlags.Instance | BindingFlags.NonPublic);
             il.Ldfld(factoryField); // stack: [obj.m_valueFactory]
-            il.Ldfld(factoryField.FieldType.GetField("_target", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_valueFactory.target]
-            var rawData = il.DeclareLocal(typeof(RawData<>).MakeGenericType(Type.GetGenericArguments()));
-            il.Isinst(rawData.Type); // stack: [obj.m_valueFactory.target as RawData]
+            var factory = il.DeclareLocal(typeof(Func<>).MakeGenericType(argument));
             il.Dup();
-            il.Stloc(rawData); // rawData = obj.m_valueFactory.target as RawData; stack: [rawData]
+            il.Stloc(factory); // factory = obj.m_valueFactory; stack: [factory]
             var writeUsual = il.DefineLabel("writeUsual");
+            il.Brfalse(writeUsual); // if(factory == null) goto writeUsual; stack: []
+            il.Ldloc(factory);
+            il.Ldfld(factoryField.FieldType.GetField("_target", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [factory.target]
+            var rawData = il.DeclareLocal(typeof(RawData<>).MakeGenericType(Type.GetGenericArguments()));
+            il.Isinst(rawData.Type); // stack: [factory.target as RawData]
+            il.Dup();
+            il.Stloc(rawData); // rawData = factory.target as RawData; stack: [rawData]
             il.Brfalse(writeUsual); // if(!(rawData is RawData)) goto writeUsual; stack: []
             il.Ldloc(rawData); // stack: [rawData]
             il.Ldfld(rawData.Type.GetField("serializerId", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [rawData.serializerId]
@@ -70,7 +76,7 @@ namespace GroBuf.Writers
             context.LoadResult(); // stack: [obj.Value, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.Value, writeEmpty, result, ref index]
             context.LoadContext(); // stack: [obj.Value, writeEmpty, result, ref index, context]
-            context.CallWriter(Type.GetGenericArguments()[0]); // writer(obj.Value, writeEmpty, result, ref index, context)
+            context.CallWriter(argument); // writer(obj.Value, writeEmpty, result, ref index, context)
         }
 
         protected override bool IsReference { get { return false; } }

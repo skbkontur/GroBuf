@@ -1,5 +1,4 @@
 ﻿using System;
-using System.CodeDom;
 using System.Linq;
 using System.Reflection;
 
@@ -20,7 +19,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestWrite1()
+        public void Test_WriteLazyReadWithoutLazy()
         {
             var o = new A {B = new Lazy<B>(() => new B {S = "zzz"})};
             var data = serializer.Serialize(o);
@@ -29,18 +28,10 @@ namespace GroBuf.Tests
             Assert.That(oo.B.S, Is.EqualTo("zzz"));
         }
 
-        private static long GetWriterId(Serializer serializer)
-        {
-            var grobufWriterType = typeof(Serializer).Assembly.GetTypes().Single(type => type.Name == "GroBufWriter");
-            var writerField = typeof(Serializer).GetField("writer", BindingFlags.Instance | BindingFlags.NonPublic);
-            var serializerIdField = grobufWriterType.GetField("serializerId", BindingFlags.Instance | BindingFlags.NonPublic);
-            return (long)serializerIdField.GetValue(writerField.GetValue(serializer));
-        }
-
         [Test]
-        public void TestWrite2()
+        public void Test_WriteReadSameSerializer()
         {
-            var o = new A { B = new Lazy<B>(new RawData<B>(GetWriterId(serializer), serializer.Serialize(new B { S = "qxx" }), bytes => serializer.Deserialize<B>(bytes)).GetValue) };
+            var o = new A {B = new Lazy<B>(new RawData<B>(GetWriterId(serializer), serializer.Serialize(new B {S = "qxx"}), bytes => serializer.Deserialize<B>(bytes)).GetValue)};
             var data = serializer.Serialize(o);
             Assert.That(o.B.IsValueCreated, Is.EqualTo(false));
             var oo = serializer.Deserialize<A_WithoutLazy>(data);
@@ -49,7 +40,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestWrite3()
+        public void Test_WriteReadDifferentSerializers()
         {
             var o = new A {B = new Lazy<B>(new RawData<B>(-1, serializer.Serialize(new B {S = "qxx"}), bytes => serializer.Deserialize<B>(bytes)).GetValue)};
             var data = serializer.Serialize(o);
@@ -60,7 +51,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestRead1()
+        public void Test_ReadLazyAsRawData()
         {
             var o = new A() {B = new Lazy<B>(() => new B {S = "zzz"})};
             var data = serializer.Serialize(o);
@@ -78,6 +69,32 @@ namespace GroBuf.Tests
             Assert.That(b.S, Is.EqualTo("zzz"));
         }
 
+        [Test]
+        public void Test_WriteLazyWithoutFactory()
+        {
+            var o = new A() { B = new Lazy<B>() };
+            var data = serializer.Serialize(o);
+        }
+
+        [Test]
+        public void Test_ValueType()
+        {
+            var guid = Guid.NewGuid();
+            var o = new C {Guid = new Lazy<Guid>(() => guid)};
+            var data = serializer.Serialize(o);
+            Console.WriteLine(DebugViewBuilder.DebugView(data));
+            var oo = serializer.Deserialize<C>(data);
+            Assert.That(oo.Guid.Value, Is.EqualTo(guid));
+        }
+
+        private static long GetWriterId(Serializer serializer)
+        {
+            var grobufWriterType = typeof(Serializer).Assembly.GetTypes().Single(type => type.Name == "GroBufWriter");
+            var writerField = typeof(Serializer).GetField("writer", BindingFlags.Instance | BindingFlags.NonPublic);
+            var serializerIdField = grobufWriterType.GetField("serializerId", BindingFlags.Instance | BindingFlags.NonPublic);
+            return (long)serializerIdField.GetValue(writerField.GetValue(serializer));
+        }
+
         private Serializer serializer;
 
         public class A
@@ -93,6 +110,11 @@ namespace GroBuf.Tests
         public class B
         {
             public string S { get; set; }
+        }
+
+        public class C
+        {
+            public Lazy<Guid> Guid { get; set; }
         }
     }
 }
