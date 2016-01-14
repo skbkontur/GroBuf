@@ -2,7 +2,7 @@
 
 namespace GroBuf
 {
-    public class RawData<T>
+    internal class RawData<T>
     {
         private readonly long serializerId;
         private readonly byte[] data;

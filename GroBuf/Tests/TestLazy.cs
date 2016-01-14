@@ -63,10 +63,11 @@ namespace GroBuf.Tests
             var oo = serializer.Deserialize<A>(data);
             var valueFactoryField = typeof(Lazy<B>).GetField("m_valueFactory", BindingFlags.Instance | BindingFlags.NonPublic);
             var targetField = typeof(Func<B>).GetField("_target", BindingFlags.Instance | BindingFlags.NonPublic);
-            var dataField = typeof(RawData<B>).GetField("data", BindingFlags.Instance | BindingFlags.NonPublic);
+            var rawDataType = typeof(Serializer).Assembly.GetTypes().Single(type => type.Name == "RawData`1");
+            var dataField = rawDataType.MakeGenericType(typeof(B)).GetField("data", BindingFlags.Instance | BindingFlags.NonPublic);
             var func = (Func<B>)valueFactoryField.GetValue(oo.B);
             var target = targetField.GetValue(func);
-            Assert.That(target, Is.InstanceOf<RawData<B>>());
+            Assert.That(target, Is.InstanceOf(rawDataType.MakeGenericType(typeof(B))));
             data = (byte[])dataField.GetValue(target);
             var b = serializer.Deserialize<B>(data);
             Assert.That(b.S, Is.EqualTo("zzz"));
