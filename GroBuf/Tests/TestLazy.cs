@@ -31,8 +31,10 @@ namespace GroBuf.Tests
         [Test]
         public void Test_WriteReadSameSerializer()
         {
-            var o = new A {B = new Lazy<B>(new RawData<B>(GetWriterId(serializer), serializer.Serialize(new B {S = "qxx"}), bytes => serializer.Deserialize<B>(bytes)).GetValue)};
+            var o = new A { B = new Lazy<B>(() => new B { S = "qxx" }) };
             var data = serializer.Serialize(o);
+            o = serializer.Deserialize<A>(data);
+            data = serializer.Serialize(o);
             Assert.That(o.B.IsValueCreated, Is.EqualTo(false));
             var oo = serializer.Deserialize<A_WithoutLazy>(data);
             Assert.IsNotNull(oo.B);
@@ -42,10 +44,13 @@ namespace GroBuf.Tests
         [Test]
         public void Test_WriteReadDifferentSerializers()
         {
-            var o = new A {B = new Lazy<B>(new RawData<B>(-1, serializer.Serialize(new B {S = "qxx"}), bytes => serializer.Deserialize<B>(bytes)).GetValue)};
+            var o = new A { B = new Lazy<B>(() => new B { S = "qxx" }) };
             var data = serializer.Serialize(o);
+            o = serializer.Deserialize<A>(data);
+            var serializer2 = new Serializer(new AllPropertiesExtractor());
+            data = serializer2.Serialize(o);
             Assert.That(o.B.IsValueCreated, Is.EqualTo(true));
-            var oo = serializer.Deserialize<A_WithoutLazy>(data);
+            var oo = serializer2.Deserialize<A_WithoutLazy>(data);
             Assert.IsNotNull(oo.B);
             Assert.That(oo.B.S, Is.EqualTo("qxx"));
         }
