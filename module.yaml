@@ -1,0 +1,10 @@
+
+full-build:
+  deps:
+
+  build:
+    target: GroBuf\GroBuf.sln
+    configuration: Release
+
+  install:
+    - GroBuf\GroBuf\bin\Release\GroBuf.dll
