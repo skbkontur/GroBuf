@@ -112,11 +112,13 @@
     <Compile Include="IGroBufCustomSerializerCollection.cs" />
     <Compile Include="InternalSerializer.cs" />
     <Compile Include="MissingConstructorException.cs" />
+    <Compile Include="RawData.cs" />
     <Compile Include="ReaderContext.cs" />
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeOffsetReaderBuilder.cs" />
+    <Compile Include="Readers\LazyReaderBuilder.cs" />
     <Compile Include="Readers\HashtableReaderBuilder.cs" />
     <Compile Include="Readers\IPAddressReaderBuilder.cs" />
     <Compile Include="Readers\PrimitivesHashSetReaderBuilder.cs" />
@@ -151,6 +153,7 @@
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
     <Compile Include="EnumHelpers.cs" />
     <Compile Include="SizeCounters\DateTimeOffsetSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\LazySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\HashtableSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\IPAddressSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesHashSetSizeCounterBuilder.cs" />
@@ -182,6 +185,7 @@
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
     <Compile Include="Writers\DateTimeOffsetWriterBuilder.cs" />
+    <Compile Include="Writers\LazyWriterBuilder.cs" />
     <Compile Include="Writers\HashtableWriterBuilder.cs" />
     <Compile Include="Writers\IPAddressWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesHashSetWriterBuilder.cs" />

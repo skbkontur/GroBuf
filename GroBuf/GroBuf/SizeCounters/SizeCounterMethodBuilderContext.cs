@@ -46,6 +46,15 @@ namespace GroBuf.SizeCounters
         }
 
         /// <summary>
+        ///     Loads <c>context.serializerId</c> onto the evaluation stack
+        /// </summary>
+        public void LoadSerializerId()
+        {
+            LoadContext();
+            Il.Ldfld(WriterContext.SerializerIdField);
+        }
+
+        /// <summary>
         ///     Loads the specified field onto the evaluation stack
         /// </summary>
         /// <param name="field">Field to load</param>

@@ -1,6 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
+using System.Threading;
 
 using GroBuf.DataMembersExtracters;
 
@@ -13,9 +13,16 @@ namespace GroBuf
             customSerializerCollection = customSerializerCollection ?? new DefaultGroBufCustomSerializerCollection();
             Func<Type, IGroBufCustomSerializer> factory = type => new InternalSerializer(writer, reader, type, false);
             Func<Type, IGroBufCustomSerializer> baseFactory = type => new InternalSerializer(writer, reader, type, true);
-            writer = new GroBufWriter(dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
-            writerWritingEmptyObjects = new GroBufWriter(dataMembersExtractor, customSerializerCollection, options | GroBufOptions.WriteEmptyObjects, factory, baseFactory);
-            reader = new GroBufReader(dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
+            var id = Interlocked.Increment(ref serializerId) - 1;
+            writer = new GroBufWriter(id, dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
+            reader = new GroBufReader(id, dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
+            if(options.HasFlag(GroBufOptions.WriteEmptyObjects))
+                writerWritingEmptyObjects = writer;
+            else
+            {
+                id = Interlocked.Increment(ref serializerId) - 1;
+                writerWritingEmptyObjects = new GroBufWriter(id, dataMembersExtractor, customSerializerCollection, options | GroBufOptions.WriteEmptyObjects, factory, baseFactory);
+            }
         }
 
         public int GetSize<T>(T obj)
@@ -120,7 +127,7 @@ namespace GroBuf
 
         public TTo ChangeType<TFrom, TTo>(TFrom obj)
         {
-            TTo result = default(TTo);
+            var result = default(TTo);
             ChangeType(obj, ref result);
             return result;
         }
@@ -148,7 +155,7 @@ namespace GroBuf
             if(size <= 768)
             {
                 var buf = new byte[size];
-                int index = 0;
+                var index = 0;
                 writerWritingEmptyObjects.Write(obj, buf, ref index);
                 reader.Read(buf, ref result);
             }
@@ -158,7 +165,7 @@ namespace GroBuf
                 try
                 {
                     writerWritingEmptyObjects.Write(obj, buf, size);
-                    int index = 0;
+                    var index = 0;
                     reader.Read(buf, ref index, size, ref result);
                 }
                 finally
@@ -174,7 +181,7 @@ namespace GroBuf
             if(size <= 768)
             {
                 var buf = new byte[size];
-                int index = 0;
+                var index = 0;
                 writerWritingEmptyObjects.Write(from, obj, buf, ref index);
                 reader.Read(to, buf, ref result);
             }
@@ -184,7 +191,7 @@ namespace GroBuf
                 try
                 {
                     writerWritingEmptyObjects.Write(from, obj, buf, size);
-                    int index = 0;
+                    var index = 0;
                     reader.Read(to, buf, ref index, size, ref result);
                 }
                 finally
@@ -193,6 +200,8 @@ namespace GroBuf
                 }
             }
         }
+
+        private static long serializerId;
 
         private readonly GroBufWriter writer;
         private readonly GroBufWriter writerWritingEmptyObjects;

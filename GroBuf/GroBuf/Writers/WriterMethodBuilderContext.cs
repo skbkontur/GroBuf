@@ -76,8 +76,17 @@ namespace GroBuf.Writers
         /// </summary>
         public void LoadResultLength()
         {
-            Il.Ldarg(4);
-            Il.Ldfld(typeof(WriterContext).GetField("length", BindingFlags.Public | BindingFlags.Instance));
+            LoadContext();
+            Il.Ldfld(WriterContext.LengthField);
+        }
+
+        /// <summary>
+        ///     Loads <c>context.serializerId</c> onto the evaluation stack
+        /// </summary>
+        public void LoadSerializerId()
+        {
+            LoadContext();
+            Il.Ldfld(WriterContext.SerializerIdField);
         }
 
         /// <summary>

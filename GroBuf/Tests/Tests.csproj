@@ -88,6 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHashtable.cs" />
+    <Compile Include="TestLazy.cs" />
     <Compile Include="TestPackReferences.cs" />
     <Compile Include="TestDateTimeOffset.cs" />
     <Compile Include="TestTimeSpan.cs" />
