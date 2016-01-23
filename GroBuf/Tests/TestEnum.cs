@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 
@@ -141,6 +142,72 @@ namespace GroBuf.Tests
             Assert.AreEqual(EnumWithNegative.Positive, oo);
         }
 
+        [Test]
+        public void TestInt8()
+        {
+            foreach(var o in Enum.GetValues(typeof(Int8Enum)).Cast<Int8Enum>().Concat(new[] {(Int8Enum)sbyte.MaxValue}))
+            {
+                var data = serializer.Serialize(o);
+                var oo = serializer.Deserialize<Int8Enum>(data);
+                Assert.That(oo, Is.EqualTo(o));
+            }
+        }
+
+        [Test]
+        public void TestUInt8()
+        {
+            foreach(var o in Enum.GetValues(typeof(UInt8Enum)).Cast<UInt8Enum>().Concat(new[] {(UInt8Enum)byte.MaxValue}))
+            {
+                var data = serializer.Serialize(o);
+                var oo = serializer.Deserialize<UInt8Enum>(data);
+                Assert.That(oo, Is.EqualTo(o));
+            }
+        }
+
+        [Test]
+        public void TestInt16()
+        {
+            foreach(var o in Enum.GetValues(typeof(Int16Enum)).Cast<Int16Enum>().Concat(new[] {(Int16Enum)short.MaxValue}))
+            {
+                var data = serializer.Serialize(o);
+                var oo = serializer.Deserialize<Int16Enum>(data);
+                Assert.That(oo, Is.EqualTo(o));
+            }
+        }
+
+        [Test]
+        public void TestUInt16()
+        {
+            foreach(var o in Enum.GetValues(typeof(UInt16Enum)).Cast<UInt16Enum>().Concat(new[] {(UInt16Enum)ushort.MaxValue}))
+            {
+                var data = serializer.Serialize(o);
+                var oo = serializer.Deserialize<UInt16Enum>(data);
+                Assert.That(oo, Is.EqualTo(o));
+            }
+        }
+
+        [Test]
+        public void TestInt32()
+        {
+            foreach(var o in Enum.GetValues(typeof(Int32Enum)).Cast<Int32Enum>().Concat(new[] {(Int32Enum)int.MaxValue}))
+            {
+                var data = serializer.Serialize(o);
+                var oo = serializer.Deserialize<Int32Enum>(data);
+                Assert.That(oo, Is.EqualTo(o));
+            }
+        }
+
+        [Test]
+        public void TestUInt32()
+        {
+            foreach(var o in Enum.GetValues(typeof(UInt32Enum)).Cast<UInt32Enum>().Concat(new[] {(UInt32Enum)uint.MaxValue}))
+            {
+                var data = serializer.Serialize(o);
+                var oo = serializer.Deserialize<UInt32Enum>(data);
+                Assert.That(oo, Is.EqualTo(o));
+            }
+        }
+
         public enum TaskState
         {
             Unknown = 0,
@@ -238,6 +305,51 @@ namespace GroBuf.Tests
             Миллион = 1000000,
             Billion = 1000000000,
             Миллиард = 1000000000
+        }
+
+        private enum Int8Enum : sbyte
+        {
+            X = -1,
+            Y = 1,
+            Z = 100,
+            Q = -100
+        }
+
+        private enum UInt8Enum : byte
+        {
+            X = 1,
+            Y = 2,
+            Z = 200
+        }
+
+        private enum Int16Enum : short
+        {
+            X = -1,
+            Y = 1,
+            Z = 1000,
+            Q = -1000
+        }
+
+        private enum UInt16Enum : ushort
+        {
+            X = 1,
+            Y = 2,
+            Z = 60000
+        }
+
+        private enum Int32Enum : int
+        {
+            X = -1,
+            Y = 1,
+            Z = 2000000000,
+            Q = -2000000000
+        }
+
+        private enum UInt32Enum : uint
+        {
+            X = 1,
+            Y = 2,
+            Z = 4000000000
         }
 
         private Serializer serializer;

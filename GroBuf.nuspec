@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>GroBuf</id>
-    <version>1.1.1</version>
+    <version>1.1.2</version>
     <title>GroBuf</title>
     <projectUrl>https://git.skbkontur.ru/codebases/grobuf</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
