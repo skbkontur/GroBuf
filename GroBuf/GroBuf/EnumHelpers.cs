@@ -12,7 +12,7 @@ namespace GroBuf
         public static void BuildHashCodesTable(Type type, out int[] values, out ulong[] hashCodes)
         {
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static);
-            var enumValues = fields.Select(field => (int)Enum.Parse(type, field.Name)).ToArray();
+            var enumValues = fields.Select(field => ConvertToInt(Enum.Parse(type, field.Name), type.GetEnumUnderlyingType())).ToArray();
             var uniqueValues = new HashSet<int>(enumValues).ToArray();
             var nameHashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
             var hashSet = new HashSet<uint>();
@@ -49,7 +49,7 @@ namespace GroBuf
         public static void BuildValuesTable(Type type, out int[] values, out ulong[] hashCodes)
         {
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Static);
-            var arr = fields.Select(field => (int)Enum.Parse(type, field.Name)).ToArray();
+            var arr = fields.Select(field => ConvertToInt(Enum.Parse(type, field.Name), type.GetEnumUnderlyingType())).ToArray();
             var hashes = GroBufHelpers.CalcHashesAndCheck(fields.Select(DataMember.Create));
             var hashSet = new HashSet<uint>();
             for(var x = (uint)hashes.Length;; ++x)
@@ -77,6 +77,27 @@ namespace GroBuf
                     values[index] = (int)arr.GetValue(i);
                 }
                 return;
+            }
+        }
+
+        private static int ConvertToInt(object enumValue, Type underlyingType)
+        {
+            switch(Type.GetTypeCode(underlyingType))
+            {
+            case TypeCode.SByte:
+                return (sbyte)enumValue;
+            case TypeCode.Byte:
+                return (byte)enumValue;
+            case TypeCode.Int16:
+                return (short)enumValue;
+            case TypeCode.UInt16:
+                return (ushort)enumValue;
+            case TypeCode.Int32:
+                return (int)enumValue;
+            case TypeCode.UInt32:
+                return unchecked((int)(uint)enumValue);
+            default:
+                throw new NotSupportedException(string.Format("Enum with underlying type '{0}' is not supported", underlyingType));
             }
         }
     }
