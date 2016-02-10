@@ -65,6 +65,8 @@ namespace GroBuf.Writers
                 writerBuilder = new HashtableWriterBuilder();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 writerBuilder = new DictionaryWriterBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ArraySegment<>))
+                writerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IWriterBuilder)new PrimitivesArraySegmentWriterBuilder(type) : new ArraySegmentWriterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))
                 writerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IWriterBuilder)new PrimitivesHashSetWriterBuilder(type) : new HashSetWriterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))
