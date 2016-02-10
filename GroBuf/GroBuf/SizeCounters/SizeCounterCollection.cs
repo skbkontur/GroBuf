@@ -65,6 +65,8 @@ namespace GroBuf.SizeCounters
                 sizeCounterBuilder = new HashtableSizeCounterBuilder();
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>))
                 sizeCounterBuilder = new DictionarySizeCounterBuilder(type);
+            else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ArraySegment<>))
+                sizeCounterBuilder = type.GetGenericArguments()[0].IsPrimitive ? (ISizeCounterBuilder)new PrimitivesArraySegmentSizeCounterBuilder(type) : new ArraySegmentSizeCounterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(HashSet<>))
                 sizeCounterBuilder = type.GetGenericArguments()[0].IsPrimitive ? (ISizeCounterBuilder)new PrimitivesHashSetSizeCounterBuilder(type) : new HashSetSizeCounterBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>))

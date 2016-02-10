@@ -116,6 +116,7 @@
     <Compile Include="ReaderContext.cs" />
     <Compile Include="ReaderDelegate.cs" />
     <Compile Include="Readers\ArrayReaderBuilder.cs" />
+    <Compile Include="Readers\ArraySegmentReaderBuilder.cs" />
     <Compile Include="Readers\ClassReaderBuilder.cs" />
     <Compile Include="Readers\DateTimeOffsetReaderBuilder.cs" />
     <Compile Include="Readers\LazyReaderBuilder.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="Readers\NullableReaderBuilder.cs" />
     <Compile Include="Readers\ObjectReaderBuilder.cs" />
     <Compile Include="Readers\PrimitivesReaderBuilder.cs" />
+    <Compile Include="Readers\PrimitivesArraySegmentReaderBuilder.cs" />
     <Compile Include="Readers\ReaderBuilderBase.cs" />
     <Compile Include="Readers\ReaderConstantsBuilderContext.cs" />
     <Compile Include="Readers\ReaderMethodBuilderContext.cs" />
@@ -149,6 +151,7 @@
     <Compile Include="SerializerExtensions.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="SizeCounterDelegate.cs" />
+    <Compile Include="SizeCounters\ArraySegmentSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ArraySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\ClassSizeCounterBuilder.cs" />
     <Compile Include="EnumHelpers.cs" />
@@ -156,6 +159,7 @@
     <Compile Include="SizeCounters\LazySizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\HashtableSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\IPAddressSizeCounterBuilder.cs" />
+    <Compile Include="SizeCounters\PrimitivesArraySegmentSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesHashSetSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\HashSetSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\PrimitivesListSizeCounterBuilder.cs" />
@@ -182,12 +186,14 @@
     <Compile Include="LeafTypeAttribute.cs" />
     <Compile Include="WriterContext.cs" />
     <Compile Include="WriterDelegate.cs" />
+    <Compile Include="Writers\ArraySegmentWriterBuilder.cs" />
     <Compile Include="Writers\ArrayWriterBuilder.cs" />
     <Compile Include="Writers\ClassWriterBuilder.cs" />
     <Compile Include="Writers\DateTimeOffsetWriterBuilder.cs" />
     <Compile Include="Writers\LazyWriterBuilder.cs" />
     <Compile Include="Writers\HashtableWriterBuilder.cs" />
     <Compile Include="Writers\IPAddressWriterBuilder.cs" />
+    <Compile Include="Writers\PrimitivesArraySegmentWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesHashSetWriterBuilder.cs" />
     <Compile Include="Writers\HashSetWriterBuilder.cs" />
     <Compile Include="Writers\PrimitivesListWriterBuilder.cs" />
