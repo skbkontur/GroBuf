@@ -90,6 +90,7 @@
     <Compile Include="TestHashtable.cs" />
     <Compile Include="TestLazy.cs" />
     <Compile Include="TestArraySegment.cs" />
+    <Compile Include="TestOnDeserialized.cs" />
     <Compile Include="TestPackReferences.cs" />
     <Compile Include="TestDateTimeOffset.cs" />
     <Compile Include="TestTimeSpan.cs" />

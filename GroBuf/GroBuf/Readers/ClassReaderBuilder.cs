@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.Serialization;
 
 using GrEmit;
 
@@ -148,6 +149,14 @@ namespace GroBuf.Readers
             context.LoadIndex(); // stack: [index]
             il.Ldloc(end); // stack: [index, end]
             il.Blt(cycleStartLabel, true); // if(index < end) goto cycleStart; stack: []
+
+            var onDeserializedMethod = Type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                .SingleOrDefault(method => method.GetCustomAttribute<OnDeserializedAttribute>() != null);
+            if(onDeserializedMethod != null)
+            {
+                context.LoadResult(Type);
+                il.Call(onDeserializedMethod);
+            }
 
             il.MarkLabel(doneLabel);
         }
