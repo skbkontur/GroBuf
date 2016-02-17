@@ -154,7 +154,12 @@ namespace GroBuf.Readers
                 .SingleOrDefault(method => method.GetCustomAttribute<OnDeserializedAttribute>() != null);
             if(onDeserializedMethod != null)
             {
+                var parameters = onDeserializedMethod.GetParameters();
+                if(parameters.Length != 1 || parameters[0].ParameterType != typeof(StreamingContext))
+                    throw new InvalidOperationException(string.Format("The method '{0}' marked with 'OnDeserialized' attribute must accept exactly one parameter of type '{1}'", onDeserializedMethod, typeof(StreamingContext).FullName));
                 context.LoadResult(Type);
+                il.Ldc_I4((int)StreamingContextStates.Other);
+                il.Newobj(typeof(StreamingContext).GetConstructor(new[] {typeof(StreamingContextStates)}));
                 il.Call(onDeserializedMethod);
             }
 
