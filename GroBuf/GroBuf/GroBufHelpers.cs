@@ -42,14 +42,12 @@ namespace GroBuf
 
         public static bool IsTuple(this Type type)
         {
-            if(!type.IsGenericType || !type.Name.StartsWith("Tuple") || type.Assembly != typeof(Tuple).Assembly)
+            if(!type.IsGenericType)
                 return false;
-            var genericArguments = type.GetGenericArguments();
-            int k = genericArguments.Length;
-            for(int i = 1; i <= k; ++i)
-                if(type.GetProperty("Item" + i, BindingFlags.Instance | BindingFlags.Public) == null)
-                    return false;
-            return true;
+            type = type.GetGenericTypeDefinition();
+            return type == typeof(Tuple<>) || type == typeof(Tuple<,>) || type == typeof(Tuple<,,>) || type == typeof(Tuple<,,,>)
+                   || type == typeof(Tuple<,,,,>) || type == typeof(Tuple<,,,,,>) || type == typeof(Tuple<,,,,,,>)
+                   || type == typeof(Tuple<,,,,,,>) || type == typeof(Tuple<,,,,,,,>);
         }
 
         public static ulong[] CalcHashesAndCheck(IEnumerable<IDataMember> dataMembers)

@@ -33,7 +33,7 @@ namespace GroBuf.Writers
             var genericArguments = Type.GetGenericArguments();
             for(int i = 0; i < genericArguments.Length; ++i)
             {
-                var property = Type.GetProperty("Item" + (i + 1));
+                var property = Type.GetProperty(i == 7 ? "Rest" : "Item" + (i + 1));
                 var getter = property.GetGetMethod();
                 context.LoadObj(); // stack: [obj]
                 il.Call(getter); // stack: [obj.Item{i}]

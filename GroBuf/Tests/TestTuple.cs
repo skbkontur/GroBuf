@@ -61,6 +61,21 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestRead_8Args()
+        {
+            var data = serializer.Serialize(new Tuple<int, int, int, int, int, int, int, Tuple<int>>(1, 2, 3, 4, 5, 6, 7, new Tuple<int>(8)));
+            var tuple = serializer.Deserialize<Tuple<int, int, int, int, int, int, int, Tuple<int>>>(data);
+            Assert.AreEqual(1, tuple.Item1);
+            Assert.AreEqual(2, tuple.Item2);
+            Assert.AreEqual(3, tuple.Item3);
+            Assert.AreEqual(4, tuple.Item4);
+            Assert.AreEqual(5, tuple.Item5);
+            Assert.AreEqual(6, tuple.Item6);
+            Assert.AreEqual(7, tuple.Item7);
+            Assert.AreEqual(8, tuple.Rest.Item1);
+        }
+
+        [Test]
         public void TestRead_Error()
         {
             var data = serializer.Serialize(new Tuple<int>(10));
