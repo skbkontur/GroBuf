@@ -108,6 +108,9 @@ namespace GroBuf
         DateTimeOffset = 33,
 
         [DataLength(-1)]
+        Tuple = 34,
+
+        [DataLength(-1)]
         CustomData = 255
     }
 }

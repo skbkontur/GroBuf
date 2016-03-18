@@ -75,6 +75,8 @@ namespace GroBuf.Readers
                 readerBuilder = type.GetGenericArguments()[0].IsPrimitive ? (IReaderBuilder)new PrimitivesListReaderBuilder(type) : new ListReaderBuilder(type);
             else if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Lazy<>))
                 readerBuilder = new LazyReaderBuilder(type, module);
+            else if(type.IsTuple())
+                readerBuilder = new TupleReaderBuilder(type);
             else if(type == typeof(object))
                 readerBuilder = new ObjectReaderBuilder();
             else

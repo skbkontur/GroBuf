@@ -40,12 +40,24 @@ namespace GroBuf
             return type.BaseType == typeof(object) ? null : GetMethod<TAttribute>(type.BaseType);
         }
 
+        public static bool IsTuple(this Type type)
+        {
+            if(!type.IsGenericType || !type.Name.StartsWith("Tuple") || type.Assembly != typeof(Tuple).Assembly)
+                return false;
+            var genericArguments = type.GetGenericArguments();
+            int k = genericArguments.Length;
+            for(int i = 1; i <= k; ++i)
+                if(type.GetProperty("Item" + i, BindingFlags.Instance | BindingFlags.Public) == null)
+                    return false;
+            return true;
+        }
+
         public static ulong[] CalcHashesAndCheck(IEnumerable<IDataMember> dataMembers)
         {
             var dict = new Dictionary<ulong, MemberInfo>();
             foreach(var dataMember in dataMembers)
             {
-                var hash = dataMember.Id.HasValue ? dataMember.Id.Value : CalcHash(dataMember.Name);
+                var hash = dataMember.Id ?? CalcHash(dataMember.Name);
                 if(hash == 0)
                     throw new InvalidOperationException(string.Format("Hash code of '{0}.{1}' equals to zero", dataMember.Member.DeclaringType.Name, dataMember.Member.Name));
                 if(dict.ContainsKey(hash))

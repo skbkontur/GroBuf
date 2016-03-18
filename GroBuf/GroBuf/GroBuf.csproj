@@ -148,6 +148,7 @@
     <Compile Include="Readers\ReaderTypeBuilderContext.cs" />
     <Compile Include="Readers\TimeSpanReaderBuilder.cs" />
     <Compile Include="IgnoreDefaultOnMergeAttribute.cs" />
+    <Compile Include="Readers\TupleReaderBuilder.cs" />
     <Compile Include="SerializerExtensions.cs" />
     <Compile Include="Serializer.cs" />
     <Compile Include="SizeCounterDelegate.cs" />
@@ -184,6 +185,7 @@
     <Compile Include="SizeCounters\StringSizeCounterBuilder.cs" />
     <Compile Include="SizeCounters\TimeSpanSizeCounterBuilder.cs" />
     <Compile Include="LeafTypeAttribute.cs" />
+    <Compile Include="SizeCounters\TupleSizeCounterBuilder.cs" />
     <Compile Include="WriterContext.cs" />
     <Compile Include="WriterDelegate.cs" />
     <Compile Include="Writers\ArraySegmentWriterBuilder.cs" />
@@ -216,6 +218,7 @@
     <Compile Include="GroBufTypeCode.cs" />
     <Compile Include="Writers\StringWriterBuilder.cs" />
     <Compile Include="Writers\TimeSpanWriterBuilder.cs" />
+    <Compile Include="Writers\TupleWriterBuilder.cs" />
     <Compile Include="Writers\WriterConstantsBuilderContext.cs" />
     <Compile Include="Writers\WriterTypeBuilderContext.cs" />
     <Compile Include="Writers\WriterBuilderBase.cs" />
