@@ -11,7 +11,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestLazy
     {
-        // TODO test value types
         [SetUp]
         public void SetUp()
         {
