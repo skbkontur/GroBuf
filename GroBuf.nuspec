@@ -2,12 +2,12 @@
 <package >
   <metadata>
     <id>GroBuf</id>
-    <version>1.1.5</version>
+    <version>1.1.6</version>
     <title>GroBuf</title>
-    <projectUrl>https://git.skbkontur.ru/codebases/grobuf</projectUrl>
+    <projectUrl>https://github.com/homuroll/GroBuf</projectUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-	  <authors>Igor Chevdar</authors>
-	  <description>Fast binary serializer</description>
+    <authors>Igor Chevdar</authors>
+    <description>Fast binary serializer</description>
     <copyright>Copyright 2011-2016</copyright>
   </metadata>
 <files>
