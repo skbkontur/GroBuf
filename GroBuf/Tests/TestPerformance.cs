@@ -29,23 +29,23 @@ namespace GroBuf.Tests
         [Test]
         public void TestGroBuf()
         {
-            Console.WriteLine("GroBuf big data: all types");
-            DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
-            Console.WriteLine();
-            Console.WriteLine("GroBuf big data: strings");
-            DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
-            Console.WriteLine();
-            Console.WriteLine("GroBuf small data: all types");
-            DoTestSmall(1000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
-            Console.WriteLine();
-            Console.WriteLine("GroBuf small data: strings");
-            DoTestSmall(1000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
-            Console.WriteLine();
+//            Console.WriteLine("GroBuf big data: all types");
+//            DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
+//            Console.WriteLine();
+//            Console.WriteLine("GroBuf big data: strings");
+//            DoTestBig(100, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
+//            Console.WriteLine();
+//            Console.WriteLine("GroBuf small data: all types");
+//            DoTestSmall(1000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
+//            Console.WriteLine();
+//            Console.WriteLine("GroBuf small data: strings");
+//            DoTestSmall(1000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
+//            Console.WriteLine();
             Console.WriteLine("GroBuf tiny data: all types");
             DoTestTiny(10000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Orders>(data));
-            Console.WriteLine();
-            Console.WriteLine("GroBuf tiny data: strings");
-            DoTestTiny(10000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
+//            Console.WriteLine();
+//            Console.WriteLine("GroBuf tiny data: strings");
+//            DoTestTiny(10000, data => groBuf.Serialize(data), data => groBuf.Deserialize<Invoic>(data));
         }
 
         [Test]
@@ -262,7 +262,7 @@ namespace GroBuf.Tests
 
         private static void DoTest<TData>(int iterations, int fillRate, int stringsLength, int arraysSize, Func<TData, byte[]> serializer, Func<byte[], TData> deserializer) where TData : class, new()
         {
-            const int numberOfObjects = 1000;
+            const int numberOfObjects = 100;
             var random = new Random(54717651);
             var objects = new TData[numberOfObjects];
             objects[0] = TestHelpers.GenerateRandomTrash<TData>(random, fillRate, stringsLength, arraysSize);

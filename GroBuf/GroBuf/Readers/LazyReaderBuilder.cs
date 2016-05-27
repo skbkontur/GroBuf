@@ -49,8 +49,7 @@ namespace GroBuf.Readers
             il.Ldloc(source); // stack: [dest, source]
             il.Ldloc(length); // stack: [dest, source, length]
             il.Cpblk(); // dest = source; stack: []
-            il.Ldnull();
-            il.Stloc(dest); // dest = null; stack: []
+            il.FreePinnedLocal(dest); // dest = null; stack: []
 
             var argumentType = Type.GetGenericArguments()[0];
             context.LoadResultByRef(); // stack: [ref result]

@@ -65,8 +65,7 @@ namespace GroBuf.Writers
             il.Ldloc(length); // stack: [ref index, index, data.Length]
             il.Add(); // stack: [ref index, index + data.Length]
             il.Stind(typeof(int)); // index = index + data.Length; stack: []
-            il.Ldnull();
-            il.Stloc(data);
+            il.FreePinnedLocal(data); // data = null; stack: []
             il.Ret();
 
             il.MarkLabel(writeUsual);
