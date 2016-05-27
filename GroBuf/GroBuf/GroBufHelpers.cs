@@ -21,6 +21,8 @@ namespace GroBuf
             LeafTypeHandles = LeafTypes.Select(type => type == null ? IntPtr.Zero : type.TypeHandle.Value).ToArray();
         }
 
+        public static bool IsMono { get { return isMono; } }
+
         public static Type GetMemberType(this MemberInfo member)
         {
             switch(member.MemberType)

@@ -136,8 +136,7 @@ namespace GroBuf.Readers
                 il.Ldfld(reader); // stack: [(IntPtr)data, ref index, ref result, context, this.reader]
                 var parameterTypes = new[] {typeof(IntPtr), typeof(int).MakeByRefType(), argument.MakeByRefType(), typeof(ReaderContext)};
                 il.Calli(CallingConventions.Standard, typeof(void), parameterTypes); // this.reader((IntPtr)data, ref index, ref result, context); stack: []
-                il.Ldnull();
-                il.Stloc(pinnedData); // pinnedData = null
+                il.FreePinnedLocal(pinnedData); // pinnedData = null; stack: []
                 var retLabel = il.DefineLabel("ret");
                 il.Ldarg(1); // stack: [data]
                 il.Ldlen(); // stack: [data.Length]
