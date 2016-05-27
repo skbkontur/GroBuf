@@ -36,8 +36,7 @@ namespace GroBuf.Readers
             il.Ldind(typeof(long)); // stack: [&result + 8, (int64)data[index]]
             il.Stind(typeof(long)); // *(&result + 8) = (int64)data[index]; stack: []
             context.IncreaseIndexBy8(); // index = index + 8
-            il.Ldnull(); // stack: [null]
-            il.Stloc(pinnedResult); // pinnedResult = null
+            il.FreePinnedLocal(pinnedResult); // pinnedResult = null; stack: []
         }
 
         protected override bool IsReference { get { return false; } }

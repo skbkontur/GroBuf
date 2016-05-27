@@ -50,8 +50,7 @@ namespace GroBuf.Writers
             il.Add(); // stack: [&result[index], (IntPtr)str + offset]
             il.Ldloc(length); // stack: [&result[index], (IntPtr)str + offset, length]
             il.Cpblk(); // &result[index] = str
-            il.Ldnull(); // stack: [null]
-            il.Stloc(str); // str = null;
+            il.FreePinnedLocal(str); // str = null; stack: []
 
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]

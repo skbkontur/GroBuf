@@ -97,8 +97,7 @@ namespace GroBuf.Readers
             il.Ldloc(length); // stack: [arr, &data[index], length]
             CountArraySize(elementType, il); // stack: [arr, &data[index], size]
             il.Cpblk(); // arr = &data[index]
-            il.Ldnull(); // stack: [null]
-            il.Stloc(arr); // arr = null;
+            il.FreePinnedLocal(arr); // arr = null; stack: []
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(size); // stack: [ref index, index, size]

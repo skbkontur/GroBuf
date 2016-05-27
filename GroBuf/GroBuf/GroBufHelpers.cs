@@ -15,9 +15,13 @@ namespace GroBuf
     {
         static GroBufHelpers()
         {
+            isMono = Type.GetType("Mono.Runtime") != null;
+            ExtractDynamicMethodPointer = EmitDynamicMethodPointerExtractor();
             LeafTypes = BuildLeafTypes();
             LeafTypeHandles = LeafTypes.Select(type => type == null ? IntPtr.Zero : type.TypeHandle.Value).ToArray();
         }
+
+        public static bool IsMono { get { return isMono; } }
 
         public static Type GetMemberType(this MemberInfo member)
         {
@@ -100,12 +104,21 @@ namespace GroBuf
 
         public static readonly int[] Lengths = BuildLengths();
 
-        public static readonly Func<DynamicMethod, IntPtr> ExtractDynamicMethodPointer = EmitDynamicMethodPointerExtractor();
+        public static readonly Func<DynamicMethod, IntPtr> ExtractDynamicMethodPointer;
         public static readonly HashCalculator HashCalculator = new HashCalculator(Seed, 1000);
         public const int Seed = 314159265; //NOTE не менять !!!
 
         private static Func<DynamicMethod, IntPtr> EmitDynamicMethodPointerExtractor()
         {
+            if (isMono)
+            {
+                return dynMethod =>
+                {
+                    var handle = dynMethod.MethodHandle;
+                    RuntimeHelpers.PrepareMethod(handle);
+                    return handle.GetFunctionPointer();
+                };
+            }
             var method = new DynamicMethod("DynamicMethodPointerExtractor", typeof(IntPtr), new[] {typeof(DynamicMethod)}, typeof(GroBufHelpers).Module, true);
             using (var il = new GroboIL(method))
             {
@@ -164,5 +177,6 @@ namespace GroBuf
         }
 
         private static readonly object dummy = new object();
+        private static readonly bool isMono;
     }
 }

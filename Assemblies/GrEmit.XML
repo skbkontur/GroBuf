@@ -4,6 +4,27 @@
         <name>GrEmit</name>
     </assembly>
     <members>
+        <member name="T:GrEmit.TypesAssignabilityVerificationKind">
+            <summary>
+            Level of verification of types compatibility
+            </summary>
+        </member>
+        <member name="F:GrEmit.TypesAssignabilityVerificationKind.None">
+            <summary>
+            Performs no checks at all with regard to types assignability
+            </summary>
+        </member>
+        <member name="F:GrEmit.TypesAssignabilityVerificationKind.LowLevelOnly">
+            <summary>
+            Makes no difference between CLI pointer types (objects, managed pointers, unmanaged pointers).
+            Still performs all verifications between these low level types (u can't store int64 to int32 for intance).
+            </summary>
+        </member>
+        <member name="F:GrEmit.TypesAssignabilityVerificationKind.HighLevel">
+            <summary>
+            Performs all verifications with regard to types assignability. This is the default behaviour.
+            </summary>
+        </member>
         <member name="M:GrEmit.GroboIL.DeclareLocal(System.Type,System.String,System.Boolean,System.Boolean)">
             <summary>
                 Declares a local variable of the specified type, optionally pinning the object referred to by the variable.
@@ -396,6 +417,12 @@
                 Pushes a supplied value of type native int onto the evaluation stack.
             </summary>
             <param name="value">The value to push.</param>
+        </member>
+        <member name="M:GrEmit.GroboIL.FreePinnedLocal(GrEmit.GroboIL.Local)">
+            <summary>
+            Clears the specified pinned local by setting it to null
+            </summary>
+            <param name="local"></param>
         </member>
         <member name="M:GrEmit.GroboIL.Ldlen">
             <summary>
@@ -845,6 +872,11 @@
                 The <see cref="T:System.Type">Type</see> of the result.
             </param>
             <param name="parameterTypes">The types of the required arguments to the instruction.</param>
+        </member>
+        <member name="P:GrEmit.GroboIL.VerificationKind">
+            <summary>
+            Gets or sets level of verifications with regard to types compatibility
+            </summary>
         </member>
     </members>
 </doc>
