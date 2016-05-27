@@ -31,7 +31,8 @@ namespace GroBuf.Writers
             var writeUsual = il.DefineLabel("writeUsual");
             il.Brfalse(writeUsual); // if(factory == null) goto writeUsual; stack: []
             il.Ldloc(factory);
-            il.Ldfld(factoryField.FieldType.GetField("_target", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [factory.target]
+            string targetFieldName = GroBufHelpers.IsMono ? "m_target" : "_target";
+            il.Ldfld(typeof(Delegate).GetField(targetFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [factory.target]
             var rawData = il.DeclareLocal(typeof(RawData<>).MakeGenericType(Type.GetGenericArguments()));
             il.Isinst(rawData.Type); // stack: [factory.target as RawData]
             il.Dup();
@@ -65,8 +66,7 @@ namespace GroBuf.Writers
             il.Ldloc(length); // stack: [ref index, index, data.Length]
             il.Add(); // stack: [ref index, index + data.Length]
             il.Stind(typeof(int)); // index = index + data.Length; stack: []
-            il.Ldnull();
-            il.Stloc(data);
+            il.FreePinnedLocal(data); // data = null; stack: []
             il.Ret();
 
             il.MarkLabel(writeUsual);

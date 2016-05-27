@@ -61,7 +61,8 @@ namespace GroBuf.Tests
             var data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             var valueFactoryField = typeof(Lazy<B>).GetField("m_valueFactory", BindingFlags.Instance | BindingFlags.NonPublic);
-            var targetField = typeof(Func<B>).GetField("_target", BindingFlags.Instance | BindingFlags.NonPublic);
+            string targetFieldName = GroBufHelpers.IsMono ? "m_target" : "_target";
+            var targetField = typeof(Delegate).GetField(targetFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             var rawDataType = typeof(Serializer).Assembly.GetTypes().Single(type => type.Name == "RawData`1");
             var dataField = rawDataType.MakeGenericType(typeof(B)).GetField("data", BindingFlags.Instance | BindingFlags.NonPublic);
             var func = (Func<B>)valueFactoryField.GetValue(oo.B);

@@ -8,7 +8,7 @@
   <Target Name="Publish">
     <MakeDir Directories="Output" />
     <MSBuild Projects="GroBuf\GroBuf.sln" Targets="Rebuild" Properties="Configuration=$(Configuration)" />
-    <Exec Command="Assemblies\ILMerge.exe /xmldocs /v4 /internalize /out:Output\GroBuf.dll Assemblies\GroBuf.dll Assemblies\GrEmit.dll" />
+    <Exec Command="Assemblies\ILMerge.exe /v4 /internalize /out:Output\GroBuf.dll Assemblies\GroBuf.dll Assemblies\GrEmit.dll" />
   </Target>
   
 </Project>
