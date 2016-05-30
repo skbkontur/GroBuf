@@ -7,11 +7,13 @@ namespace GroBuf
 {
     public class WriterContext
     {
-        public WriterContext(long serializerId, int length, int start)
+        public WriterContext(long serializerId, int length, int start, bool trackReferences)
         {
             this.serializerId = serializerId;
             this.length = length;
             this.start = start;
+            if(trackReferences)
+                objects = new Dictionary<object, int>();
         }
 
         public readonly long serializerId;
@@ -19,7 +21,7 @@ namespace GroBuf
         public int start;
         public int index;
         public int references;
-        public readonly Dictionary<object, int> objects = new Dictionary<object, int>();
+        public readonly Dictionary<object, int> objects;
 
         public static readonly FieldInfo IndexField = (FieldInfo)((MemberExpression)((Expression<Func<WriterContext, int>>)(context => context.index)).Body).Member;
         public static readonly FieldInfo LengthField = (FieldInfo)((MemberExpression)((Expression<Func<WriterContext, int>>)(context => context.length)).Body).Member;

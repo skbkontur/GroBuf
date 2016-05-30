@@ -22,6 +22,7 @@ namespace GroBuf
             writerCollection = new WriterCollection(customSerializerCollection, factory, baseFactory);
             assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
+            trackReferences = options.HasFlag(GroBufOptions.PackReferences);
         }
 
         public int GetSize<T>(T obj)
@@ -40,11 +41,11 @@ namespace GroBuf
         private void Write<T>(bool ignoreCustomSerialization, T obj, IntPtr result, ref int index, int length)
         {
             var writerAndSizeCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
-            if(!options.HasFlag(GroBufOptions.PackReferences))
-                writerAndSizeCounter.Item1(obj, true, result, ref index, new WriterContext(serializerId, length, index));
+            if(!trackReferences)
+                writerAndSizeCounter.Item1(obj, true, result, ref index, new WriterContext(serializerId, length, index, trackReferences));
             else
             {
-                var context = new WriterContext(serializerId, length, index);
+                var context = new WriterContext(serializerId, length, index, trackReferences);
                 writerAndSizeCounter.Item2(obj, true, context);
                 Write(obj, result, ref index, writerAndSizeCounter.Item1, context);
             }
@@ -69,7 +70,7 @@ namespace GroBuf
         public unsafe byte[] Write<T>(bool ignoreCustomSerialization, T obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter<T>(ignoreCustomSerialization);
-            var context = new WriterContext(serializerId, 0, 0);
+            var context = new WriterContext(serializerId, 0, 0, trackReferences);
             var size = writerAndCounter.Item2(obj, true, context);
             size = context.references > 0 ? size + 5 : size;
             var result = new byte[size];
@@ -92,7 +93,7 @@ namespace GroBuf
                 index += 5;
             }
             context.start = index;
-            writer(obj, true, data, ref index, new WriterContext(serializerId, context.length, context.start));
+            writer(obj, true, data, ref index, new WriterContext(serializerId, context.length, context.start, trackReferences));
         }
 
         private unsafe void Write(object obj, IntPtr data, ref int index, WriterDelegate writer, WriterContext context)
@@ -105,12 +106,12 @@ namespace GroBuf
                 index += 5;
             }
             context.start = index;
-            writer(obj, true, data, ref index, new WriterContext(serializerId, context.length, context.start));
+            writer(obj, true, data, ref index, new WriterContext(serializerId, context.length, context.start, trackReferences));
         }
 
         public int GetSize(Type type, object obj)
         {
-            var context = new WriterContext(serializerId, 0, 0);
+            var context = new WriterContext(serializerId, 0, 0, trackReferences);
             var result = GetSize(type, false, obj, true, context);
             return context.references > 0 ? result + 5 : result;
         }
@@ -126,11 +127,11 @@ namespace GroBuf
         private void Write(Type type, bool ignoreCustomSerialization, object obj, IntPtr result, ref int index, int length)
         {
             var writerAndSizeCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
-            if (!options.HasFlag(GroBufOptions.PackReferences))
-                writerAndSizeCounter.Item1(obj, true, result, ref index, new WriterContext(serializerId, length, index));
+            if (!trackReferences)
+                writerAndSizeCounter.Item1(obj, true, result, ref index, new WriterContext(serializerId, length, index, trackReferences));
             else
             {
-                var context = new WriterContext(serializerId, length, index);
+                var context = new WriterContext(serializerId, length, index, trackReferences);
                 writerAndSizeCounter.Item2(obj, true, context);
                 Write(obj, result, ref index, writerAndSizeCounter.Item1, context);
             }
@@ -165,7 +166,7 @@ namespace GroBuf
         private unsafe byte[] Write(Type type, bool ignoreCustomSerialization, object obj)
         {
             var writerAndCounter = GetWriterAndSizeCounter(type, ignoreCustomSerialization);
-            var context = new WriterContext(serializerId, 0, 0);
+            var context = new WriterContext(serializerId, 0, 0, trackReferences);
             var size = writerAndCounter.Item2(obj, true, context);
             size = context.references > 0 ? size + 5 : size;
             var result = new byte[size];
@@ -187,7 +188,7 @@ namespace GroBuf
 
         private int GetSize<T>(bool ignoreCustomSerialization, T obj, bool writeEmpty)
         {
-            var context = new WriterContext(serializerId, 0, 0);
+            var context = new WriterContext(serializerId, 0, 0, trackReferences);
             var result = GetWriterAndSizeCounter<T>(ignoreCustomSerialization).Item2(obj, writeEmpty, context);
             return context.references > 0 ? result + 5 : result;
         }
@@ -373,5 +374,6 @@ namespace GroBuf
         private readonly ISizeCounterCollection sizeCounterCollection;
         private readonly AssemblyBuilder assembly;
         private readonly ModuleBuilder module;
+        private bool trackReferences;
     }
 }
