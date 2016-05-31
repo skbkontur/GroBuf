@@ -68,6 +68,7 @@ Supported:
  - primitive types
  - single dimension arrays
  - List<>, HashSet<>, Hashtable, Dictionary<,>
+ - Lazy<> (it will not be deserialized untill Value is actually demanded)
 Names of serialized types are not used and therefore can be safely renamed without any loss of data.
 
 All primitive types are convertible to one another. For example, if a data contract member had type int and has been changed to long than no old data will be lost.
@@ -80,7 +81,7 @@ If a member has been added than after deserializing old data the value of this m
 ##Performance
 GroBuf is faster than well-known serializer ProtoBuf:
  - about 2-2.5 times on average on serialization
- - about 4-5 times on averate on deserialization
+ - about 4-5 times on average on deserialization
 
 Here example of benchmarking on some realistic scenario:
 
@@ -115,4 +116,6 @@ Type=ProtoBufvsGroBufRunner  Mode=Throughput
    ProtoBufSerialize |      X86 | LegacyJit |    Host | 156.2833 us | 3.5322 us |
  ProtoBufDeserialize |      X86 | LegacyJit |    Host |  41.5833 us | 0.5682 us |
 
-The downside is: because of simpler format the size of data produced by GroBuf is 1.5-2 times larger than ProtoBuf's. But this planned to be optimized in the future.
+The disadvantages are:
+ - because of simpler format the size of data produced by GroBuf is 1.5-2 times larger than ProtoBuf's. But this planned to be optimized in the future
+ - lack of ProtoBuf's extensions
