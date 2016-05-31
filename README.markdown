@@ -40,7 +40,7 @@ Here we create serializer to read/write all public properties.
 By default GroBuf skips objects which are empty (an object is considered empty if it is an array with zero length or if all its members are empty). The [GroBufOptions.WriteEmptyObjects](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/GroBufOptions.cs) options says GroBuf to write all data as is.
 
 ##Serializing/Deserializing
-GroBuf serializes objects to binary format and return byte[] and deserializes from byte[]
+GroBuf serializes objects to binary format and returns byte[], deserializes from byte[]:
 ```
 var car = new Car
               {
@@ -60,7 +60,7 @@ These are predefined extractors:
  - FieldsExtractor - selects all public fields
  - AllPropertiesExtractor - selects both public and private properties
  - AllFieldsExtractor - selects both public and private fields
- - DataMembersByAttributeExtractor - selects all members marked with [DataMember] attribute
+ - DataMembersByAttributeExtractor - selects all members marked with [DataMember](http://msdn.microsoft.com/en-us/library/system.runtime.serialization.datamemberattribute.aspx) attribute
 
 ##Notes on types
 Supported:
@@ -73,8 +73,8 @@ Names of serialized types are not used and therefore can be safely renamed witho
 All primitive types are convertible to one another. For example, if a data contract member had type int and has been changed to long than no old data will be lost.
 
 ##Notes on members
-The members's names are important for GroBuf because it stores hash codes of all serialized members and uses them during deserialization. But it is possible to tell GroBuf what hash code to use for a particular member using [GroboMember] attribute.
-If a member's name changes (and there is no [GroboMember] attribute at it) or a member has been deleted, old data still will be able to be deserialized but the data of that particular member will be skipped and lost.
+The members's names are important for GroBuf because it stores hash codes of all serialized members and uses them during deserialization. But it is possible to tell GroBuf what hash code to use for a particular member using [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroBufOptions.cs) attribute.
+If a member's name changes (and there is no [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroBufOptions.cs) attribute at it) or a member has been deleted, old data still will be able to be deserialized but the data of that particular member will be skipped and lost.
 If a member has been added than after deserializing old data the value of this member will be set to its default value.
 
 ##Performance
