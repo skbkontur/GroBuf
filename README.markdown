@@ -69,6 +69,7 @@ Supported:
  - single dimension arrays
  - List<>, HashSet<>, Hashtable, Dictionary<,>
  - Lazy<> (it will not be deserialized untill Value is actually demanded)
+
 Names of serialized types are not used and therefore can be safely renamed without any loss of data.
 
 All primitive types are convertible to one another. For example, if a data contract member had type int and has been changed to long than no old data will be lost.
@@ -77,6 +78,9 @@ All primitive types are convertible to one another. For example, if a data contr
 The members's names are important for GroBuf because it stores hash codes of all serialized members and uses them during deserialization. But it is possible to tell GroBuf what hash code to use for a particular member using [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute.
 If a member's name changes (and there is no [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute at it) or a member has been deleted, old data still will be able to be deserialized but the data of that particular member will be skipped and lost.
 If a member has been added than after deserializing old data the value of this member will be set to its default value.
+
+##Notes on enums
+Enums are stored not as ints but as hash codes for there string representation. Thus, one can safely change the value of enum, but changing names will result in loss of data (there soon will be possibility to manually specify the hash code of a enum member).
 
 ##Performance
 GroBuf is faster than well-known serializer ProtoBuf:
