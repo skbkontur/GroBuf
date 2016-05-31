@@ -36,8 +36,8 @@ In order to obtain maximum speed it is strongly recommended to create serializer
 var serializer = new Serializer(new PropertiesExtractor(), options : GroBufOptions.WriteEmptyObjects);
 ```
 
-Here we created serializer to read/write all public properties.
-By default GroBuf skips objects which are empty (an object is considered empty if it is an array with zero length or if all its members are empty). The [GroBufOptions.WriteEmptyObjects] options says GroBuf to write all data as is.
+Here we create serializer to read/write all public properties.
+By default GroBuf skips objects which are empty (an object is considered empty if it is an array with zero length or if all its members are empty). The [GroBufOptions.WriteEmptyObjects](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/GroBufOptions.cs) options says GroBuf to write all data as is.
 
 ##Serializing/Deserializing
 GroBuf serializes objects to binary format and return byte[] and deserializes from byte[]
