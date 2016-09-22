@@ -100,23 +100,6 @@ namespace GroBuf.Readers
                 var index = il.DeclareLocal(typeof(int), "index");
                 il.Ldc_I4(0); // stack: [0]
                 il.Stloc(index); // index = 0; stack: []
-                var result = il.DeclareLocal(argument, "result");
-                if(argument.IsValueType)
-                {
-                    il.Ldloca(result); // stack: [ref result]
-                    il.Initobj(argument); // result = default(T); stack: []
-                }
-                else
-                {
-                    if(!argument.IsArray)
-                        ObjectConstructionHelper.EmitConstructionOfType(argument, il);
-                    else
-                    {
-                        il.Ldc_I4(0);
-                        il.Newarr(argument.GetElementType());
-                    }
-                    il.Stloc(result);
-                }
                 var context = il.DeclareLocal(typeof(ReaderContext), "context");
                 il.Ldarg(0); // stack: [this]
                 il.Ldfld(serializerId); // stack: [this.serializerId]
@@ -127,6 +110,7 @@ namespace GroBuf.Readers
                 il.Newobj(typeof(ReaderContext).GetConstructor(new[] {typeof(long), typeof(int), typeof(int), typeof(int)})); // stack: [new ReaderContext(this.serializerId, data.Length, 0, 0)]
                 il.Stloc(context); // context = new ReaderContext(..); stack: []
 
+                var result = il.DeclareLocal(argument, "result");
                 il.Ldloc(pinnedData); // stack: [data]
                 il.Conv<IntPtr>(); // stack: [(IntPtr)data]
                 il.Ldloca(index); // stack: [(IntPtr)data, ref index]
