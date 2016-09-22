@@ -87,6 +87,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="TestCustomReadWriteCustomSerializerWithLazy.cs" />
     <Compile Include="TestHashtable.cs" />
     <Compile Include="TestLazy.cs" />
     <Compile Include="TestArraySegment.cs" />

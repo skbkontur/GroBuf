@@ -35,6 +35,16 @@ namespace GroBuf.Tests
             Assert.AreEqual(42, oo.Arr[0].Data);
         }
 
+        [Test]
+        public void Test3()
+        {
+            var o = new C3<int> {Z = new Lazy<I1<int>>(() => new C1<int> {Data = 42})};
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<C3<int>>(data);
+            Assert.IsNotNull(oo.Z);
+            Assert.AreEqual(42, oo.Z.Value.Data);
+        }
+
         private Serializer serializer;
 
         private class C1<T> : I1<T>
@@ -45,6 +55,11 @@ namespace GroBuf.Tests
         private class C2<T>
         {
             public I1<T>[] Arr { get; set; }
+        }
+
+        public class C3<T>
+        {
+            public Lazy<I1<T>> Z { get; set; }
         }
 
         private class GroBufCustomSerializerCollection : IGroBufCustomSerializerCollection
@@ -88,7 +103,7 @@ namespace GroBuf.Tests
             private readonly IGroBufCustomSerializer baseSerializer;
         }
 
-        private interface I1<T>
+        public interface I1<T>
         {
             T Data { get; set; }
         }
