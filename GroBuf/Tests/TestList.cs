@@ -64,6 +64,17 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestAddRemoveElements()
+        {
+            var list = new List<string> {"1", "2"};
+            list.Remove("1");
+            byte[] buf = serializer.Serialize(list);
+            var list2 = serializer.Deserialize<List<string>>(buf);
+            Assert.AreEqual(1, list2.Count);
+            Assert.AreEqual("2", list2[0]);
+        }
+
+        [Test]
         public void TestReadPrimitives()
         {
             var list = new List<int> {1, 2};
