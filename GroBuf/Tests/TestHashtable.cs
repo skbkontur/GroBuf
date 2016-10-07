@@ -47,6 +47,18 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestAddRemoveElements()
+        {
+            var dict = new Hashtable { { "1", 1 }, { "2", 2 }, { "3", "3" } };
+            dict.Remove("1");
+            var buf = serializer.Serialize(dict);
+            var dict2 = serializer.Deserialize<Hashtable>(buf);
+            Assert.AreEqual(2, dict2.Count);
+            Assert.AreEqual(2, dict2["2"]);
+            Assert.AreEqual("3", dict2["3"]);
+        }
+
+        [Test]
         public void TestReadAsDict()
         {
             var dict = new Hashtable {{"1", 1}, {"2", 2}};

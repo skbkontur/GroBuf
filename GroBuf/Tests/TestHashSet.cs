@@ -86,6 +86,17 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestAddRemoveElements()
+        {
+            var hashSet = new HashSet<int> { 1, 2 };
+            hashSet.Remove(1);
+            byte[] buf = serializer.Serialize(hashSet);
+            var hashSet2 = serializer.Deserialize<HashSet<int>>(buf);
+            Assert.AreEqual(1, hashSet2.Count);
+            Assert.IsTrue(hashSet2.Contains(2));
+        }
+
+        [Test]
         public void TestReadPrimitive()
         {
             var hashSet = new HashSet<int> {1, 2};

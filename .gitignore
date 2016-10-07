@@ -6,5 +6,5 @@ obj
 *.suo
 GroBuf.dll
 GroBuf.pdb
-_ReSharper.GroBuf
+_ReSharper.*
 Output/

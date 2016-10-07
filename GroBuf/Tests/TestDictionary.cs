@@ -45,6 +45,17 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestAddRemoveElements()
+        {
+            var dict = new Dictionary<string, int> {{"1", 1}, {"2", 2}};
+            dict.Remove("1");
+            var buf = serializer.Serialize(dict);
+            var dict2 = serializer.Deserialize<Dictionary<string, int>>(buf);
+            Assert.AreEqual(1, dict2.Count);
+            Assert.AreEqual(2, dict2["2"]);
+        }
+
+        [Test]
         public void TestArray()
         {
             var zzz = new Zzz();
