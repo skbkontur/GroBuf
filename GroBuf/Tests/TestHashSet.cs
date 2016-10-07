@@ -51,6 +51,17 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        public void TestWriteEmptyWithWriteEmptyObjectsPrimitives()
+        {
+            serializer = new Serializer(new PropertiesExtractor(), null, GroBufOptions.WriteEmptyObjects);
+            var c = new TestWithHashSet {H2 = new HashSet<int>()};
+            byte[] bytes = serializer.Serialize(c);
+            var actual = serializer.Deserialize<TestWithHashSet>(bytes);
+            Assert.IsNotNull(actual.H2);
+            CollectionAssert.IsEmpty(actual.H2.ToArray());
+        }
+
+        [Test]
         public void TestGetSizePrimitive()
         {
             var hashSet = new HashSet<int> {1, 2};
@@ -78,7 +89,7 @@ namespace GroBuf.Tests
         public void TestRead()
         {
             var hashSet = new HashSet<string> {"1", "2"};
-            byte[] buf = serializer.Serialize(hashSet);
+            var buf = serializer.Serialize(hashSet);
             var hashSet2 = serializer.Deserialize<HashSet<string>>(buf);
             Assert.AreEqual(2, hashSet2.Count);
             Assert.IsTrue(hashSet2.Contains("1"));
@@ -87,6 +98,17 @@ namespace GroBuf.Tests
 
         [Test]
         public void TestAddRemoveElements()
+        {
+            var hashSet = new HashSet<string> {"1", "2"};
+            hashSet.Remove("1");
+            var buf = serializer.Serialize(hashSet);
+            var hashSet2 = serializer.Deserialize<HashSet<string>>(buf);
+            Assert.AreEqual(1, hashSet2.Count);
+            Assert.IsTrue(hashSet2.Contains("2"));
+        }
+
+        [Test]
+        public void TestAddRemoveElementsPrimitive()
         {
             var hashSet = new HashSet<int> { 1, 2 };
             hashSet.Remove(1);
@@ -202,6 +224,7 @@ namespace GroBuf.Tests
         private class TestWithHashSet
         {
             public HashSet<Guid> H { get; set; }
+            public HashSet<int> H2 { get; set; }
         }
     }
 }

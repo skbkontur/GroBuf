@@ -33,7 +33,7 @@ namespace GroBuf.SizeCounters
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -48,6 +48,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(9); // stack: [9 = size] 9 = type code + data length + dictionary count
             context.LoadObj(); // stack: [size, obj]
             var count = il.DeclareLocal(typeof(int));
+            // traverse all buckets
             il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.Count]
             il.Stloc(count); // count = obj.Count; stack: [size]
 

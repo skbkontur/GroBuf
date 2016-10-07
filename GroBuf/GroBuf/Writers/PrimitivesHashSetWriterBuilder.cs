@@ -28,7 +28,7 @@ namespace GroBuf.Writers
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -51,20 +51,13 @@ namespace GroBuf.Writers
             il.Ldc_I4(4);
             context.AssertLength();
             context.LoadObj(); // stack: [obj]
-            var count = il.DeclareLocal(typeof(int));
-            context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
-            il.Dup(); // stack: [obj.Count, obj.Count]
-            il.Stloc(count); // count = obj.Count; stack: [count]
+            il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [obj.Count]
             CountArraySize(elementType, il); // stack: [obj size]
             il.Stloc(size); // size = obj size; stack: []
             context.GoToCurrentLocation(); // stack: [&result[index]]
             il.Ldloc(size); // stack: [&result[index], size]
             il.Stind(typeof(int)); // result[index] = size; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
-
-            il.Ldloc(size); // stack: []
-            var doneLabel = il.DefineLabel("done");
-            il.Brfalse(doneLabel); // if(size == 0) goto done; stack: []
 
             il.Ldloc(size);
             context.AssertLength();
@@ -74,6 +67,14 @@ namespace GroBuf.Writers
             var slots = il.DeclareLocal(slotType.MakeArrayType());
             il.Ldfld(Type.GetField("m_slots", BindingFlags.Instance | BindingFlags.NonPublic));
             il.Stloc(slots);
+
+            context.LoadObj(); // stack: [obj]
+            il.Ldfld(Type.GetField("m_lastIndex", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_lastIndex]
+            il.Dup();
+            var count = context.LocalInt;
+            il.Stloc(count); // count = obj.m_lastIndex; stack: [count]
+            var writeDataLengthLabel = il.DefineLabel("writeDataLength");
+            il.Brfalse(writeDataLengthLabel);
 
             var i = il.DeclareLocal(typeof(int));
             il.Ldc_I4(0); // stack: [0]
@@ -105,15 +106,14 @@ namespace GroBuf.Writers
             il.Dup(); // stack: [current, count, i + 1, i + 1]
             il.Stloc(i); // i = i + 1; stack: [current, count, i]
             il.Bgt(cycleStartLabel, false); // if(count > i) goto cycleStart; stack: [current]
-
             il.Pop(); // stack: []
+
+            il.MarkLabel(writeDataLengthLabel);
             context.LoadIndexByRef(); // stack: [ref index]
             context.LoadIndex(); // stack: [ref index, index]
             il.Ldloc(size); // stack: [ref index, index, size]
             il.Add(); // stack: [ref index, index + size]
             il.Stind(typeof(int)); // index = index + size
-
-            il.MarkLabel(doneLabel);
         }
 
         private static void CountArraySize(Type elementType, GroboIL il)

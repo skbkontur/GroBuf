@@ -27,7 +27,7 @@ namespace GroBuf.Writers
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -54,12 +54,15 @@ namespace GroBuf.Writers
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
-            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [&result[index], obj.Count]
-            il.Dup(); // stack: [&result[index], obj.Count, obj.Count]
-            var count = il.DeclareLocal(typeof(int));
-            il.Stloc(count); // count = obj.Count; stack: [&result[index], obj.Count]
-            il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
+            il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [&result[index], obj.Count]
+            il.Stind(typeof(int)); // *(int*)&result[index] = obj.Count; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
+
+            context.LoadObj(); // stack: [obj]
+            // traverse all buckets
+            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.count]
+            var count = il.DeclareLocal(typeof(int));
+            il.Stloc(count); // count = obj.count; stack: []
 
             var writeDataLengthLabel = il.DefineLabel("writeDataLength");
             il.Ldloc(count); // stack: [count]
