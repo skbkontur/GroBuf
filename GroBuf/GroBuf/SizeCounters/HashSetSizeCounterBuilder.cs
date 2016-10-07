@@ -31,7 +31,7 @@ namespace GroBuf.SizeCounters
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -44,13 +44,14 @@ namespace GroBuf.SizeCounters
         {
             var il = context.Il;
             il.Ldc_I4(9); // stack: [9 = size] 9 = type code + data length + hashset count
+
             context.LoadObj(); // stack: [size, obj]
             var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.Count]
-            il.Stloc(count); // count = obj.Count; stack: [size]
+            il.Ldfld(Type.GetField("m_lastIndex", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.m_lastIndex]
+            il.Dup();
+            il.Stloc(count); // count = obj.m_lastIndex; stack: [size, count]
             var doneLabel = il.DefineLabel("done");
-            il.Ldloc(count); // stack: [size, count]
-            il.Brfalse(doneLabel); // if(count == 0) goto done; stack: [size]
+            il.Brfalse(doneLabel); // if(!count) goto done; stack: [size]
 
             context.LoadObj(); // stack: [size, obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
@@ -82,6 +83,7 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [size + valueSize]
 
             il.MarkLabel(nextLabel);
+
             il.Ldloc(count); // stack: [size, count]
             il.Ldloc(i); // stack: [size, count, i]
             il.Ldc_I4(1); // stack: [size, count, i, 1]

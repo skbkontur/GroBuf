@@ -28,7 +28,7 @@ namespace GroBuf.SizeCounters
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [&result[index], obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -47,7 +47,7 @@ namespace GroBuf.SizeCounters
             var il = context.Il;
             il.Ldc_I4(5); // stack: [5 = size] 5 = type code + data length
             context.LoadObj(); // stack: [5, obj]
-            il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [5, obj.Count]
+            context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [5, obj.Count]
             CountArraySize(elementType, il); // stack: [5, obj length]
             il.Add(); // stack: [5 + obj length]
         }

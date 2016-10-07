@@ -26,7 +26,7 @@ namespace GroBuf.Writers
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [&result[index], obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -52,16 +52,17 @@ namespace GroBuf.Writers
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
-            var count = il.DeclareLocal(typeof(int));
-            context.Il.Ldfld(Type.GetField("m_count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [&result[index], obj.Count]
-            il.Stloc(count); // count = obj.Count; stack: [&result[index]]
-            il.Ldloc(count); // stack: [&result[index], count]
-            il.Stind(typeof(int)); // *(int*)&result[index] = count; stack: []
+            il.Call(Type.GetProperty("Count", BindingFlags.Instance | BindingFlags.Public).GetGetMethod()); // stack: [&result[index], obj.Count]
+            il.Stind(typeof(int)); // *(int*)&result[index] = obj.Count; stack: []
             context.IncreaseIndexBy4(); // index = index + 4; stack: []
 
+            context.LoadObj(); // stack: [obj]
+            var count = il.DeclareLocal(typeof(int));
+            il.Ldfld(Type.GetField("m_lastIndex", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_lastIndex]
+            il.Dup();
+            il.Stloc(count); // count = obj.m_lastIndex; stack: []
             var writeDataLengthLabel = il.DefineLabel("writeDataLength");
-            il.Ldloc(count); // stack: [length]
-            il.Brfalse(writeDataLengthLabel); // if(length == 0) goto writeDataLength; stack: []
+            il.Brfalse(writeDataLengthLabel);
 
             context.LoadObj(); // stack: [obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
@@ -81,6 +82,7 @@ namespace GroBuf.Writers
             var slot = il.DeclareLocal(slotType.MakeByRefType());
             il.Stloc(slot); // slot = &slots[i]; stack: [slot]
             il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [slot.hashCode]
+
             il.Ldc_I4(0); // stack: [slot.hashCode, 0]
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(slot.hashCode < 0) goto next; stack: []
