@@ -7,4 +7,4 @@ full-build:
     configuration: Release
 
   install:
-    - GroBuf\GroBuf\bin\Release\GroBuf.dll
+    - Assemblies\GroBuf.dll
