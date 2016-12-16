@@ -111,6 +111,9 @@ namespace GroBuf
         Tuple = 34,
 
         [DataLength(-1)]
+        Reserved = 254,
+
+        [DataLength(-1)]
         CustomData = 255
     }
 }
