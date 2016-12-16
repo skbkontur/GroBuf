@@ -53,7 +53,9 @@ namespace GroBuf
                     if(index + dataLength > length)
                         throw new InvalidOperationException("Unexpected end of data");
                     result.Append(margins[margin]);
-                    result.AppendLine("<object>");
+                    result.Append("<object size=");
+                    result.Append(dataLength);
+                    result.AppendLine(">");
                     margin += 2;
                     var start = index;
                     while(index < start + dataLength)
@@ -87,7 +89,9 @@ namespace GroBuf
                     var arrayLength = *(int*)(data + index);
                     index += 4;
                     result.Append(margins[margin]);
-                    result.AppendLine("<array>");
+                    result.Append("<array size=");
+                    result.Append(dataLength);
+                    result.AppendLine(">");
                     margin += 2;
                     for(var i = 0; i < arrayLength; ++i)
                     {
@@ -119,7 +123,9 @@ namespace GroBuf
                     var dictLength = *(int*)(data + index);
                     index += 4;
                     result.Append(margins[margin]);
-                    result.AppendLine("<dict>");
+                    result.Append("<dict size=");
+                    result.Append(dataLength);
+                    result.AppendLine(">");
                     margin += 2;
                     for (var i = 0; i < dictLength; ++i)
                     {
@@ -479,7 +485,7 @@ namespace GroBuf
                     if(index + dataLength > length)
                         throw new InvalidOperationException("Unexpected end of data");
                     result.Append(margins[margin]);
-                    result.Append("<custom data:length=");
+                    result.Append("<custom data:size=");
                     result.Append(dataLength);
                     result.Append(">");
                     index += dataLength;
