@@ -1,8 +1,8 @@
-#GroBuf
+# GroBuf
 
 GroBuf is a fast binary serializer for .NET.
 
-##Example
+## Example
 
 Suppose some simple class hierarchy:
 
@@ -29,7 +29,7 @@ public enum CarKind : byte
 }
 ```
 
-##Creating serializer
+## Creating serializer
 In order to obtain maximum speed it is strongly recommended to create serializer once since it uses dynamic code generation for serializers/deserializers.
 
 ```
@@ -39,7 +39,7 @@ var serializer = new Serializer(new PropertiesExtractor(), options : GroBufOptio
 Here we create serializer to read/write all public properties.
 By default GroBuf skips objects which are empty (an object is considered empty if it is an array with zero length or if all its members are empty). The [GroBufOptions.WriteEmptyObjects](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/GroBufOptions.cs) options says GroBuf to write all data as is.
 
-##Serializing/Deserializing
+## Serializing/Deserializing
 GroBuf serializes objects to binary format and returns byte[], deserializes from byte[]:
 ```
 var car = new Car
@@ -53,7 +53,7 @@ byte[] data = serializer.Serialize(car);
 var zcar = serializer.Deserialize<Car>(data);
 ```
 
-##Selecting members to serialize
+## Selecting members to serialize
 It is possible to create serializer with custom data members selection.
 These are predefined extractors:
  - PropertiesExtractor - selects all public properties
@@ -62,7 +62,7 @@ These are predefined extractors:
  - AllFieldsExtractor - selects both public and private fields
  - DataMembersByAttributeExtractor - selects all members marked with [DataMember](http://msdn.microsoft.com/en-us/library/system.runtime.serialization.datamemberattribute.aspx) attribute
 
-##Notes on types
+## Notes on types
 Supported:
  - custom classes or structs
  - primitive types
@@ -74,15 +74,15 @@ Names of serialized types are not used and therefore can be safely renamed witho
 
 All primitive types are convertible to one another. For example, if a data contract member had type int and has been changed to long than no old data will be lost.
 
-##Notes on members
+## Notes on members
 The members's names are important for GroBuf because it stores hash codes of all serialized members and uses them during deserialization. But it is possible to tell GroBuf what hash code to use for a particular member using [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute.
 If a member's name changes (and there is no [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute at it) or a member has been deleted, old data still will be able to be deserialized but the data of that particular member will be skipped and lost.
 If a member has been added than after deserializing old data the value of this member will be set to its default value.
 
-##Notes on enums
+## Notes on enums
 Enums are stored not as ints but as hash codes for there string representation. Thus, one can safely change the value of enum, but changing names will result in loss of data (there soon will be possibility to manually specify the hash code of a enum member).
 
-##Performance
+## Performance
 GroBuf is faster than well-known serializer ProtoBuf:
  - about 2-2.5 times on average on serialization
  - about 4-5 times on average on deserialization
@@ -90,7 +90,6 @@ GroBuf is faster than well-known serializer ProtoBuf:
 Here example of benchmarking on some realistic scenario:
 
 ```ini
-
 BenchmarkDotNet-Dev=v0.9.6.0+
 OS=Microsoft Windows NT 6.1.7601 Service Pack 1
 Processor=Intel(R) Core(TM) i7-2600K CPU 3.40GHz, ProcessorCount=8
@@ -100,7 +99,6 @@ JitModules=clrjit-v4.6.1076.0
 
 Type=ProtoBufvsGroBufRunner  Mode=Throughput  
 
-```
               Method | Platform |       Jit | Runtime |      Median |    StdDev |
 -------------------- |--------- |---------- |-------- |------------ |---------- |
      GroBufSerialize |     Host |      Host |    Mono |  79.0364 us | 0.6419 us |
@@ -119,6 +117,7 @@ Type=ProtoBufvsGroBufRunner  Mode=Throughput
    GroBufDeserialize |      X86 | LegacyJit |    Host |  12.2245 us | 0.1467 us |
    ProtoBufSerialize |      X86 | LegacyJit |    Host | 156.2833 us | 3.5322 us |
  ProtoBufDeserialize |      X86 | LegacyJit |    Host |  41.5833 us | 0.5682 us |
+```
 
 The disadvantages are:
  - because of simpler format the size of data produced by GroBuf is 1.5-2 times larger than ProtoBuf's. But this planned to be optimized in the future
