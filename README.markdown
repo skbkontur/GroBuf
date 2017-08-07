@@ -4,7 +4,7 @@ GroBuf is a fast binary serializer for .NET.
 
 ## Example
 
-Suppose some simple class hierarchy:
+Imagine a simple class hierarchy:
 
 ```
 public class Car
@@ -29,14 +29,14 @@ public enum CarKind : byte
 }
 ```
 
-## Creating serializer
-In order to obtain maximum speed it is strongly recommended to create serializer once since it uses dynamic code generation for serializers/deserializers.
+## Creating a serializer
+In order to obtain maximum speed it is strongly recommended to once create a serializer as it uses dynamic code generation for serializers/deserializers.
 
 ```
 var serializer = new Serializer(new PropertiesExtractor(), options : GroBufOptions.WriteEmptyObjects);
 ```
 
-Here we create serializer to read/write all public properties.
+Here we create serializer in order to read/write all public properties.
 By default GroBuf skips objects which are empty (an object is considered empty if it is an array with zero length or if all its members are empty). The [GroBufOptions.WriteEmptyObjects](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/GroBufOptions.cs) options says GroBuf to write all data as is.
 
 ## Serializing/Deserializing
@@ -54,7 +54,7 @@ var zcar = serializer.Deserialize<Car>(data);
 ```
 
 ## Selecting members to serialize
-It is possible to create serializer with custom data members selection.
+It is possible to create a serializer with custom data members selection.
 These are predefined extractors:
  - PropertiesExtractor - selects all public properties
  - FieldsExtractor - selects all public fields
@@ -63,31 +63,31 @@ These are predefined extractors:
  - DataMembersByAttributeExtractor - selects all members marked with [DataMember](http://msdn.microsoft.com/en-us/library/system.runtime.serialization.datamemberattribute.aspx) attribute
 
 ## Notes on types
-Supported:
+Supports:
  - custom classes or structs
  - primitive types
  - single dimension arrays
  - List<>, HashSet<>, Hashtable, Dictionary<,>
  - Lazy<> (it will not be deserialized untill Value is actually demanded)
 
-Names of serialized types are not used and therefore can be safely renamed without any loss of data.
+Serialized types names are not used and therefore the types can be safely renamed without any loss of data.
 
-All primitive types are convertible to one another. For example, if a data contract member had type int and has been changed to long than no old data will be lost.
+All primitive types are convertible into ecch other. For example, if a data contract member had type int and has been changed to long than no old data will be lost.
 
 ## Notes on members
-The members's names are important for GroBuf because it stores hash codes of all serialized members and uses them during deserialization. But it is possible to tell GroBuf what hash code to use for a particular member using [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute.
-If a member's name changes (and there is no [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute at it) or a member has been deleted, old data still will be able to be deserialized but the data of that particular member will be skipped and lost.
-If a member has been added than after deserializing old data the value of this member will be set to its default value.
+The members's names are important for GroBuf because it stores hash codes of all serialized members and uses them during deserialization. But it is possible to tell GroBuf what hash code is to be used for a particular member using [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute.
+If a member's name changes (and there is no [GroboMember](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/DataMembersExtracters/GroboMemberAttribute.cs) attribute at it) or a member has been deleted, old data still may be deserialized but the data of that particular member will be skipped and lost.
+If a member has been added than after deserializing old data, the value of this member will be set to its default value.
 
 ## Notes on enums
-Enums are stored not as ints but as hash codes for there string representation. Thus, one can safely change the value of enum, but changing names will result in loss of data (there soon will be possibility to manually specify the hash code of a enum member).
+Enums are stored not as ints but as hash codes for their string representation. Thus, one can safely change the value of enum, but change fo a name will result in loss of data (soon it will be possibile to specify the hash code of a enum member manually).
 
 ## Performance
-GroBuf is faster than well-known serializer ProtoBuf:
+GroBuf is faster than a well-known serializer ProtoBuf:
  - about 2-2.5 times on average on serialization
  - about 4-5 times on average on deserialization
 
-Here example of benchmarking on some realistic scenario:
+Here you can see an example of benchmarking in a realistic scenario:
 
 ```ini
 BenchmarkDotNet-Dev=v0.9.6.0+
@@ -120,5 +120,5 @@ Type=ProtoBufvsGroBufRunner  Mode=Throughput
 ```
 
 The disadvantages are:
- - because of simpler format the size of data produced by GroBuf is 1.5-2 times larger than ProtoBuf's. But this planned to be optimized in the future
+ - because of simpler format the size of data produced by GroBuf is 1.5-2 times larger than ProtoBuf's. But it is planned to be optimized in the future
  - lack of ProtoBuf's extensions
