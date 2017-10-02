@@ -9,6 +9,8 @@ using GrEmit;
 
 using GroBuf.DataMembersExtracters;
 
+using Mono.Reflection;
+
 namespace GroBuf
 {
     public static class GroBufHelpers
@@ -174,6 +176,23 @@ namespace GroBuf
             foreach(var x in types)
                 result[x.TypeHandle.Value.ToInt64() % n] = x;
             return result;
+        }
+
+        public static MemberInfo TryGetWritableMemberInfo(this MemberInfo memberInfo)
+        {
+            var propertyInfo = memberInfo as PropertyInfo;
+            if(propertyInfo == null)
+                return memberInfo;
+            if(propertyInfo.CanWrite && propertyInfo.GetSetMethod(true).GetParameters().Length == 1)
+                return memberInfo;
+            try
+            {
+                return propertyInfo.GetBackingField();
+            }
+            catch
+            {
+            }
+            return null;
         }
 
         private static readonly object dummy = new object();

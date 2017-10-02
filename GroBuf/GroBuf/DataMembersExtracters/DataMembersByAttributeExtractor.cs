@@ -14,7 +14,7 @@ namespace GroBuf.DataMembersExtracters
         public IDataMember[] GetMembers(Type type)
         {
             return type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-                .Where(property => property.CanRead && property.GetGetMethod(true).GetParameters().Length == 0 && property.CanWrite && property.GetSetMethod(true).GetParameters().Length == 1)
+                .Where(property => property.CanRead && property.GetGetMethod(true).GetParameters().Length == 0 && property.TryGetWritableMemberInfo().TryGetWritableMemberInfo() != null)
                 .Select(x =>
                             {
                                 var result = DataMember.TryCreateByDataMemberAttribute(x);
