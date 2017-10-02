@@ -18,8 +18,10 @@ Task("Default")
 Task("Rebuild")
     .Does(() => 
 {
-    MSBuild(slnPath, settings => settings.SetConfiguration(configuration)
-                                         .WithTarget("Rebuild")
+    Information(@"Rebuilding grobuf solution. Configuration : {0}", configuration);
+    MSBuild(slnPath, settings => settings.WithTarget("Rebuild")
+                                         .SetVerbosity(Verbosity.Minimal)
+                                         .SetConfiguration(configuration)
                                          .UseToolVersion(MSBuildToolVersion.VS2017));
 });
 
@@ -27,11 +29,19 @@ Task("Run-Unit-Tests")
     .IsDependentOn("Rebuild")
     .Does(() =>
 {
-    NUnit("./GroBuf/Tests/**/bin/" + configuration + "/*.Tests.dll", new NUnitSettings { NoResults = true });
+    RunTests(excludeLongRunning : true);
+});
+
+Task("Run-All-Tests")
+    .IsDependentOn("Rebuild")
+    .Does(() =>
+{
+    RunTests(excludeLongRunning : false);
 });
 
 Task("Build-And-Merge")
     .IsDependentOn("Rebuild")
+    .IsDependentOn("Run-Unit-Tests")
     .Does(() =>
 {
     CleanDirectory("./Output/");
@@ -46,3 +56,14 @@ Task("Build-And-Merge")
 });
 
 RunTarget(target);
+
+private void RunTests(bool excludeLongRunning){
+    var settings = new NUnitSettings
+    {
+        NoResults = true,
+        OutputFile = "./.tests-output.txt"
+    };
+    if(excludeLongRunning)
+        settings.Exclude = "LongRunning";
+    NUnit("./GroBuf/Tests/**/bin/" + configuration + "/*.Tests.dll", settings);
+}

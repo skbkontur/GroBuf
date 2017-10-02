@@ -83,6 +83,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestPerformance()
         {
             var hashtable = new Hashtable();

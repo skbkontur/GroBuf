@@ -10,3 +10,4 @@ _ReSharper.*
 Output/
 .cake/*
 !.cake/packages.config
+.tests-output.txt

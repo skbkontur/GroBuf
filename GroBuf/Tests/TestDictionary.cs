@@ -69,6 +69,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestPerformance()
         {
             var dict = new Dictionary<int, int>();

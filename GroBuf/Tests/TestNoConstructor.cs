@@ -25,6 +25,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestSpeed()
         {
             byte[] bytes = serializer.Serialize(new CNoConstructorCopy {A = 2});
@@ -38,6 +39,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestSpeedNoCtor()
         {
             byte[] bytes = serializer.Serialize(new CNoConstructor(2));
