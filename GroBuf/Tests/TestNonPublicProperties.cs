@@ -20,7 +20,7 @@ namespace GroBuf.Tests
             var result = serializer.Deserialize<CWithnonPublics>(serialize);
             Assert.AreEqual(2378, result.A);
             Assert.AreEqual(3434, result.GetB());
-//            Assert.AreEqual(5656, result.C);
+            Assert.AreEqual(5656, result.C);
         }
 
         public class CWithnonPublics
@@ -33,7 +33,7 @@ namespace GroBuf.Tests
             {
                 A = a;
                 B = b;
-//                C = c;
+                C = c;
             }
 
             public int GetB()
@@ -43,8 +43,7 @@ namespace GroBuf.Tests
 
             public int A { get; private set; }
             public int B { private get; set; }
-            // TODO fix build for C# 6
-//            public int C { get; }
+            public int C { get; }
         }
 
         private Serializer serializer;
