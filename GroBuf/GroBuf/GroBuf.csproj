@@ -70,12 +70,11 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="GrEmit">
-      <HintPath>..\..\Assemblies\GrEmit.dll</HintPath>
+    <Reference Include="GrEmit, Version=2.1.9.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\GrEmit.2.1.9\lib\net40\GrEmit.dll</HintPath>
     </Reference>
     <Reference Include="Mono.Reflection, Version=1.1.0.0, Culture=neutral, PublicKeyToken=0738eb9f132ed756, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Assemblies\Mono.Reflection.dll</HintPath>
+      <HintPath>..\packages\Mono.Reflection.1.1.0.0\lib\Mono.Reflection.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -230,15 +229,14 @@
     <Compile Include="Writers\WriterCollection.cs" />
     <Compile Include="Writers\WriterTypeBuilder.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Target Name="AfterBuild">
-    <Copy SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFolder="$(SolutionDir)..\Assemblies\" />
-    <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(SolutionDir)..\Assemblies\" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
