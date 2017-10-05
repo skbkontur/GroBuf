@@ -20,6 +20,7 @@ namespace GroBuf.Tests
         }
 
         [Test, Ignore]
+        [Category("LongRunning")]
         public void TestChangeObjectDuringSerialization()
         {
             var random = new Random(54717651);
@@ -48,6 +49,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void Test()
         {
             const int numberOfMessages = 10000;
@@ -74,6 +76,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestWithGarbageCollection()
         {
             const int numberOfMessages = 100000;
@@ -99,6 +102,7 @@ namespace GroBuf.Tests
         }
 
         [Test, Ignore]
+        [Category("LongRunning")]
         public void TestWithGarbageCollection2()
         {
             const int numberOfMessages = 1000000;

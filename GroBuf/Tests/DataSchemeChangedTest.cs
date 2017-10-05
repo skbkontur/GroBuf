@@ -150,6 +150,15 @@ namespace GroBuf.Tests
             Assert.AreEqual(-1, oo.Q);
         }
 
+        [Test]
+        public void Test_GroboMember_ReadonlyProperty()
+        {
+            var o = new C9_GroboMember_ReadonlyProperty_Old("GRobas");
+            var data = serializer.Serialize(o);
+            var oo = serializer.Deserialize<C9_GroboMember_ReadonlyProperty_New>(data);
+            Assert.AreEqual("GRobas", oo.Zzz);
+        }
+
         public class C1_Old
         {
             public string S { get; set; }
@@ -240,6 +249,27 @@ namespace GroBuf.Tests
 
             [GroboMember(1)]
             public int? Q { get; set; }
+        }
+
+        public class C9_GroboMember_ReadonlyProperty_Old
+        {
+            public C9_GroboMember_ReadonlyProperty_Old(string qxx)
+            {
+                Qxx = qxx;
+            }
+
+            public string Qxx { get; }
+        }
+
+        public class C9_GroboMember_ReadonlyProperty_New
+        {
+            public C9_GroboMember_ReadonlyProperty_New(string gRobas)
+            {
+                Zzz = gRobas;
+            }
+
+            [GroboMember("Qxx")]
+            public string Zzz { get; }
         }
 
         private Serializer serializer;

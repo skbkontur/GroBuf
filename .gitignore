@@ -8,3 +8,6 @@ GroBuf.dll
 GroBuf.pdb
 _ReSharper.*
 Output/
+.cake/*
+!.cake/packages.config
+.tests-output.txt

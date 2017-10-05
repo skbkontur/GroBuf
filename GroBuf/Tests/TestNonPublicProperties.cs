@@ -16,10 +16,11 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            byte[] serialize = serializer.Serialize(new CWithnonPublics(2378, 3434));
+            byte[] serialize = serializer.Serialize(new CWithnonPublics(2378, 3434, 5656));
             var result = serializer.Deserialize<CWithnonPublics>(serialize);
             Assert.AreEqual(2378, result.A);
             Assert.AreEqual(3434, result.GetB());
+            Assert.AreEqual(5656, result.C);
         }
 
         public class CWithnonPublics
@@ -28,10 +29,11 @@ namespace GroBuf.Tests
             {
             }
 
-            public CWithnonPublics(int a, int b)
+            public CWithnonPublics(int a, int b, int c)
             {
                 A = a;
                 B = b;
+                C = c;
             }
 
             public int GetB()
@@ -41,6 +43,7 @@ namespace GroBuf.Tests
 
             public int A { get; private set; }
             public int B { private get; set; }
+            public int C { get; }
         }
 
         private Serializer serializer;

@@ -166,6 +166,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestPerformance()
         {
             var hashSet = new HashSet<int>();
@@ -193,6 +194,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
+        [Category("LongRunning")]
         public void TestPerformanceGuid()
         {
             var hashSet = new HashSet<Guid>();

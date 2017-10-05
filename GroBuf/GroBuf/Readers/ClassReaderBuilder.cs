@@ -190,14 +190,15 @@ namespace GroBuf.Readers
                                                {
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, context.Module, true);
+            var writableMember = member.TryGetWritableMemberInfo();
             using(var il = new GroboIL(method))
             {
                 il.Ldarg(0); // stack: [data]
                 il.Ldarg(1); // stack: [data, ref index]
-                switch(member.MemberType)
+                switch(writableMember.MemberType)
                 {
                 case MemberTypes.Field:
-                    var field = (FieldInfo)member;
+                    var field = (FieldInfo)writableMember;
                     var done = false;
                     if(member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && field.FieldType.IsValueType)
                     {
@@ -246,7 +247,7 @@ namespace GroBuf.Readers
                     }
                     break;
                 case MemberTypes.Property:
-                    var property = (PropertyInfo)member;
+                    var property = (PropertyInfo)writableMember;
                     var propertyValue = il.DeclareLocal(property.PropertyType);
                     if(context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
                     {
