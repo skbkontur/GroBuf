@@ -1,0 +1,5 @@
+version: 1.0.{build}
+image: Visual Studio 2017
+configuration: Release
+build_script:
+- ps: '& { ./build.ps1 -Script build.cake -Target Build-And-Merge -Configuration Release }'
