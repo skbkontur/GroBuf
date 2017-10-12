@@ -8,3 +8,4 @@ build_script:
 - ps: '& { ./build.ps1 -Script build.cake -Target Build-And-Merge -Configuration Release }'
 after_build:
 - nuget pack GroBuf.nuspec
+- appveyor PushArtifact GroBuf.*.nupkg
