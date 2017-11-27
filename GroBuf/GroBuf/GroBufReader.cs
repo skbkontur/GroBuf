@@ -20,7 +20,7 @@ namespace GroBuf
             this.options = options;
             this.factory = factory;
             this.baseFactory = baseFactory;
-            var assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
+            var assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
             readerCollection = new ReaderCollection(customSerializerCollection, factory, baseFactory, module);
         }

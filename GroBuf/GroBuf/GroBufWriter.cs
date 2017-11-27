@@ -20,7 +20,7 @@ namespace GroBuf
             this.options = options;
             sizeCounterCollection = new SizeCounterCollection(customSerializerCollection, factory, baseFactory);
             writerCollection = new WriterCollection(customSerializerCollection, factory, baseFactory);
-            assembly = AppDomain.CurrentDomain.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
+            assembly = AssemblyBuilder.DefineDynamicAssembly(new AssemblyName(Guid.NewGuid().ToString()), AssemblyBuilderAccess.Run);
             module = assembly.DefineDynamicModule(Guid.NewGuid().ToString());
             trackReferences = options.HasFlag(GroBufOptions.PackReferences);
         }
