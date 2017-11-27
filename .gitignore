@@ -11,3 +11,4 @@ Output/
 .cake/*
 !.cake/packages.config
 packages/
+.vs/
