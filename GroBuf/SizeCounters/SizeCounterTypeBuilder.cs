@@ -24,7 +24,7 @@ namespace GroBuf.SizeCounters
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
             var constantsBuilderContext = new SizeCounterConstantsBuilderContext(groBufWriter, constantsBuilder, sizeCounterCollection, dataMembersExtractor);
             constantsBuilderContext.BuildConstants(type, true, ignoreCustomSerialization);
-            var constantsType = constantsBuilder.CreateType();
+            var constantsType = constantsBuilder.CreateTypeInfo();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
             var context = new SizeCounterBuilderContext(groBufWriter, module, constantsType, fields, sizeCounterCollection, dataMembersExtractor);
             var sizeCounter = context.GetCounter(type, true, ignoreCustomSerialization);

@@ -24,7 +24,7 @@ namespace GroBuf.Readers
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
             var constantsBuilderContext = new ReaderConstantsBuilderContext(groBufReader, constantsBuilder, readerCollection, dataMembersExtractor);
             constantsBuilderContext.BuildConstants(type, true, ignoreCustomSerialization);
-            var constantsType = constantsBuilder.CreateType();
+            var constantsType = constantsBuilder.CreateTypeInfo();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
             var context = new ReaderTypeBuilderContext(groBufReader, module, constantsType, fields, readerCollection, dataMembersExtractor);
             var reader = context.GetReader(type, true, ignoreCustomSerialization);

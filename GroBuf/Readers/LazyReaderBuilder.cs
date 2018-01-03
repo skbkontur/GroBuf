@@ -134,7 +134,7 @@ namespace GroBuf.Readers
                 il.Ldloc(result);
                 il.Ret();
             }
-            return typeBuilder.CreateType();
+            return typeBuilder.CreateTypeInfo();
         }
 
         private readonly ModuleBuilder module;

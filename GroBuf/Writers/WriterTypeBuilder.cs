@@ -24,7 +24,7 @@ namespace GroBuf.Writers
             constantsBuilder.DefineField("delegates", typeof(Delegate[]), FieldAttributes.Private | FieldAttributes.Static);
             var constantsBuilderContext = new WriterConstantsBuilderContext(groBufWriter, constantsBuilder, writerCollection, dataMembersExtractor);
             constantsBuilderContext.BuildConstants(type, true, ignoreCustomSerialization);
-            var constantsType = constantsBuilder.CreateType();
+            var constantsType = constantsBuilder.CreateTypeInfo();
             var fields = constantsBuilderContext.GetFields().ToDictionary(pair => pair.Key, pair => pair.Value.Select(constantsType.GetField).ToArray());
             var context = new WriterTypeBuilderContext(groBufWriter, module, constantsType, fields, writerCollection, dataMembersExtractor);
             var writer = context.GetWriter(type, true, ignoreCustomSerialization);
