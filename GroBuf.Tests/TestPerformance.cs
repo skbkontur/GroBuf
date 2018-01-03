@@ -13,7 +13,9 @@ using NUnit.Framework;
 
 namespace GroBuf.Tests
 {
-    [TestFixture, Ignore("Is used for debugging")]
+    [TestFixture]
+    [Category("LongRunning")]
+    [Ignore("Is used for perf comparison")]
     public class TestPerformance
     {
         [SetUp]

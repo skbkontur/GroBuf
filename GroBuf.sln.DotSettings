@@ -3,4 +3,5 @@
 	<s:String x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=DB8C5600C8219942B38356EAC5ED0746/RelativePath/@EntryValue">..\Common.DotSettings</s:String>
 	<s:Boolean x:Key="/Default/Environment/InjectedLayers/FileInjectedLayer/=DB8C5600C8219942B38356EAC5ED0746/@KeyIndexDefined">True</s:Boolean>
 	<s:Boolean x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileDB8C5600C8219942B38356EAC5ED0746/@KeyIndexDefined">True</s:Boolean>
-	<s:Double x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileDB8C5600C8219942B38356EAC5ED0746/RelativePriority/@EntryValue">1</s:Double></wpf:ResourceDictionary>
+	<s:Double x:Key="/Default/Environment/InjectedLayers/InjectedLayerCustomization/=FileDB8C5600C8219942B38356EAC5ED0746/RelativePriority/@EntryValue">1</s:Double>
+	<s:String x:Key="/Default/Environment/UnitTesting/ExcludedCategoriesList/@EntryValue">LongRunning</s:String></wpf:ResourceDictionary>

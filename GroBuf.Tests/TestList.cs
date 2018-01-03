@@ -146,7 +146,8 @@ namespace GroBuf.Tests
             Assert.AreEqual(1, list[2]);
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
+        [Category("LongRunning")]
         public void TestPerformance()
         {
             var list = new List<int>();
@@ -178,7 +179,8 @@ namespace GroBuf.Tests
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
+        [Category("LongRunning")]
         public void TestPerformance2()
         {
             var obj = new A{Items = new List<Item>()};
@@ -210,7 +212,8 @@ namespace GroBuf.Tests
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
+        [Category("LongRunning")]
         public void TestPerformanceGuid()
         {
             var list = new List<Guid>();
@@ -248,7 +251,9 @@ namespace GroBuf.Tests
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
+        [Category("LongRunning")]
+        [Ignore("Is used for debugging")]
         public void TestPerformanceProtobuf()
         {
             var list = new List<int>();
@@ -285,7 +290,9 @@ namespace GroBuf.Tests
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
+        [Category("LongRunning")]
+        [Ignore("Is used for debugging")]
         public void TestPerformanceProtobuf2()
         {
             var obj = new A {Items = new List<Item>()};

@@ -19,8 +19,9 @@ namespace GroBuf.Tests
             serializer = new Serializer(new PropertiesExtractor());
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
         [Category("LongRunning")]
+        [Ignore("Is used for debugging")]
         public void TestChangeObjectDuringSerialization()
         {
             var random = new Random(54717651);
@@ -101,8 +102,9 @@ namespace GroBuf.Tests
             stop = true;
         }
 
-        [Test, Ignore("Is used for debugging")]
+        [Test]
         [Category("LongRunning")]
+        [Ignore("Is used for debugging")]
         public void TestWithGarbageCollection2()
         {
             const int numberOfMessages = 1000000;
