@@ -1,4 +1,6 @@
 # GroBuf
+[![Build Status][build-status-travis]][travis]
+[![Build status](https://ci.appveyor.com/api/projects/status/xbq92fnsfbo8946k?svg=true)](https://ci.appveyor.com/project/vostok/grobuf)
 
 GroBuf is a fast binary serializer for .NET.
 

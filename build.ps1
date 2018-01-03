@@ -148,9 +148,6 @@ if (!(Test-Path $NUGET_EXE)) {
 # Save nuget.exe path to environment to be available to child processed
 $ENV:NUGET_EXE = $NUGET_EXE
 
-# Save tools directory to environment
-$ENV:CAKE_PATHS_TOOLS = $TOOLS_DIR
-
 # Restore tools from NuGet?
 if(-Not $SkipToolPackageRestore.IsPresent) {
     Push-Location
