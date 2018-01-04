@@ -103,7 +103,7 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestStrinArray()
+        public void TestStringArray()
         {
             var o = new A {S = new[] {"zzz", "qxx"}};
             var data = serializer.Serialize(o);
