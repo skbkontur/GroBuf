@@ -1,3 +1,2 @@
-@echo off
-PowerShell.exe -ExecutionPolicy ByPass -Command "& { %~dp0build.ps1 -Script %~dp0build.cake -Target Rebuild -Configuration Release; exit $LASTEXITCODE }"
+dotnet build --force --no-incremental --configuration Release ./GroBuf.sln
 pause
