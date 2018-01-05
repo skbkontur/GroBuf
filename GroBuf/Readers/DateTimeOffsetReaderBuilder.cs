@@ -33,7 +33,7 @@ namespace GroBuf.Readers
             context.CallReader(typeof(DateTime)); // reader(pinnedData, ref index, ref dateTime, context); stack: [ref result]
             il.Dup(); // stack: [ref result, ref result]
             il.Ldloc(dateTime); // stack: [ref result, ref result, dateTime]
-            il.Stfld(Type.GetField("m_dateTime", BindingFlags.Instance | BindingFlags.NonPublic)); // result.m_dateTime = dateTime; stack: [ref result]
+            il.Stfld(Type.GetField(PlatformHelpers.DateTimeOffsetDateTimeFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // result.m_dateTime = dateTime; stack: [ref result]
 
             context.LoadData(); // stack: [ref result, data]
             context.LoadIndexByRef(); // stack: [ref result, data, ref index]
@@ -42,7 +42,7 @@ namespace GroBuf.Readers
             context.LoadContext(); // stack: [ref result, data, ref index, ref offset, context]
             context.CallReader(typeof(short)); // reader(pinnedData, ref index, ref offset, context); stack: [ref result]
             il.Ldloc(offset); // stack: [ref result, ref result, offset]
-            il.Stfld(Type.GetField("m_offsetMinutes", BindingFlags.Instance | BindingFlags.NonPublic)); // result.m_offsetMinutes = offset; stack: [ref result]
+            il.Stfld(Type.GetField(PlatformHelpers.DateTimeOffsetOffsetMinutesFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // result.m_offsetMinutes = offset; stack: [ref result]
         }
 
         protected override bool IsReference { get { return false; } }

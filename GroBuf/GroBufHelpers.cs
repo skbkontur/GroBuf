@@ -17,13 +17,10 @@ namespace GroBuf
     {
         static GroBufHelpers()
         {
-            isMono = Type.GetType("Mono.Runtime") != null;
             ExtractDynamicMethodPointer = EmitDynamicMethodPointerExtractor();
             LeafTypes = BuildLeafTypes();
             LeafTypeHandles = LeafTypes.Select(type => type == null ? IntPtr.Zero : type.TypeHandle.Value).ToArray();
         }
-
-        public static bool IsMono { get { return isMono; } }
 
         public static Type GetMemberType(this MemberInfo member)
         {
@@ -112,7 +109,7 @@ namespace GroBuf
 
         private static Func<DynamicMethod, IntPtr> EmitDynamicMethodPointerExtractor()
         {
-            if (isMono)
+            if (PlatformHelpers.IsMono)
             {
                 return dynMethod =>
                 {
@@ -196,6 +193,5 @@ namespace GroBuf
         }
 
         private static readonly object dummy = new object();
-        private static readonly bool isMono;
     }
 }

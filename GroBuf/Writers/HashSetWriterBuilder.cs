@@ -58,7 +58,7 @@ namespace GroBuf.Writers
 
             context.LoadObj(); // stack: [obj]
             var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetField("m_lastIndex", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_lastIndex]
+            il.Ldfld(Type.GetField(PlatformHelpers.HashSetLastIndexFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_lastIndex]
             il.Dup();
             il.Stloc(count); // count = obj.m_lastIndex; stack: []
             var writeDataLengthLabel = il.DefineLabel("writeDataLength");
@@ -67,7 +67,7 @@ namespace GroBuf.Writers
             context.LoadObj(); // stack: [obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var slots = il.DeclareLocal(slotType.MakeArrayType());
-            il.Ldfld(Type.GetField("m_slots", BindingFlags.Instance | BindingFlags.NonPublic));
+            il.Ldfld(Type.GetField(PlatformHelpers.HashSetSlotsFieldName, BindingFlags.Instance | BindingFlags.NonPublic));
             il.Stloc(slots);
 
             var i = il.DeclareLocal(typeof(int));

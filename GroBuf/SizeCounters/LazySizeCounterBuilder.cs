@@ -23,7 +23,7 @@ namespace GroBuf.SizeCounters
             var argument = Type.GetGenericArguments()[0];
 
             context.LoadObj(); // stack: [obj]
-            var factoryField = Type.GetField("m_valueFactory", BindingFlags.Instance | BindingFlags.NonPublic);
+            var factoryField = Type.GetField(PlatformHelpers.LazyValueFactoryFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
             il.Ldfld(factoryField); // stack: [obj.m_valueFactory]
             var factory = il.DeclareLocal(typeof(Func<>).MakeGenericType(argument));
             il.Dup();
@@ -31,8 +31,7 @@ namespace GroBuf.SizeCounters
             var countUsual = il.DefineLabel("countUsual");
             il.Brfalse(countUsual); // if(factory == null) goto countUsual; stack: []
             il.Ldloc(factory); // stack: [factory]
-            string targetFieldName = GroBufHelpers.IsMono ? "m_target" : "_target";
-            il.Ldfld(typeof(Delegate).GetField(targetFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [factory.target]
+            il.Ldfld(typeof(Delegate).GetField(PlatformHelpers.DelegateTargetFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [factory.target]
             var rawData = il.DeclareLocal(typeof(RawData<>).MakeGenericType(Type.GetGenericArguments()));
             il.Isinst(rawData.Type); // stack: [factory.target as RawData]
             il.Dup();
