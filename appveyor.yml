@@ -1,11 +1,17 @@
-version: 1.0.{build}
 image: Visual Studio 2017
-configuration: Release
-branches:
-  only:
-    - master
+
+before_build:
+  - cmd: dotnet --info
+  - cmd: dotnet restore ./GroBuf.sln --verbosity m
+
 build_script:
-- ps: '& { ./build.ps1 -Script build.cake -Target Build-And-Merge -Configuration Release }'
-after_build:
-- nuget pack GroBuf.nuspec
-- ps: Get-ChildItem .\GroBuf.*.nupkg | % { Push-AppveyorArtifact $_ -FileName $_.FullName }
+  - cmd: dotnet build --configuration Release ./GroBuf.sln
+
+test_script:
+  - cmd: dotnet test --no-build --configuration Release --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj --logger "trx;LogFileName=test-results.trx"
+
+after_test:
+  - ps: |
+      $wc = New-Object 'System.Net.WebClient'
+      $url = "https://ci.appveyor.com/api/testresults/mstest/$($env:APPVEYOR_JOB_ID)";
+      $wc.UploadFile($url, (Resolve-Path './GroBuf.Tests/TestResults/test-results.trx'))

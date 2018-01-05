@@ -1,0 +1,12 @@
+dist: trusty
+sudo: false
+language: csharp
+dotnet: 2.0.0
+mono: none
+script:
+  - dotnet restore ./GroBuf.sln --verbosity m
+  - dotnet build --configuration Release --framework netstandard2.0 ./GroBuf/GroBuf.csproj
+  - dotnet build --configuration Release --framework netcoreapp2.0 ./GroBuf.Tests/GroBuf.Tests.csproj
+  - dotnet test --no-build --configuration Release --framework netcoreapp2.0 --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
+
+

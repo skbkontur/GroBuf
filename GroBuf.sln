@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GroBuf", "GroBuf\GroBuf.csproj", "{FB981757-D4F2-4DD7-AB98-62BD8CA5F01D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GroBuf.Tests", "GroBuf.Tests\GroBuf.Tests.csproj", "{7AC4F6AF-43D0-497A-90A5-515BF9B1313B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FB981757-D4F2-4DD7-AB98-62BD8CA5F01D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB981757-D4F2-4DD7-AB98-62BD8CA5F01D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB981757-D4F2-4DD7-AB98-62BD8CA5F01D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB981757-D4F2-4DD7-AB98-62BD8CA5F01D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7AC4F6AF-43D0-497A-90A5-515BF9B1313B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AC4F6AF-43D0-497A-90A5-515BF9B1313B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AC4F6AF-43D0-497A-90A5-515BF9B1313B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AC4F6AF-43D0-497A-90A5-515BF9B1313B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {68B676D4-A7FF-4FF9-9EC8-0EC2788FB28A}
+	EndGlobalSection
+EndGlobal
