@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 
 using GroBuf.DataMembersExtracters;
 
@@ -17,13 +18,20 @@ namespace GroBuf.Tests
         }
 
         [Test]
-        public void TestSize()
+        public void TestSizeIPv4()
         {
             var address = new IPAddress(new byte[] {123, 1, 2, 3});
+            Assert.That(address.AddressFamily, Is.EqualTo(AddressFamily.InterNetwork));
             var size = serializer.GetSize(address);
             Assert.AreEqual(9, size);
-            address = new IPAddress(Guid.NewGuid().ToByteArray());
-            size = serializer.GetSize(address);
+        }
+
+        [Test]
+        public void TestSizeIPv6()
+        {
+            var address = new IPAddress(Guid.NewGuid().ToByteArray());
+            Assert.That(address.AddressFamily, Is.EqualTo(AddressFamily.InterNetworkV6));
+            var size = serializer.GetSize(address);
             Assert.AreEqual(21, size);
         }
 
