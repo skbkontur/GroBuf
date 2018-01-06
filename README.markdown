@@ -1,5 +1,5 @@
 # GroBuf
-[![Build Status](https://travis-ci.org/skbkontur/GroBuf.svg?branch=dotnetcore)](https://travis-ci.org/skbkontur/GroBuf)
+[![Build Status](https://travis-ci.org/skbkontur/GroBuf.svg?branch=master)](https://travis-ci.org/skbkontur/GroBuf)
 [![Build status](https://ci.appveyor.com/api/projects/status/xbq92fnsfbo8946k?svg=true)](https://ci.appveyor.com/project/vostok/grobuf)
 
 GroBuf is a fast binary serializer for .NET.
