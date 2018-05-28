@@ -182,13 +182,35 @@ namespace GroBuf
                 return memberInfo;
             if(propertyInfo.CanWrite && propertyInfo.GetSetMethod(true).GetParameters().Length == 1)
                 return memberInfo;
-            try
+            return TryGetBackingField(propertyInfo);
+        }
+
+        private static FieldInfo TryGetBackingField(PropertyInfo propertyInfo)
+        {
+            var instructions = propertyInfo.GetGetMethod(true).GetInstructions();
+
+            // optimized instance property
+            if(instructions.Count == 3 &&
+               instructions[0].OpCode == OpCodes.Ldarg_0 &&
+               instructions[1].OpCode == OpCodes.Ldfld &&
+               instructions[2].OpCode == OpCodes.Ret)
             {
-                return propertyInfo.GetBackingField();
+                return (FieldInfo)instructions[1].Operand;
             }
-            catch
+
+            // unoptimized instance property
+            if(instructions.Count == 7 &&
+               instructions[0].OpCode == OpCodes.Nop &&
+               instructions[1].OpCode == OpCodes.Ldarg_0 &&
+               instructions[2].OpCode == OpCodes.Ldfld &&
+               instructions[3].OpCode == OpCodes.Stloc_0 &&
+               instructions[4].OpCode == OpCodes.Br_S &&
+               instructions[5].OpCode == OpCodes.Ldloc_0 &&
+               instructions[6].OpCode == OpCodes.Ret)
             {
+                return (FieldInfo)instructions[2].Operand;
             }
+
             return null;
         }
 
