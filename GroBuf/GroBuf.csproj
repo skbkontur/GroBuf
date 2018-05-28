@@ -1,22 +1,23 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>GroBuf</PackageId>
-    <Version>1.3.0</Version>
-    <AssemblyVersion>1.3.0.0</AssemblyVersion>
+    <PackageId>$(AssemblyName)</PackageId>
+    <VersionPrefix>1.3.0</VersionPrefix>
+    <Version>$(VersionPrefix)</Version>
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
     <Authors>Igor Chevdar</Authors>
-    <Company>SKB Kontur</Company>
-    <Copyright>SKB Kontur 2011-2018</Copyright>
-    <RequireLicenseAcceptance>false</RequireLicenseAcceptance>
+    <PackageTags>binary serializer</PackageTags>
     <Description>GroBuf is a fast binary serializer for .NET</Description>
-    <PackageTags>.NET Binary Serialization</PackageTags>
-    <PackageProjectUrl>https://github.com/skbkontur/GroBuf</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/skbkontur/GroBuf</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/skbkontur/GroBuf</RepositoryUrl>
+    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="GrEmit" Version="2.2.1" />
     <PackageReference Include="Mono.Reflection.Core" Version="1.1.1" />
   </ItemGroup>
+
 </Project>
