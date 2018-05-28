@@ -1,4 +1,6 @@
 # GroBuf
+
+[![NuGet Status](https://img.shields.io/nuget/v/GroBuf.svg)](https://www.nuget.org/packages/GroBuf/)
 [![Build Status](https://travis-ci.org/skbkontur/GroBuf.svg?branch=master)](https://travis-ci.org/skbkontur/GroBuf)
 [![Build status](https://ci.appveyor.com/api/projects/status/xbq92fnsfbo8946k?svg=true)](https://ci.appveyor.com/project/vostok/grobuf)
 

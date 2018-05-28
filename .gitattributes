@@ -10,3 +10,7 @@
 *.cmd         text
 *.sh          text
 *.md          text
+*.java        text
+*.iml         text
+*.xml         text
+*.config      text
