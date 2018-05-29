@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -187,7 +187,14 @@ namespace GroBuf
 
         private static FieldInfo TryGetBackingField(PropertyInfo propertyInfo)
         {
-            var instructions = propertyInfo.GetGetMethod(true).GetInstructions();
+            var getMethodInfo = propertyInfo.GetGetMethod(true);
+            if(getMethodInfo == null)
+                throw new InvalidOperationException($"Failed to get getter MethodInfo for: {propertyInfo} @ {propertyInfo.DeclaringType}");
+
+            if(getMethodInfo.GetMethodBody() == null)
+                return null;
+
+            var instructions = getMethodInfo.GetInstructions();
 
             // optimized instance property
             if(instructions.Count == 3 &&

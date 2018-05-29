@@ -1,4 +1,4 @@
-﻿using GroBuf.DataMembersExtracters;
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
 
@@ -16,7 +16,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test()
         {
-            byte[] serialize = serializer.Serialize(new CWithnonPublics(2378, 3434, 5656, 6754, 9075, 4376));
+            byte[] serialize = serializer.Serialize(new CWithnonPublics("abstract", 2378, 3434, 5656, 6754, 9075, 4376));
             var result = serializer.Deserialize<CWithnonPublics>(serialize);
             Assert.AreEqual(2378, result.A);
             Assert.AreEqual(3434, result.GetB());
@@ -24,9 +24,15 @@ namespace GroBuf.Tests
             Assert.AreEqual(6754, result.D);
             Assert.AreEqual(9075, result.E);
             Assert.AreEqual(4376, result.F);
+            Assert.AreEqual("abstract", result.AbstractProp);
         }
 
-        public class CWithnonPublics
+        public abstract class CWithnonPublicsBase
+        {
+            public abstract string AbstractProp { get; }
+        }
+
+        public class CWithnonPublics : CWithnonPublicsBase
         {
             private int d;
             private readonly int e;
@@ -36,8 +42,9 @@ namespace GroBuf.Tests
             {
             }
 
-            public CWithnonPublics(int a, int b, int c, int d, int e, int f)
+            public CWithnonPublics(string abstractProp, int a, int b, int c, int d, int e, int f)
             {
+                AbstractProp = abstractProp;
                 A = a;
                 B = b;
                 C = c;
@@ -45,6 +52,8 @@ namespace GroBuf.Tests
                 this.e = e;
                 this.f = f;
             }
+
+            public override string AbstractProp { get; }
 
             public int GetB()
             {
