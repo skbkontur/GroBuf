@@ -1,7 +1,7 @@
 dist: trusty
 sudo: false
 language: csharp
-dotnet: 2.1.200
+dotnet: 2.1.400
 mono: none
 script:
   - dotnet restore ./GroBuf.sln --verbosity m
