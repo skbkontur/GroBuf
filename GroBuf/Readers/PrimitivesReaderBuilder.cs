@@ -14,7 +14,7 @@ namespace GroBuf.Readers
         public PrimitivesReaderBuilder(Type type, ModuleBuilder module)
             : base(type)
         {
-            if(!Type.IsPrimitive && Type != typeof(decimal))
+            if (!Type.IsPrimitive && Type != typeof(decimal))
                 throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
             primitiveReaders = BuildPrimitiveValueReaders(module);
         }
@@ -52,9 +52,9 @@ namespace GroBuf.Readers
         {
             var result = new KeyValuePair<Delegate, IntPtr>[256];
             var defaultReader = BuildDefaultValueReader(module);
-            for(var i = 0; i < 256; ++i)
+            for (var i = 0; i < 256; ++i)
                 result[i] = defaultReader;
-            foreach(var typeCode in new[]
+            foreach (var typeCode in new[]
                 {
                     GroBufTypeCode.Int8, GroBufTypeCode.UInt8,
                     GroBufTypeCode.Int16, GroBufTypeCode.UInt16,
@@ -72,7 +72,7 @@ namespace GroBuf.Readers
         private KeyValuePair<Delegate, IntPtr> BuildDefaultValueReader(ModuleBuilder module)
         {
             var method = new DynamicMethod("Default_" + Type.Name + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, module, true);
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 il.Ldarg(1); // stack: [ref result]
                 il.Initobj(Type); // [result = default(T)]
@@ -85,14 +85,14 @@ namespace GroBuf.Readers
         private KeyValuePair<Delegate, IntPtr> BuildPrimitiveValueReader(ModuleBuilder module, GroBufTypeCode typeCode)
         {
             var method = new DynamicMethod("Read_" + Type.Name + "_from_" + typeCode + "_" + Guid.NewGuid(), typeof(void), new[] {typeof(IntPtr), Type.MakeByRefType()}, module, true);
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 var expectedTypeCode = GroBufTypeCodeMap.GetTypeCode(Type);
 
                 il.Ldarg(1); // stack: [ref result]
-                if(typeCode == GroBufTypeCode.Decimal)
+                if (typeCode == GroBufTypeCode.Decimal)
                 {
-                    if(expectedTypeCode == GroBufTypeCode.Boolean)
+                    if (expectedTypeCode == GroBufTypeCode.Boolean)
                     {
                         il.Ldarg(0); // stack: [ref result, &temp, address]
                         il.Ldind(typeof(long)); // stack: [ref result, &temp, (long)*address]
@@ -124,7 +124,7 @@ namespace GroBuf.Readers
                         il.Stind(typeof(long)); // *(temp + 8) = *(address + 8);
 
                         il.Ldloc(temp); // stack: [ref result, ref temp]
-                        switch(expectedTypeCode)
+                        switch (expectedTypeCode)
                         {
                         case GroBufTypeCode.Int8:
                             il.Call(decimalToInt8Method); // stack: [ref result, (sbyte)temp]
@@ -167,7 +167,7 @@ namespace GroBuf.Readers
                 {
                     il.Ldarg(0); // stack: [ref result, address]
                     EmitReadPrimitiveValue(il, Type == typeof(bool) ? GetTypeCodeForBool(typeCode) : typeCode); // stack: [ref result, value]
-                    if(Type == typeof(bool))
+                    if (Type == typeof(bool))
                     {
                         il.Conv<long>();
                         il.Ldc_I4(0); // stack: [ref result, value, 0]
@@ -179,7 +179,7 @@ namespace GroBuf.Readers
                     else
                         EmitConvertValue(il, typeCode, expectedTypeCode);
                 }
-                switch(expectedTypeCode)
+                switch (expectedTypeCode)
                 {
                 case GroBufTypeCode.Int8:
                 case GroBufTypeCode.UInt8:
@@ -218,18 +218,18 @@ namespace GroBuf.Readers
 
         private GroBufTypeCode GetTypeCodeForBool(GroBufTypeCode typeCode)
         {
-            if(typeCode == GroBufTypeCode.Single)
+            if (typeCode == GroBufTypeCode.Single)
                 return GroBufTypeCode.Int32;
-            if(typeCode == GroBufTypeCode.Double)
+            if (typeCode == GroBufTypeCode.Double)
                 return GroBufTypeCode.Int64;
             return typeCode;
         }
 
         private static void EmitConvertValue(GroboIL il, GroBufTypeCode typeCode, GroBufTypeCode expectedTypeCode)
         {
-            if(expectedTypeCode == typeCode)
+            if (expectedTypeCode == typeCode)
                 return;
-            switch(expectedTypeCode)
+            switch (expectedTypeCode)
             {
             case GroBufTypeCode.Int8:
                 il.Conv<sbyte>();
@@ -245,43 +245,43 @@ namespace GroBuf.Readers
                 il.Conv<ushort>();
                 break;
             case GroBufTypeCode.Int32:
-                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTimeNew)
+                if (typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTimeNew)
                     il.Conv<int>();
                 break;
             case GroBufTypeCode.UInt32:
-                if(typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTimeNew)
+                if (typeCode == GroBufTypeCode.Int64 || typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.Double || typeCode == GroBufTypeCode.Single || typeCode == GroBufTypeCode.DateTimeNew)
                     il.Conv<uint>();
                 break;
             case GroBufTypeCode.Int64:
-                if(typeCode != GroBufTypeCode.UInt64)
+                if (typeCode != GroBufTypeCode.UInt64)
                 {
-                    if(typeCode == GroBufTypeCode.UInt8 || typeCode == GroBufTypeCode.UInt16 || typeCode == GroBufTypeCode.UInt32)
+                    if (typeCode == GroBufTypeCode.UInt8 || typeCode == GroBufTypeCode.UInt16 || typeCode == GroBufTypeCode.UInt32)
                         il.Conv<ulong>();
                     else
                         il.Conv<long>();
                 }
                 break;
             case GroBufTypeCode.UInt64:
-                if(typeCode != GroBufTypeCode.Int64 && typeCode != GroBufTypeCode.DateTimeNew)
+                if (typeCode != GroBufTypeCode.Int64 && typeCode != GroBufTypeCode.DateTimeNew)
                 {
-                    if(typeCode == GroBufTypeCode.Int8 || typeCode == GroBufTypeCode.Int16 || typeCode == GroBufTypeCode.Int32)
+                    if (typeCode == GroBufTypeCode.Int8 || typeCode == GroBufTypeCode.Int16 || typeCode == GroBufTypeCode.Int32)
                         il.Conv<long>();
                     else
                         il.Conv<ulong>();
                 }
                 break;
             case GroBufTypeCode.Single:
-                if(typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.UInt32)
+                if (typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.UInt32)
                     il.Conv_R_Un();
                 il.Conv<float>();
                 break;
             case GroBufTypeCode.Double:
-                if(typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.UInt32)
+                if (typeCode == GroBufTypeCode.UInt64 || typeCode == GroBufTypeCode.UInt32)
                     il.Conv_R_Un();
                 il.Conv<double>();
                 break;
             case GroBufTypeCode.Decimal:
-                switch(typeCode)
+                switch (typeCode)
                 {
                 case GroBufTypeCode.Boolean:
                 case GroBufTypeCode.Int8:
@@ -318,7 +318,7 @@ namespace GroBuf.Readers
 
         private static void EmitReadPrimitiveValue(GroboIL il, GroBufTypeCode typeCode)
         {
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
                 il.Ldind(typeof(sbyte));
@@ -359,15 +359,15 @@ namespace GroBuf.Readers
 
         private static decimal DecimalFromDoubleSilent(double x)
         {
-            if(double.IsNaN(x))
+            if (double.IsNaN(x))
                 return 0;
-            if(double.IsPositiveInfinity(x))
+            if (double.IsPositiveInfinity(x))
                 return decimal.MaxValue;
-            if(double.IsNegativeInfinity(x))
+            if (double.IsNegativeInfinity(x))
                 return decimal.MinValue;
-            if(x - (double)decimal.MaxValue >= -1e-10)
+            if (x - (double)decimal.MaxValue >= -1e-10)
                 return decimal.MaxValue;
-            if((double)decimal.MinValue - x >= -1e-10)
+            if ((double)decimal.MinValue - x >= -1e-10)
                 return decimal.MinValue;
             return new decimal(x);
         }

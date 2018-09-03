@@ -11,7 +11,7 @@ namespace GroBuf.Writers
         public DictionaryWriterBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                 throw new InvalidOperationException("Dictionary expected but was '" + Type + "'");
             keyType = Type.GetGenericArguments()[0];
             valueType = Type.GetGenericArguments()[1];
@@ -20,7 +20,7 @@ namespace GroBuf.Writers
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             context.LoadObj(); // stack: [obj]
-            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             else
             {

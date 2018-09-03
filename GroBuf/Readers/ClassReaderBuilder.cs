@@ -24,10 +24,10 @@ namespace GroBuf.Readers
                     new KeyValuePair<string, Type>("delegates_" + Type.Name + "_" + Guid.NewGuid(), typeof(Delegate[])),
                     new KeyValuePair<string, Type>("hashCodes_" + Type.Name + "_" + Guid.NewGuid(), typeof(ulong[])),
                 });
-            foreach(var member in context.GetDataMembers(Type))
+            foreach (var member in context.GetDataMembers(Type))
             {
                 Type memberType;
-                switch(member.Member.MemberType)
+                switch (member.Member.MemberType)
                 {
                 case MemberTypes.Property:
                     memberType = ((PropertyInfo)member.Member).PropertyType;
@@ -71,7 +71,7 @@ namespace GroBuf.Readers
             il.Dup(); // stack: [data length, data length]
             il.Stloc(end); // end = data length; stack: [data length]
 
-            if(!Type.IsValueType)
+            if (!Type.IsValueType)
             {
                 context.LoadResultByRef(); // stack: [data length, ref result]
                 il.Ldind(Type); // stack: [data length, result]
@@ -151,11 +151,11 @@ namespace GroBuf.Readers
             il.Blt(cycleStartLabel, true); // if(index < end) goto cycleStart; stack: []
 
             var onDeserializedMethod = Type.GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                .SingleOrDefault(method => method.GetCustomAttribute<OnDeserializedAttribute>() != null);
-            if(onDeserializedMethod != null)
+                                           .SingleOrDefault(method => method.GetCustomAttribute<OnDeserializedAttribute>() != null);
+            if (onDeserializedMethod != null)
             {
                 var parameters = onDeserializedMethod.GetParameters();
-                if(parameters.Length != 1 || parameters[0].ParameterType != typeof(StreamingContext))
+                if (parameters.Length != 1 || parameters[0].ParameterType != typeof(StreamingContext))
                     throw new InvalidOperationException(string.Format("The method '{0}' marked with 'OnDeserialized' attribute must accept exactly one parameter of type '{1}'", onDeserializedMethod, typeof(StreamingContext).FullName));
                 context.LoadResult(Type);
                 il.Ldc_I4((int)StreamingContextStates.Other);
@@ -175,7 +175,7 @@ namespace GroBuf.Readers
             var n = GroBufHelpers.CalcSize(hashes);
             hashCodes = new ulong[n];
             dataMembers = new MemberInfo[n];
-            for(var i = 0; i < members.Length; i++)
+            for (var i = 0; i < members.Length; i++)
             {
                 var index = (int)(hashes[i] % n);
                 hashCodes[index] = hashes[i];
@@ -191,23 +191,23 @@ namespace GroBuf.Readers
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, context.Module, true);
             var writableMember = member.TryGetWritableMemberInfo();
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 il.Ldarg(0); // stack: [data]
                 il.Ldarg(1); // stack: [data, ref index]
-                switch(writableMember.MemberType)
+                switch (writableMember.MemberType)
                 {
                 case MemberTypes.Field:
                     var field = (FieldInfo)writableMember;
                     var done = false;
-                    if(member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && field.FieldType.IsValueType)
+                    if (member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && field.FieldType.IsValueType)
                     {
                         var equalityOperator = field.FieldType.GetMethod("op_Equality", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                        if(field.FieldType.IsPrimitive || equalityOperator != null)
+                        if (field.FieldType.IsPrimitive || equalityOperator != null)
                         {
                             var fieldValue = il.DeclareLocal(field.FieldType);
                             il.Ldarg(2); // stack: [data, ref index, ref result]
-                            if(!Type.IsValueType)
+                            if (!Type.IsValueType)
                                 il.Ldind(Type); // stack: [data, ref index, result]
                             il.Ldfld(field);
                             il.Stloc(fieldValue);
@@ -220,7 +220,7 @@ namespace GroBuf.Readers
                             il.Initobj(field.FieldType);
                             il.Ldloc(temp);
                             il.Ldloc(fieldValue);
-                            if(field.FieldType.IsPrimitive)
+                            if (field.FieldType.IsPrimitive)
                                 il.Ceq();
                             else
                                 il.Call(equalityOperator);
@@ -229,17 +229,17 @@ namespace GroBuf.Readers
                             il.Ret();
                             il.MarkLabel(notDefaultLabel);
                             il.Ldarg(2);
-                            if(!Type.IsValueType)
+                            if (!Type.IsValueType)
                                 il.Ldind(Type); // stack: [data, ref index, result]
                             il.Ldloc(fieldValue);
                             il.Stfld(field);
                             done = true;
                         }
                     }
-                    if(!done)
+                    if (!done)
                     {
                         il.Ldarg(2); // stack: [data, ref index, ref result]
-                        if(!Type.IsValueType)
+                        if (!Type.IsValueType)
                             il.Ldind(Type); // stack: [data, ref index, result]
                         il.Ldflda(field); // stack: [data, ref index, ref result.field]
                         il.Ldarg(3); // stack: [data, ref index, ref result.field, context]
@@ -249,13 +249,13 @@ namespace GroBuf.Readers
                 case MemberTypes.Property:
                     var property = (PropertyInfo)writableMember;
                     var propertyValue = il.DeclareLocal(property.PropertyType);
-                    if(context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+                    if (context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
                     {
                         var getter = property.GetGetMethod(true);
-                        if(getter == null)
+                        if (getter == null)
                             throw new MissingMethodException(Type.Name, property.Name + "_get");
                         il.Ldarg(2); // stack: [data, ref index, ref result]
-                        if(!Type.IsValueType)
+                        if (!Type.IsValueType)
                             il.Ldind(Type); // stack: [data, ref index, result]
                         il.Call(getter, Type); // stack: [ data, ref index, result.property]
                         il.Stloc(propertyValue); // propertyValue = result.property; stack: [data, ref index]
@@ -263,17 +263,17 @@ namespace GroBuf.Readers
                     il.Ldloca(propertyValue); // stack: [data, ref index, ref propertyValue]
                     il.Ldarg(3); // stack: [data, ref index, ref propertyValue, context]
                     ReaderMethodBuilderContext.CallReader(il, property.PropertyType, context); // reader(data, ref index, ref propertyValue, context); stack: []
-                    if(member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && property.PropertyType.IsValueType)
+                    if (member.GetCustomAttributes(typeof(IgnoreDefaultOnMergeAttribute), false).Length > 0 && property.PropertyType.IsValueType)
                     {
                         var equalityOperator = property.PropertyType.GetMethod("op_Equality", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static);
-                        if(property.PropertyType.IsPrimitive || equalityOperator != null)
+                        if (property.PropertyType.IsPrimitive || equalityOperator != null)
                         {
                             var temp = il.DeclareLocal(property.PropertyType);
                             il.Ldloca(temp);
                             il.Initobj(property.PropertyType);
                             il.Ldloc(temp);
                             il.Ldloc(propertyValue);
-                            if(property.PropertyType.IsPrimitive)
+                            if (property.PropertyType.IsPrimitive)
                                 il.Ceq();
                             else
                                 il.Call(equalityOperator);
@@ -284,11 +284,11 @@ namespace GroBuf.Readers
                         }
                     }
                     il.Ldarg(2); // stack: [ref result]
-                    if(!Type.IsValueType)
+                    if (!Type.IsValueType)
                         il.Ldind(Type); // stack: [result]
                     il.Ldloc(propertyValue); // stack: [result, propertyValue]
                     var setter = property.GetSetMethod(true);
-                    if(setter == null)
+                    if (setter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_set");
                     il.Call(setter, Type); // result.property = propertyValue
                     break;

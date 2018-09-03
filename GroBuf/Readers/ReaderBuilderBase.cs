@@ -22,13 +22,13 @@ namespace GroBuf.Readers
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), Type.MakeByRefType(), typeof(ReaderContext)
                                                }, readerTypeBuilderContext.Module, true);
             readerTypeBuilderContext.SetReaderMethod(Type, method);
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 var context = new ReaderMethodBuilderContext(readerTypeBuilderContext, il, !Type.IsValueType && IsReference);
 
                 ReadTypeCodeAndCheck(context); // Read TypeCode and check
 
-                if(!Type.IsValueType && IsReference)
+                if (!Type.IsValueType && IsReference)
                 {
                     // Read reference
                     context.LoadContext(); // stack: [context]

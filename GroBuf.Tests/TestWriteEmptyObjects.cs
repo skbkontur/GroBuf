@@ -73,7 +73,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestEmptyPrimitivesHashSet()
         {
-            var a = new A { IntHashSet = new HashSet<int>() };
+            var a = new A {IntHashSet = new HashSet<int>()};
             var data = serializer.Serialize(a);
             var aa = serializer.Deserialize<A>(data);
             Assert.IsNotNull(aa);

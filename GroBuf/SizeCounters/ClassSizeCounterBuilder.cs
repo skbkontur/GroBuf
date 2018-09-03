@@ -12,10 +12,10 @@ namespace GroBuf.SizeCounters
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
         {
-            foreach(var member in context.GetDataMembers(Type))
+            foreach (var member in context.GetDataMembers(Type))
             {
                 Type memberType;
-                switch(member.Member.MemberType)
+                switch (member.Member.MemberType)
                 {
                 case MemberTypes.Property:
                     memberType = ((PropertyInfo)member.Member).PropertyType;
@@ -37,19 +37,19 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(0); // stack: [0 = size]
 
             var dataMembers = context.Context.GetDataMembers(Type);
-            foreach(var member in dataMembers)
+            foreach (var member in dataMembers)
             {
-                if(Type.IsValueType)
+                if (Type.IsValueType)
                     context.LoadObjByRef(); // stack: [size, ref obj]
                 else
                     context.LoadObj(); // stack: [size, obj]
                 Type memberType;
-                switch(member.Member.MemberType)
+                switch (member.Member.MemberType)
                 {
                 case MemberTypes.Property:
                     var property = (PropertyInfo)member.Member;
                     var getter = property.GetGetMethod(true);
-                    if(getter == null)
+                    if (getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
                     il.Call(getter, Type); // stack: [size, obj.prop]
                     memberType = property.PropertyType;
@@ -75,7 +75,7 @@ namespace GroBuf.SizeCounters
                 il.Add(); // stack: [size + curSize]
             }
 
-            if(!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
             {
                 var countLengthLabel = il.DefineLabel("countLength");
                 il.Dup(); // stack: [size, size]

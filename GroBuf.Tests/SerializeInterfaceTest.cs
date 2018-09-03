@@ -26,6 +26,13 @@ namespace GroBuf.Tests
             Assert.AreEqual(2, deserialize[0].Data);
         }
 
+        private interface I1
+        {
+            int Data { get; }
+        }
+
+        private Serializer serializer;
+
         public class AllPropertiesExtractor : IDataMembersExtractor
         {
             public IDataMember[] GetMembers(Type type)
@@ -34,16 +41,9 @@ namespace GroBuf.Tests
             }
         }
 
-        private Serializer serializer;
-
         private class C1 : I1
         {
             public int Data { get; set; }
-        }
-
-        private interface I1
-        {
-            int Data { get; }
         }
     }
 }

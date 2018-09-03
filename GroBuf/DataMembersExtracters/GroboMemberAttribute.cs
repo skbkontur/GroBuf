@@ -3,7 +3,7 @@ using System;
 namespace GroBuf.DataMembersExtracters
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class GroboMemberAttribute: Attribute
+    public class GroboMemberAttribute : Attribute
     {
         public GroboMemberAttribute(string name)
         {

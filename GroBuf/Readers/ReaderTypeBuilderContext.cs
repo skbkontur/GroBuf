@@ -48,14 +48,14 @@ namespace GroBuf.Readers
 
         public void SetReaderMethod(Type type, DynamicMethod method)
         {
-            if(readers[type] != null)
+            if (readers[type] != null)
                 throw new InvalidOperationException();
             readers[type] = new CompiledDynamicMethod {Method = method, Index = readers.Count};
         }
 
         public void SetReaderPointer(Type type, IntPtr readerPointer, Delegate reader)
         {
-            if(readers[type] == null)
+            if (readers[type] == null)
                 throw new InvalidOperationException();
             var compiledDynamicMethod = (CompiledDynamicMethod)readers[type];
             compiledDynamicMethod.Pointer = readerPointer;
@@ -65,17 +65,17 @@ namespace GroBuf.Readers
         public CompiledDynamicMethod GetReader(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
             var reader = (CompiledDynamicMethod)readers[type];
-            if(reader == null)
+            if (reader == null)
             {
                 if (!isRoot)
                 {
                     var pointer = (IntPtr?)GroBufReader.readMethodsWithCustomSerialization[type];
                     if (pointer != null)
-                        return new CompiledDynamicMethod { Pointer = pointer.Value };
+                        return new CompiledDynamicMethod {Pointer = pointer.Value};
                 }
                 readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildReader(this);
                 reader = (CompiledDynamicMethod)readers[type];
-                if(reader == null)
+                if (reader == null)
                     throw new InvalidOperationException();
             }
             return reader;
@@ -89,7 +89,7 @@ namespace GroBuf.Readers
         private Action BuildFieldInitializer<T>(FieldInfo field, T value)
         {
             var method = new DynamicMethod(field.Name + "_Init_" + Guid.NewGuid(), typeof(void), new[] {typeof(T)}, Module);
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 il.Ldarg(0);
                 il.Stfld(field);

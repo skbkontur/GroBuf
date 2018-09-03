@@ -27,7 +27,7 @@ namespace GroBuf.Readers
         public void SetFields(Type type, KeyValuePair<string, Type>[] fields)
         {
             hashtable[type] = fields;
-            foreach(var field in fields)
+            foreach (var field in fields)
                 ConstantsBuilder.DefineField(field.Key, field.Value, FieldAttributes.Public | FieldAttributes.Static);
         }
 
@@ -35,7 +35,7 @@ namespace GroBuf.Readers
         {
             if (isRoot || GroBufReader.readMethodsWithCustomSerialization[type] == null)
             {
-                if(hashtable[type] == null)
+                if (hashtable[type] == null)
                     readerCollection.GetReaderBuilder(type, ignoreCustomSerialization).BuildConstants(this);
             }
         }

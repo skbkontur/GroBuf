@@ -48,7 +48,7 @@ namespace GroBuf.Readers
 
             context.LoadResultByRef(); // stack: [ref result]
             il.Ldloc(local); // stack: [ref result, ref local]
-            if(!Type.IsValueType)
+            if (!Type.IsValueType)
             {
                 il.Castclass(Type);
                 il.Stind(Type);

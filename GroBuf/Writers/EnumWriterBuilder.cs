@@ -8,7 +8,7 @@ namespace GroBuf.Writers
         public EnumWriterBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsEnum) throw new InvalidOperationException("Enum expected but was " + Type);
+            if (!Type.IsEnum) throw new InvalidOperationException("Enum expected but was " + Type);
         }
 
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)

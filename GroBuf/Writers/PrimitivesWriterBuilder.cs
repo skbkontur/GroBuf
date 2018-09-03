@@ -7,7 +7,7 @@ namespace GroBuf.Writers
         public PrimitivesWriterBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was " + Type);
+            if (!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was " + Type);
         }
 
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
@@ -20,7 +20,7 @@ namespace GroBuf.Writers
             context.WriteTypeCode(typeCode);
             context.GoToCurrentLocation(); // stack: [&result[index]]
             var il = context.Il;
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

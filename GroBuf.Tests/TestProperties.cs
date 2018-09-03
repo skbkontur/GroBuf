@@ -48,6 +48,8 @@ namespace GroBuf.Tests
             Assert.AreEqual(default(DateTime), o.DateTime);
         }
 
+        private Serializer serializer;
+
         public class A
         {
             public int[] Ints { get; set; }
@@ -65,7 +67,5 @@ namespace GroBuf.Tests
         public class C
         {
         }
-
-        private Serializer serializer;
     }
 }

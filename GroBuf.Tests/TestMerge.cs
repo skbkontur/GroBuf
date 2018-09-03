@@ -117,7 +117,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestIgnoreDefaultPropPrimitive()
         {
-            var z = new Z{X = 3};
+            var z = new Z {X = 3};
             var z2 = new Z {X = 0};
             serializer.Merge(z2, ref z);
             Assert.AreEqual(3, z.X);
@@ -126,7 +126,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestIgnoreDefaultPropStruct()
         {
-            var z = new Z{Y = 3m};
+            var z = new Z {Y = 3m};
             var z2 = new Z {Y = 0m};
             serializer.Merge(z2, ref z);
             Assert.AreEqual(3m, z.Y);
@@ -136,7 +136,7 @@ namespace GroBuf.Tests
         public void TestIgnoreDefaultFieldPrimitive()
         {
             var serializer2 = new Serializer(new FieldsExtractor(), null, GroBufOptions.MergeOnRead);
-            var z = new ZZ{X = 3};
+            var z = new ZZ {X = 3};
             var z2 = new ZZ {X = 0};
             serializer2.Merge(z2, ref z);
             Assert.AreEqual(3, z.X);
@@ -146,11 +146,26 @@ namespace GroBuf.Tests
         public void TestIgnoreDefaultFieldStruct()
         {
             var serializer2 = new Serializer(new FieldsExtractor(), null, GroBufOptions.MergeOnRead);
-            var z = new ZZ { Y = 3m };
+            var z = new ZZ {Y = 3m};
             var z2 = new ZZ {Y = 0m};
             serializer2.Merge(z2, ref z);
             Assert.AreEqual(3m, z.Y);
         }
+
+        public struct As
+        {
+            public Bs[] Bs { get; set; }
+            public bool? Bool { get; set; }
+            public Bs B { get; set; }
+        }
+
+        public struct Bs
+        {
+            public string S { get; set; }
+            public long? Long { get; set; }
+        }
+
+        private Serializer serializer;
 
         public class Z
         {
@@ -182,20 +197,5 @@ namespace GroBuf.Tests
             public string S { get; set; }
             public long? Long { get; set; }
         }
-
-        public struct As
-        {
-            public Bs[] Bs { get; set; }
-            public bool? Bool { get; set; }
-            public Bs B { get; set; }
-        }
-
-        public struct Bs
-        {
-            public string S { get; set; }
-            public long? Long { get; set; }
-        }
-
-        private Serializer serializer;
     }
 }

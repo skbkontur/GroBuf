@@ -109,6 +109,8 @@ namespace GroBuf.Tests
             Assert.IsNull(copiedObj.B.S);
         }
 
+        private Serializer serializer;
+
         public class TestClassA
         {
             public string S { get; set; }
@@ -123,7 +125,5 @@ namespace GroBuf.Tests
         public class TestClassADerived : TestClassA
         {
         }
-
-        private Serializer serializer;
     }
 }

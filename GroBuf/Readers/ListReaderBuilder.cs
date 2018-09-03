@@ -10,7 +10,7 @@ namespace GroBuf.Readers
         public ListReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
                 throw new InvalidOperationException("Expected list but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
         }
@@ -44,7 +44,7 @@ namespace GroBuf.Readers
             context.IncreaseIndexBy4(); // index = index + 4; stack: [array length]
             il.Stloc(length); // length = array length; stack: []
 
-            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -111,7 +111,7 @@ namespace GroBuf.Readers
             il.Ldloc(length); // stack: [i, length]
             il.Blt(cycleStartLabel, true); // if(i < length) goto cycleStart
 
-            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 context.LoadResult(Type); // stack: [result]
                 il.Ldfld(Type.GetField("_size", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [result.Count]

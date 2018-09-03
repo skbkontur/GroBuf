@@ -13,7 +13,7 @@ namespace GroBuf.SizeCounters
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
         {
-            foreach(var argumentType in Type.GetGenericArguments())
+            foreach (var argumentType in Type.GetGenericArguments())
                 context.BuildConstants(argumentType);
         }
 
@@ -24,7 +24,7 @@ namespace GroBuf.SizeCounters
             il.Ldc_I4(5); // stack: [5 = size]
 
             var genericArguments = Type.GetGenericArguments();
-            for(int i = 0; i < genericArguments.Length; ++i)
+            for (int i = 0; i < genericArguments.Length; ++i)
             {
                 var property = Type.GetProperty(i == 7 ? "Rest" : "Item" + (i + 1));
                 var getter = property.GetGetMethod();

@@ -18,11 +18,11 @@ namespace GroBuf.Tests
         [Test]
         public void Test1()
         {
-            Console.WriteLine(serializer.GetSize(new TestClassA { S = "zzz", B = new TestClassB { S = "qxx" } }));
-            Console.WriteLine(serializer.GetSize(new TestClassA { S = "zzz", B = new TestClassB { S = "zzz" } }));
-            var data = serializer.Serialize(new TestClassA { S = "zzz", B = new TestClassB { S = "qxx" } });
+            Console.WriteLine(serializer.GetSize(new TestClassA {S = "zzz", B = new TestClassB {S = "qxx"}}));
+            Console.WriteLine(serializer.GetSize(new TestClassA {S = "zzz", B = new TestClassB {S = "zzz"}}));
+            var data = serializer.Serialize(new TestClassA {S = "zzz", B = new TestClassB {S = "qxx"}});
             Console.WriteLine(data.Length);
-            var data2 = serializer.Serialize(new TestClassA { S = "zzz", B = new TestClassB { S = "zzz" } });
+            var data2 = serializer.Serialize(new TestClassA {S = "zzz", B = new TestClassB {S = "zzz"}});
             Console.WriteLine(data2.Length);
             var obj = serializer.Deserialize<TestClassA>(data2);
             Assert.AreEqual("zzz", obj.S);
@@ -44,8 +44,8 @@ namespace GroBuf.Tests
         [Test]
         public void Test3()
         {
-            var b = new TestClassB{S = "zzz"};
-            var a = new TestClassA{B = b, ArrayB = new[] {b}, S = "zzz"};
+            var b = new TestClassB {S = "zzz"};
+            var a = new TestClassA {B = b, ArrayB = new[] {b}, S = "zzz"};
             a.A = a;
             var data = serializer.Serialize(a);
             Console.WriteLine(data.Length);
@@ -62,8 +62,8 @@ namespace GroBuf.Tests
         [Test]
         public void TestRemovedProperty()
         {
-            var b = new TestClassB { S = "zzz" };
-            var a = new TestClassA { B = b, ArrayB = new[] { b }, S = "zzz" };
+            var b = new TestClassB {S = "zzz"};
+            var a = new TestClassA {B = b, ArrayB = new[] {b}, S = "zzz"};
             a.A = a;
             var data = serializer.Serialize(a);
             Console.WriteLine(data.Length);
@@ -79,8 +79,8 @@ namespace GroBuf.Tests
         [Test]
         public void TestTwoObjects()
         {
-            var b = new TestClassB { S = "zzz" };
-            var a = new TestClassA { B = b, ArrayB = new[] { b }, S = "zzz" };
+            var b = new TestClassB {S = "zzz"};
+            var a = new TestClassA {B = b, ArrayB = new[] {b}, S = "zzz"};
             a.A = a;
             var data = serializer.Serialize(a, a);
             int index = 0;
@@ -101,6 +101,8 @@ namespace GroBuf.Tests
             Assert.AreEqual("zzz", aaa.ArrayB[0].S);
         }
 
+        private Serializer serializer;
+
         public class TestClassA
         {
             public TestClassB B { get; set; }
@@ -120,7 +122,5 @@ namespace GroBuf.Tests
         {
             public string S { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

@@ -9,8 +9,8 @@ namespace GroBuf.SizeCounters
         public ArraySizeCounterBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            if (!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if (Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
             elementType = Type.GetElementType();
         }
 
@@ -23,7 +23,7 @@ namespace GroBuf.SizeCounters
         {
             var il = context.Il;
             context.LoadObj(); // stack: [obj]
-            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             else
             {

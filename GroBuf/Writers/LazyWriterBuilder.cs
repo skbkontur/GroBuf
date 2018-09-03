@@ -8,7 +8,7 @@ namespace GroBuf.Writers
         public LazyWriterBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Lazy<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Lazy<>)))
                 throw new InvalidOperationException("Expected Lazy but was " + Type);
         }
 

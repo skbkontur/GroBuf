@@ -53,11 +53,19 @@ namespace GroBuf.Tests
         [Test]
         public void TestReaderCRoot()
         {
-            IZ z = new C{Z = "zzz"};
+            IZ z = new C {Z = "zzz"};
             var data = serializer.Serialize(z);
             var zz = serializer.Deserialize<IZ>(data);
             zz.AssertEqualsTo(z);
         }
+
+        [GroBufCustomSerialization(typeof(B))]
+        public interface IZ
+        {
+            string Z { get; set; }
+        }
+
+        private Serializer serializer;
 
         public class A
         {
@@ -71,37 +79,37 @@ namespace GroBuf.Tests
             public static SizeCounterDelegate GetSizeCounter(Func<Type, SizeCounterDelegate> sizeCountersFactory, SizeCounterDelegate baseSizeCounter)
             {
                 return (o, writeEmpty, context) =>
-                           {
-                               Type type = o.GetType();
-                               return sizeCountersFactory(typeof(string))(type.Name, writeEmpty, context) + sizeCountersFactory(type)(o, writeEmpty, context);
-                           };
+                    {
+                        Type type = o.GetType();
+                        return sizeCountersFactory(typeof(string))(type.Name, writeEmpty, context) + sizeCountersFactory(type)(o, writeEmpty, context);
+                    };
             }
 
             [GroBufWriter]
             public static WriterDelegate GetWriter(Func<Type, WriterDelegate> writersFactory, WriterDelegate baseWriter)
             {
                 return (object o, bool writeEmpty, IntPtr result, ref int index, WriterContext context) =>
-                           {
-                               Type type = o.GetType();
-                               writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, context);
-                               writersFactory(type)(o, writeEmpty, result, ref index, context);
-                           };
+                    {
+                        Type type = o.GetType();
+                        writersFactory(typeof(string))(type.Name, writeEmpty, result, ref index, context);
+                        writersFactory(type)(o, writeEmpty, result, ref index, context);
+                    };
             }
 
             [GroBufReader]
             public static ReaderDelegate GetReader(Func<Type, ReaderDelegate> readersFactory, ReaderDelegate baseReader)
             {
                 return (IntPtr data, ref int index, ref object result, ReaderContext context) =>
-                           {
-                               object type = null;
-                               readersFactory(typeof(string))(data, ref index, ref type, context);
-                               if((string)type == typeof(C).Name)
-                                   result = new C();
-                               else if((string)type == typeof(D).Name)
-                                   result = new D();
-                               else throw new InvalidOperationException("Unknown type " + type);
-                               readersFactory(result.GetType())(data, ref index, ref result, context);
-                           };
+                    {
+                        object type = null;
+                        readersFactory(typeof(string))(data, ref index, ref type, context);
+                        if ((string)type == typeof(C).Name)
+                            result = new C();
+                        else if ((string)type == typeof(D).Name)
+                            result = new D();
+                        else throw new InvalidOperationException("Unknown type " + type);
+                        readersFactory(result.GetType())(data, ref index, ref result, context);
+                    };
             }
         }
 
@@ -114,13 +122,5 @@ namespace GroBuf.Tests
         {
             public string Z { get; set; }
         }
-
-        [GroBufCustomSerialization(typeof(B))]
-        public interface IZ
-        {
-            string Z { get; set; }
-        }
-
-        private Serializer serializer;
     }
 }

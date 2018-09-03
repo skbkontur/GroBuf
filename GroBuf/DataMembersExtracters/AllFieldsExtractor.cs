@@ -16,7 +16,7 @@ namespace GroBuf.DataMembersExtracters
 
         private static void GetMembers(Type type, List<IDataMember> members)
         {
-            if(type == null || type == typeof(object))
+            if (type == null || type == typeof(object))
                 return;
             members.AddRange(type.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.DeclaredOnly).Select(DataMember.Create));
             GetMembers(type.BaseType, members);

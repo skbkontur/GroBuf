@@ -30,7 +30,7 @@ namespace GroBuf.Tests
             const int iterations = 100000;
             long size = 0;
             var stopwatch = Stopwatch.StartNew();
-            for(int i = 0; i < iterations; ++i)
+            for (int i = 0; i < iterations; ++i)
             {
                 //data = Encoding.UTF8.GetBytes(s);//serializer.Serialize(s);
                 s = Encoding.UTF8.GetString(buf);
@@ -100,11 +100,11 @@ namespace GroBuf.Tests
             Assert.AreEqual("", deserialize.S);
         }
 
+        private Serializer serializer;
+
         public class WithS
         {
             public string S { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

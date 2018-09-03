@@ -20,7 +20,7 @@ namespace GroBuf.Readers
         protected override void ReadNotEmpty(ReaderMethodBuilderContext context)
         {
             var constructor = Type.GetConstructor(new[] {typeof(long), typeof(DateTimeKind)});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(Type, typeof(long), typeof(DateTimeKind));
             var il = context.Il;
 

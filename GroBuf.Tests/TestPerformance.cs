@@ -268,7 +268,7 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var objects = new TData[numberOfObjects];
             objects[0] = TestHelpers.GenerateRandomTrash<TData>(random, fillRate, stringsLength, arraysSize);
-            for(int i = 1; i < objects.Length; ++i)
+            for (int i = 1; i < objects.Length; ++i)
                 objects[i] = TestHelpers.GenerateRandomTrash<TData>(random, fillRate, stringsLength, arraysSize);
 
             deserializer(serializer(objects[0]));
@@ -276,10 +276,10 @@ namespace GroBuf.Tests
             var datas = new byte[numberOfObjects][];
             long size = 0;
             var stopwatch = Stopwatch.StartNew();
-            for(int i = 0; i < objects.Length; ++i)
+            for (int i = 0; i < objects.Length; ++i)
             {
                 byte[] cur = null;
-                for(int j = 0; j < iterations; ++j)
+                for (int j = 0; j < iterations; ++j)
                 {
                     cur = serializer(objects[(i + j) % objects.Length]);
                     size += cur.Length;
@@ -293,10 +293,10 @@ namespace GroBuf.Tests
 
             var deserializedDatas = new TData[numberOfObjects];
             stopwatch = Stopwatch.StartNew();
-            for(int i = 0; i < datas.Length; ++i)
+            for (int i = 0; i < datas.Length; ++i)
             {
                 TData cur = null;
-                for(int j = 0; j < iterations; ++j)
+                for (int j = 0; j < iterations; ++j)
                     cur = deserializer(datas[(i + j) % datas.Length]);
                 deserializedDatas[i] = cur;
             }
@@ -326,7 +326,7 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var objects = new TData[numberOfObjects];
             objects[0] = TestHelpers.GenerateRandomTrash<TData>(random, fillRate, stringsLength, arraysSize);
-            for(int i = 1; i < objects.Length; ++i)
+            for (int i = 1; i < objects.Length; ++i)
                 objects[i] = TestHelpers.GenerateRandomTrash<TData>(random, fillRate, stringsLength, arraysSize);
 
             counter(objects[0]);
@@ -334,10 +334,10 @@ namespace GroBuf.Tests
             var sizes = new int[numberOfObjects];
             long size = 0;
             var stopwatch = Stopwatch.StartNew();
-            for(int i = 0; i < objects.Length; ++i)
+            for (int i = 0; i < objects.Length; ++i)
             {
                 int cur = 0;
-                for(int j = 0; j < iterations; ++j)
+                for (int j = 0; j < iterations; ++j)
                 {
                     cur = counter(objects[(i + j) % objects.Length]);
                     size += cur;
@@ -371,17 +371,17 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var from = new TFrom[numberOfObjects];
             from[0] = TestHelpers.GenerateRandomTrash<TFrom>(random, fillRate, stringsLength, arraysSize);
-            for(int i = 1; i < from.Length; ++i)
+            for (int i = 1; i < from.Length; ++i)
                 from[i] = TestHelpers.GenerateRandomTrash<TFrom>(random, fillRate, stringsLength, arraysSize);
 
             typeChanger(from[0]);
 
             var to = new TTo[numberOfObjects];
             var stopwatch = Stopwatch.StartNew();
-            for(int i = 0; i < from.Length; ++i)
+            for (int i = 0; i < from.Length; ++i)
             {
                 TTo cur = default(TTo);
-                for(int j = 0; j < iterations; ++j)
+                for (int j = 0; j < iterations; ++j)
                     cur = typeChanger(from[(i + j) % from.Length]);
                 to[i] = cur;
             }

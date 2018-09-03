@@ -39,6 +39,8 @@ namespace GroBuf.Tests
             Assert.AreEqual("zzz", oo.S);
         }
 
+        private Serializer serializer;
+
         public class A
         {
             public int[] Ints;
@@ -65,7 +67,5 @@ namespace GroBuf.Tests
 
             public readonly string S;
         }
-
-        private Serializer serializer;
     }
 }

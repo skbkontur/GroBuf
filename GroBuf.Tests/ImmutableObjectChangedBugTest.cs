@@ -47,6 +47,14 @@ namespace GroBuf.Tests
             Assert.AreEqual("qs", actual[2].Validation.Message);
         }
 
+        private enum ValidationResultType
+        {
+            Ok = 0,
+            Warning = 1,
+            Error = 2,
+            Fatal = 3
+        }
+
         private Serializer serializer;
 
         private class ValidationResult
@@ -69,14 +77,6 @@ namespace GroBuf.Tests
             public ValidationResult Validation { get { return validation ?? ValidationResult.Ok; } set { validation = value; } }
 
             private ValidationResult validation;
-        }
-
-        private enum ValidationResultType
-        {
-            Ok = 0,
-            Warning = 1,
-            Error = 2,
-            Fatal = 3
         }
     }
 }

@@ -183,7 +183,7 @@ namespace GroBuf.Writers
             Il.Ble(bigEnoughLabel, true);
             Il.Ldstr("Seems like the object being serialized has been changed during serialization");
             var constructor = typeof(InvalidOperationException).GetConstructor(new[] {typeof(string)});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(typeof(InvalidOperationException), typeof(string));
             Il.Newobj(constructor);
             Il.Throw();
@@ -207,7 +207,7 @@ namespace GroBuf.Writers
         public void CallWriter(GroboIL il, Type type)
         {
             var counter = Context.GetWriter(type);
-            if(counter.Pointer != IntPtr.Zero)
+            if (counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
             else
             {

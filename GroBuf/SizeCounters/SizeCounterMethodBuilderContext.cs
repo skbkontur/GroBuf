@@ -75,7 +75,7 @@ namespace GroBuf.SizeCounters
         public void CallSizeCounter(GroboIL il, Type type)
         {
             var counter = Context.GetCounter(type);
-            if(counter.Pointer != IntPtr.Zero)
+            if (counter.Pointer != IntPtr.Zero)
                 il.Ldc_IntPtr(counter.Pointer);
             else
             {

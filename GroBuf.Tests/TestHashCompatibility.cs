@@ -45,7 +45,7 @@ namespace GroBuf.Tests
                 Assert.AreEqual(4840038476803469422L, h.CalcHash("zzzz"));
                 Assert.Fail("NO CRASH");
             }
-            catch(NotSupportedException e)
+            catch (NotSupportedException e)
             {
                 Assert.AreEqual("Names with length greater than 3", e.Message);
             }

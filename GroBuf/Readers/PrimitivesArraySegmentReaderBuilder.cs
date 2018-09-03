@@ -10,13 +10,13 @@ namespace GroBuf.Readers
         public PrimitivesArraySegmentReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(ArraySegment<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(ArraySegment<>)))
                 throw new InvalidOperationException("An array segment expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
             arrayField = Type.GetField("_array", BindingFlags.Instance | BindingFlags.NonPublic);
             offsetField = Type.GetField("_offset", BindingFlags.Instance | BindingFlags.NonPublic);
             countField = Type.GetField("_count", BindingFlags.Instance | BindingFlags.NonPublic);
-            if(!elementType.IsPrimitive)
+            if (!elementType.IsPrimitive)
                 throw new NotSupportedException("Array segment of primitive type expected but was '" + Type + "'");
         }
 
@@ -121,7 +121,7 @@ namespace GroBuf.Readers
         private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
@@ -158,7 +158,7 @@ namespace GroBuf.Readers
         private static void CountArrayLength(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

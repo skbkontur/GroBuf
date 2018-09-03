@@ -43,7 +43,7 @@ namespace GroBuf.DataMembersExtracters
         public static DataMember TryCreateByDataMemberAttribute(MemberInfo member)
         {
             var dataMemberAttribute = (DataMemberAttribute)member.GetCustomAttributes(typeof(DataMemberAttribute), false).SingleOrDefault();
-            if(dataMemberAttribute == null)
+            if (dataMemberAttribute == null)
                 return null;
             var name = string.IsNullOrWhiteSpace(dataMemberAttribute.Name) ? member.Name : dataMemberAttribute.Name;
             return new DataMember(name, member);
@@ -52,11 +52,11 @@ namespace GroBuf.DataMembersExtracters
         private static DataMember TryCreateByGroboAttribute(MemberInfo member)
         {
             var groboAttribute = (GroboMemberAttribute)member.GetCustomAttributes(typeof(GroboMemberAttribute), false).SingleOrDefault();
-            if(groboAttribute == null)
+            if (groboAttribute == null)
                 return null;
-            if(groboAttribute.Id.HasValue)
+            if (groboAttribute.Id.HasValue)
                 return new DataMember(groboAttribute.Id.Value, member);
-            if(!string.IsNullOrWhiteSpace(groboAttribute.Name))
+            if (!string.IsNullOrWhiteSpace(groboAttribute.Name))
                 return new DataMember(groboAttribute.Name, member);
             throw new InvalidOperationException("Empty grobo name of member '" + member.DeclaringType.Name + "." + member.Name + "'");
         }

@@ -41,11 +41,11 @@ namespace GroBuf.Tests
             Assert.AreEqual(zzz.TimeSpan, zzz2.TimeSpan);
         }
 
+        private Serializer serializer;
+
         public class Zzz
         {
             public TimeSpan TimeSpan { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

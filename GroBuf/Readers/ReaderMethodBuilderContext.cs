@@ -167,7 +167,7 @@ namespace GroBuf.Readers
             Il.Ble(bigEnoughLabel, true);
             Il.Ldstr("Unexpected end of data");
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));
             Il.Newobj(constructor);
             Il.Throw();
@@ -189,7 +189,7 @@ namespace GroBuf.Readers
             Il.Call(HackHelpers.GetMethodDefinition<int>(x => x.ToString()), typeof(int));
             Il.Call(HackHelpers.GetMethodDefinition<string>(s => s + "zzz"));
             var constructor = typeof(DataCorruptedException).GetConstructor(new[] {typeof(string)});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(typeof(DataCorruptedException), typeof(string));
             Il.Newobj(constructor);
             Il.Throw();
@@ -290,8 +290,8 @@ namespace GroBuf.Readers
 
         public void StoreObject(Type type)
         {
-            if(Index == null) return;
-            if(type.IsValueType)
+            if (Index == null) return;
+            if (type.IsValueType)
                 throw new InvalidOperationException("A reference type expected");
             // Store in array of all references
             LoadContext(); // stack: [context]

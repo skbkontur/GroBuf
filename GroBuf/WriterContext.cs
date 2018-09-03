@@ -12,7 +12,7 @@ namespace GroBuf
             this.serializerId = serializerId;
             this.length = length;
             this.start = start;
-            if(trackReferences)
+            if (trackReferences)
                 objects = new Dictionary<object, int>();
         }
 

@@ -35,7 +35,7 @@ namespace GroBuf.Writers
 
             context.LoadField(customSerializerField); // stack: [customSerializer]
             context.LoadObj(); // stack: [customSerializer, obj]
-            if(Type.IsValueType)
+            if (Type.IsValueType)
                 il.Box(Type); // stack: [customSerializer, (object)obj]
             context.LoadWriteEmpty(); // stack: [customSerializer, (object)obj, writeEmpty]
             context.LoadResult(); // stack: [customSerializer, (object)obj, writeEmpty, result]

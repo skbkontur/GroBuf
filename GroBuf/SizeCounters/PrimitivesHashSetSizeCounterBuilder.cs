@@ -11,17 +11,17 @@ namespace GroBuf.SizeCounters
         public PrimitivesHashSetSizeCounterBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
                 throw new InvalidOperationException("HashSet expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
-            if(!elementType.IsPrimitive)
+            if (!elementType.IsPrimitive)
                 throw new NotSupportedException("HashSet of primitive type expected but was '" + Type + "'");
         }
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             context.LoadObj(); // stack: [obj]
-            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             else
             {
@@ -55,7 +55,7 @@ namespace GroBuf.SizeCounters
         private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

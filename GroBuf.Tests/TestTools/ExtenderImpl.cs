@@ -20,7 +20,7 @@ namespace GroBuf.Tests.TestTools
 
         public void Extend(Type type, object source)
         {
-            if(source == null)
+            if (source == null)
                 throw new ArgumentNullException("source");
             Action<object> extender = GetExtender(type);
             extender(source);
@@ -29,12 +29,12 @@ namespace GroBuf.Tests.TestTools
         private Action<object> GetExtender(Type type)
         {
             var result = (Action<object>)typeExtenders[type];
-            if(result == null)
+            if (result == null)
             {
-                lock(typeExtendersLock)
+                lock (typeExtendersLock)
                 {
                     result = (Action<object>)typeExtenders[type];
-                    if(result == null)
+                    if (result == null)
                     {
                         result = BuildExtender(type);
                         typeExtenders[type] = result;
@@ -50,11 +50,11 @@ namespace GroBuf.Tests.TestTools
             var dynamicMethod = new DynamicMethod(Guid.NewGuid().ToString(), typeof(void),
                                                   new[] {GetType(), typeof(object)}, GetType(), true);
             ILGenerator il = dynamicMethod.GetILGenerator();
-            foreach(var propertyInfo in propertyInfos)
+            foreach (var propertyInfo in propertyInfos)
             {
-                if(propertyInfo.PropertyType.IsArray)
+                if (propertyInfo.PropertyType.IsArray)
                     EmitFillOfArrayProperty(il, type, propertyInfo);
-                else if(propertyInfo.PropertyType.IsClass)
+                else if (propertyInfo.PropertyType.IsClass)
                     EmitFillOfClassProperty(il, type, propertyInfo);
             }
             il.Emit(OpCodes.Ret);
@@ -82,12 +82,22 @@ namespace GroBuf.Tests.TestTools
         private readonly Hashtable typeExtenders = new Hashtable();
         private readonly object typeExtendersLock = new object();
 
+        #region Nested type: ScanProperties
+
+        public static class ScanProperties
+        {
+            public static readonly Func<Type, IEnumerable<PropertyInfo>> AllPublic =
+                type => type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
+        }
+
+        #endregion
+
         #region Emit
 
         private static void EmitFillOfArrayProperty(ILGenerator il, Type type, PropertyInfo propertyInfo)
         {
             MethodInfo getter = propertyInfo.GetGetMethod();
-            if(getter == null)
+            if (getter == null)
                 return;
 
             MethodInfo setter = propertyInfo.GetSetMethod();
@@ -108,7 +118,7 @@ namespace GroBuf.Tests.TestTools
             Label arrayNotNull = il.DefineLabel();
             Label allDone = il.DefineLabel();
 
-            if(setter != null)
+            if (setter != null)
             {
                 il.Emit(OpCodes.Brtrue, arrayNotNull); // if (array != null) goto arrayNotNull
 
@@ -125,7 +135,7 @@ namespace GroBuf.Tests.TestTools
 
             il.MarkLabel(arrayNotNull);
 
-            if(elementType.IsClass)
+            if (elementType.IsClass)
             {
                 il.Emit(OpCodes.Ldloc, array);
                 il.Emit(OpCodes.Ldlen);
@@ -148,7 +158,7 @@ namespace GroBuf.Tests.TestTools
 
                 Label itemNotNull = il.DefineLabel();
 
-                if(constructorInfo == null)
+                if (constructorInfo == null)
                     il.Emit(OpCodes.Brfalse, cycleEnd); // if (item == null) goto cycleEnd
                 else
                 {
@@ -180,7 +190,7 @@ namespace GroBuf.Tests.TestTools
         private static void EmitFillOfClassProperty(ILGenerator il, Type type, PropertyInfo propertyInfo)
         {
             MethodInfo getter = propertyInfo.GetGetMethod();
-            if(getter == null)
+            if (getter == null)
                 return;
 
             MethodInfo setter = propertyInfo.GetSetMethod();
@@ -194,7 +204,7 @@ namespace GroBuf.Tests.TestTools
             Label propDone = il.DefineLabel();
             Label propNotNull = il.DefineLabel();
 
-            if(constructorInfo == null || setter == null || type == propertyInfo.PropertyType)
+            if (constructorInfo == null || setter == null || type == propertyInfo.PropertyType)
                 il.Emit(OpCodes.Brfalse, propDone); // if (o.Prop == null) goto propDone //stack: []
             else
             {
@@ -216,16 +226,6 @@ namespace GroBuf.Tests.TestTools
             il.Emit(OpCodes.Call, extendMethodInfo); // extender.Extend(PropertyType, o.Prop)
 
             il.MarkLabel(propDone);
-        }
-
-        #endregion
-
-        #region Nested type: ScanProperties
-
-        public static class ScanProperties
-        {
-            public static readonly Func<Type, IEnumerable<PropertyInfo>> AllPublic =
-                type => type.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         }
 
         #endregion

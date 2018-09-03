@@ -38,6 +38,8 @@ namespace GroBuf.Tests
             Assert.AreEqual(4, bChanged.Y);
         }
 
+        private ISerializer serializer;
+
         public class A
         {
             public int Q { get; set; }
@@ -61,7 +63,5 @@ namespace GroBuf.Tests
             public int X { get; set; }
             public int Y { get; set; }
         }
-
-        private ISerializer serializer;
     }
 }

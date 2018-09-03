@@ -12,10 +12,10 @@ namespace GroBuf.Readers
         public PrimitivesListReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(List<>)))
                 throw new InvalidOperationException("Expected list but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
-            if(!elementType.IsPrimitive)
+            if (!elementType.IsPrimitive)
                 throw new NotSupportedException("List of primitive type expected but was '" + Type + "'");
         }
 
@@ -46,7 +46,6 @@ namespace GroBuf.Readers
             il.Ldloc(size); // stack: [size]
             CountArrayLength(elementType, il); // stack: [array length]
             il.Stloc(length); // length = array length
-
 
             if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
@@ -79,7 +78,7 @@ namespace GroBuf.Readers
             {
                 context.LoadResultByRef(); // stack: [ref result]
                 il.Ldloc(length); // stack: [ref result, length]
-                il.Newobj(Type.GetConstructor(new[] { typeof(int) })); // stack: [ref result, new List(length)]
+                il.Newobj(Type.GetConstructor(new[] {typeof(int)})); // stack: [ref result, new List(length)]
                 il.Stind(Type); // result = new List(length); stack: []
             }
             il.Ldloc(length);
@@ -123,7 +122,7 @@ namespace GroBuf.Readers
         private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
@@ -160,7 +159,7 @@ namespace GroBuf.Readers
         private static void CountArrayLength(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

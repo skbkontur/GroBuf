@@ -8,7 +8,7 @@ namespace GroBuf.Readers
         public DictionaryReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Dictionary<,>)))
                 throw new InvalidOperationException("Dictionary expected but was '" + Type + "'");
             keyType = Type.GetGenericArguments()[0];
             valueType = Type.GetGenericArguments()[1];
@@ -79,12 +79,12 @@ namespace GroBuf.Readers
             il.Ldloc(value);
             il.Call(Type.GetMethod("Add"));
 
-            if(!keyType.IsValueType)
+            if (!keyType.IsValueType)
             {
                 il.Ldnull();
                 il.Stloc(key);
             }
-            if(!valueType.IsValueType)
+            if (!valueType.IsValueType)
             {
                 il.Ldnull();
                 il.Stloc(value);

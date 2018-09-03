@@ -11,7 +11,7 @@ namespace GroBuf.Writers
         public HashSetWriterBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
                 throw new InvalidOperationException("HashSet expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
         }
@@ -19,7 +19,7 @@ namespace GroBuf.Writers
         protected override bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             context.LoadObj(); // stack: [obj]
-            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             else
             {

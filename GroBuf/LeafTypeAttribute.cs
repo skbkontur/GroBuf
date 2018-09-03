@@ -2,7 +2,7 @@ using System;
 
 namespace GroBuf
 {
-    internal class LeafTypeAttribute: Attribute
+    internal class LeafTypeAttribute : Attribute
     {
         public LeafTypeAttribute(Type type)
         {

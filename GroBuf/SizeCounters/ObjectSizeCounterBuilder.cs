@@ -95,7 +95,7 @@ namespace GroBuf.SizeCounters
             using (var il = new GroboIL(method))
             {
                 il.Ldarg(0); // stack: [obj]
-                if(type.IsValueType)
+                if (type.IsValueType)
                     il.Unbox_Any(type); // stack: [(type)obj]
                 else
                     il.Castclass(type); // stack: [(type)obj]

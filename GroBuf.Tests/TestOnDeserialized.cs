@@ -10,8 +10,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestOnDeserialized
     {
-        private Serializer serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -36,11 +34,12 @@ namespace GroBuf.Tests
             Assert.Throws<InvalidOperationException>(() => serializer.Deserialize<BadData>(data));
         }
 
+        private Serializer serializer;
+
         private class TestData
         {
             public string S { get; set; }
             public bool DeserializedCalled { get; set; }
-            public string s;
 
             [OnDeserialized]
             private void OnDeserialized(StreamingContext context)
@@ -48,6 +47,8 @@ namespace GroBuf.Tests
                 DeserializedCalled = true;
                 s = S;
             }
+
+            public string s;
         }
 
         private class BadData

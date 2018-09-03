@@ -86,7 +86,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestHashtableInArray()
         {
-            var o = new A { S = "zzz", B = new B { S = new object[] { (byte)100, "qxx", new Hashtable { { "1", 1 }, { "2", "2" } } } } };
+            var o = new A {S = "zzz", B = new B {S = new object[] {(byte)100, "qxx", new Hashtable {{"1", 1}, {"2", "2"}}}}};
             byte[] data = serializer.Serialize(o);
             var oo = serializer.Deserialize<A>(data);
             Assert.AreEqual("zzz", oo.S);
@@ -133,6 +133,18 @@ namespace GroBuf.Tests
             Assert.AreEqual("qxx", oo.Z);
         }
 
+        public struct B
+        {
+            public object S { get; set; }
+        }
+
+        public struct Bz
+        {
+            public Cz S { get; set; }
+        }
+
+        private Serializer serializer;
+
         public class A
         {
             public object S { get; set; }
@@ -151,17 +163,5 @@ namespace GroBuf.Tests
         {
             public byte S { get; set; }
         }
-
-        public struct B
-        {
-            public object S { get; set; }
-        }
-
-        public struct Bz
-        {
-            public Cz S { get; set; }
-        }
-
-        private Serializer serializer;
     }
 }

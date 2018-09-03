@@ -11,10 +11,10 @@ namespace GroBuf.Readers
         public PrimitivesHashSetReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
                 throw new InvalidOperationException("HashSet expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
-            if(!elementType.IsPrimitive)
+            if (!elementType.IsPrimitive)
                 throw new NotSupportedException("HashSet of primitive type expected but was '" + Type + "'");
         }
 
@@ -93,7 +93,7 @@ namespace GroBuf.Readers
         private static void CountArrayLength(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
@@ -130,7 +130,7 @@ namespace GroBuf.Readers
         private static void MakeShift(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

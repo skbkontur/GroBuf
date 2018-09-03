@@ -35,6 +35,11 @@ namespace GroBuf.Tests
             Assert.AreEqual(i1.Person.Date.qxx, deserialize.Person.Date.qxx);
         }
 
+        private interface I1
+        {
+            Person Person { get; set; }
+        }
+
         private Serializer serializer;
 
         private class DateGroBufCustomSerializer : IGroBufCustomSerializer
@@ -43,6 +48,8 @@ namespace GroBuf.Tests
             {
                 this.baseSerializer = baseSerializer;
             }
+
+            private readonly IGroBufCustomSerializer baseSerializer;
 
             #region IGroBufCustomSerializer Members
 
@@ -65,8 +72,6 @@ namespace GroBuf.Tests
             }
 
             #endregion
-
-            private readonly IGroBufCustomSerializer baseSerializer;
         }
 
         private class I1Impl : I1
@@ -86,17 +91,18 @@ namespace GroBuf.Tests
                 qxx = 1;
             }
 
-            public int qxx;
             public int Xxx { get; set; }
+
+            public int qxx;
         }
 
         private class GroBufCustomSerializerCollection : IGroBufCustomSerializerCollection
         {
             public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer)
             {
-                if(declaredType == typeof(I1))
+                if (declaredType == typeof(I1))
                     return new GroBufCustomSerializerI1(factory, baseSerializer);
-                if(declaredType == typeof(Date2))
+                if (declaredType == typeof(Date2))
                     return new DateGroBufCustomSerializer(baseSerializer);
                 return null;
             }
@@ -128,11 +134,6 @@ namespace GroBuf.Tests
 
             private readonly Func<Type, IGroBufCustomSerializer> factory;
             private readonly IGroBufCustomSerializer baseSerializer;
-        }
-
-        private interface I1
-        {
-            Person Person { get; set; }
         }
     }
 }

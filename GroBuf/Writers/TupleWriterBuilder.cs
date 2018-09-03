@@ -13,7 +13,7 @@ namespace GroBuf.Writers
 
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
         {
-            foreach(var argumentType in Type.GetGenericArguments())
+            foreach (var argumentType in Type.GetGenericArguments())
                 context.BuildConstants(argumentType);
         }
 
@@ -31,7 +31,7 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // index = index + 4; stack: []
 
             var genericArguments = Type.GetGenericArguments();
-            for(int i = 0; i < genericArguments.Length; ++i)
+            for (int i = 0; i < genericArguments.Length; ++i)
             {
                 var property = Type.GetProperty(i == 7 ? "Rest" : "Item" + (i + 1));
                 var getter = property.GetGetMethod();

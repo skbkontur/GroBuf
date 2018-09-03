@@ -5,8 +5,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestUnknownTypeCode
     {
-        private Serializer serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -20,5 +18,7 @@ namespace GroBuf.Tests
             data[0] = 127;
             Assert.Throws<DataCorruptedException>(() => serializer.Deserialize<int>(data));
         }
+
+        private Serializer serializer;
     }
 }

@@ -27,7 +27,7 @@ namespace GroBuf.Readers
             context.CallReader(typeof(long)); // reader(pinnedData, ref index, ref value, context); stack: [ref result]
             il.Ldloc(ticks); // stack: [ref result, value]
             var constructor = Type.GetConstructor(new[] {typeof(long)});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(Type, typeof(long));
             il.Newobj(constructor); // stack: [ref result, new TimeSpan(ticks)]
             il.Stobj(Type); // result = new TimeSpan(ticks)

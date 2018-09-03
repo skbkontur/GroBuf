@@ -61,7 +61,7 @@ namespace GroBuf.Readers
         private static KeyValuePair<Delegate, IntPtr>[] GetReaders(ReaderMethodBuilderContext context)
         {
             var result = new KeyValuePair<Delegate, IntPtr>[256];
-            foreach(var type in GroBufHelpers.LeafTypes.Where(type => type != null))
+            foreach (var type in GroBufHelpers.LeafTypes.Where(type => type != null))
                 result[(int)GroBufTypeCodeMap.GetTypeCode(type)] = GetReader(context, type);
             result[(int)GroBufTypeCode.DateTimeOld] = result[(int)GroBufTypeCode.DateTimeNew];
             return result;
@@ -74,7 +74,7 @@ namespace GroBuf.Readers
                                                {
                                                    typeof(IntPtr), typeof(int).MakeByRefType(), typeof(object).MakeByRefType(), typeof(ReaderContext)
                                                }, context.Context.Module, true);
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 il.Ldarg(2); // stack: [ref result]
                 il.Ldarg(0); // stack: [ref result, data]
@@ -86,7 +86,7 @@ namespace GroBuf.Readers
                 ReaderMethodBuilderContext.CallReader(il, type, context.Context);
 
                 il.Ldloc(value); // stack: [ref result, value]
-                if(type.IsValueType)
+                if (type.IsValueType)
                     il.Box(type); // stack: [ref result, (object)value]
                 else
                     il.Castclass(type);

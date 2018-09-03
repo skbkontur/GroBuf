@@ -16,7 +16,7 @@ namespace GroBuf
             var id = Interlocked.Increment(ref serializerId) - 1;
             writer = new GroBufWriter(id, dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
             reader = new GroBufReader(id, dataMembersExtractor, customSerializerCollection, options, factory, baseFactory);
-            if(options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 writerWritingEmptyObjects = writer;
             else
             {
@@ -152,7 +152,7 @@ namespace GroBuf
         private void ChangeType<TFrom, TTo>(TFrom obj, ref TTo result)
         {
             var size = writerWritingEmptyObjects.GetSize(obj);
-            if(size <= 768)
+            if (size <= 768)
             {
                 var buf = new byte[size];
                 var index = 0;
@@ -178,7 +178,7 @@ namespace GroBuf
         private void ChangeType(Type from, Type to, object obj, ref object result)
         {
             var size = writerWritingEmptyObjects.GetSize(from, obj);
-            if(size <= 768)
+            if (size <= 768)
             {
                 var buf = new byte[size];
                 var index = 0;

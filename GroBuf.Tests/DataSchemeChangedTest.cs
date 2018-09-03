@@ -159,6 +159,8 @@ namespace GroBuf.Tests
             Assert.AreEqual("GRobas", oo.Zzz);
         }
 
+        private Serializer serializer;
+
         public class C1_Old
         {
             public string S { get; set; }
@@ -271,7 +273,5 @@ namespace GroBuf.Tests
             [GroboMember("Qxx")]
             public string Zzz { get; }
         }
-
-        private Serializer serializer;
     }
 }

@@ -9,16 +9,16 @@ namespace GroBuf.SizeCounters
         public PrimitivesArraySizeCounterBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            if (!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if (Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
             elementType = Type.GetElementType();
-            if(!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
+            if (!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
         }
 
         protected override bool CheckEmpty(SizeCounterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
             context.LoadObj(); // stack: [obj]
-            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             else
             {
@@ -52,7 +52,7 @@ namespace GroBuf.SizeCounters
         private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

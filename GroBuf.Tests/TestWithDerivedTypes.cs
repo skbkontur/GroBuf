@@ -33,6 +33,8 @@ namespace GroBuf.Tests
             Assert.AreEqual("DerivedV", oo.B.VF);
         }
 
+        private Serializer serializer;
+
         public class A
         {
             public Base B { get; set; }
@@ -51,7 +53,5 @@ namespace GroBuf.Tests
             public override string V { get { return "DerivedV"; } set { VFF = value; } }
             public string VFF;
         }
-
-        private Serializer serializer;
     }
 }

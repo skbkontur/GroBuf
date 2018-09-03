@@ -34,7 +34,7 @@ namespace GroBuf.Readers
             var compiledDynamicMethods = context.GetMethods();
             var pointers = new IntPtr[compiledDynamicMethods.Length];
             var delegates = new Delegate[compiledDynamicMethods.Length];
-            foreach(var pair in compiledDynamicMethods)
+            foreach (var pair in compiledDynamicMethods)
             {
                 var compiledDynamicMethod = pair.Value;
                 var index = compiledDynamicMethod.Index;

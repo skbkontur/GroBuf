@@ -8,7 +8,7 @@ namespace GroBuf.Readers
         public ArraySegmentReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(ArraySegment<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(ArraySegment<>)))
                 throw new InvalidOperationException("An array segment expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
             arrayField = Type.GetField("_array", BindingFlags.Instance | BindingFlags.NonPublic);

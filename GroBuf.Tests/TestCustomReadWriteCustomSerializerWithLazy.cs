@@ -18,7 +18,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test_C()
         {
-            var o = new Data { B = new Lazy<B>(() => new C { S = "zzz" }) };
+            var o = new Data {B = new Lazy<B>(() => new C {S = "zzz"})};
             var data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Data>(data);
             Assert.AreEqual("zzz", ((C)oo.B.Value).S);
@@ -27,7 +27,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test_D()
         {
-            var o = new Data { B = new Lazy<B>(() => new D { X = 42 }) };
+            var o = new Data {B = new Lazy<B>(() => new D {X = 42})};
             var data = serializer.Serialize(o);
             var oo = serializer.Deserialize<Data>(data);
             Assert.AreEqual(42, ((D)oo.B.Value).X);
@@ -36,7 +36,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test_DataIsNotLostWhenSerializingWithNoContract()
         {
-            var o = new Data { B = new Lazy<B>(() => new C { S = "zzz" }) };
+            var o = new Data {B = new Lazy<B>(() => new C {S = "zzz"})};
             var data = serializer.Serialize(o);
             var serializerWithNoContract = new Serializer(new AllPropertiesExtractor());
             var oo = serializerWithNoContract.Deserialize<Data>(data);
@@ -52,7 +52,7 @@ namespace GroBuf.Tests
         {
             public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer)
             {
-                if(typeof(B) == (declaredType))
+                if (typeof(B) == (declaredType))
                     return new GroBufCustomSerializer(factory, baseSerializer);
                 return null;
             }
@@ -84,9 +84,9 @@ namespace GroBuf.Tests
                 object typeName = null;
                 Type type;
                 factory(typeof(string)).Read(data, ref index, ref typeName, context);
-                if((string)typeName == typeof(C).Name)
+                if ((string)typeName == typeof(C).Name)
                     type = typeof(C);
-                else if((string)typeName == typeof(D).Name)
+                else if ((string)typeName == typeof(D).Name)
                     type = typeof(D);
                 else throw new InvalidOperationException("Unknown type " + typeName);
                 factory(type).Read(data, ref index, ref result, context);

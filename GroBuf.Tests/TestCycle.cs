@@ -41,6 +41,8 @@ namespace GroBuf.Tests
             Assert.IsNull(oo.C.B.C);
         }
 
+        private Serializer serializer;
+
         public class A
         {
             public string S { get; set; }
@@ -58,7 +60,5 @@ namespace GroBuf.Tests
             public string S { get; set; }
             public B B { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

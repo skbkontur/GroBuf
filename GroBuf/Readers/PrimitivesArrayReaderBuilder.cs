@@ -11,10 +11,10 @@ namespace GroBuf.Readers
         public PrimitivesArrayReaderBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
-            if(Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
+            if (!Type.IsArray) throw new InvalidOperationException("An array expected but was '" + Type + "'");
+            if (Type.GetArrayRank() != 1) throw new NotSupportedException("Arrays with rank greater than 1 are not supported");
             elementType = Type.GetElementType();
-            if(!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
+            if (!elementType.IsPrimitive) throw new NotSupportedException("Array of primitive type expected but was '" + Type + "'");
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
@@ -50,7 +50,7 @@ namespace GroBuf.Readers
             CountArrayLength(elementType, il); // stack: [array length]
             il.Stloc(length); // length = array length
 
-            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -106,7 +106,7 @@ namespace GroBuf.Readers
             il.Br(doneLabel);
 
             il.MarkLabel(tryReadArrayElementLabel);
-            if(context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
+            if (context.Context.GroBufReader.Options.HasFlag(GroBufOptions.MergeOnRead))
             {
                 var createArrayLabel = il.DefineLabel("createArray");
                 context.LoadResult(Type); // stack: [result]
@@ -157,7 +157,7 @@ namespace GroBuf.Readers
         private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:
@@ -194,7 +194,7 @@ namespace GroBuf.Readers
         private static void CountArrayLength(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

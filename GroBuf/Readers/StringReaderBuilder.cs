@@ -41,7 +41,7 @@ namespace GroBuf.Readers
             il.Ldc_I4(1); // stack: [ref result, &data[index], 0, length, 1]
             il.Shr(true); // stack: [ref result, &data[index], 0, length >> 1]
             var constructor = Type.GetConstructor(new[] {typeof(char*), typeof(int), typeof(int)});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(Type, typeof(char*), typeof(int), typeof(int));
             il.Newobj(constructor); // stack: [ref result, new string(&data[index], 0, length >> 1)]
             il.Stind(typeof(string)); // result = new string(&data[index], 0, length >> 1); stack: []

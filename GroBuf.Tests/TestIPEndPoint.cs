@@ -42,11 +42,11 @@ namespace GroBuf.Tests
             Assert.AreEqual(zzz.EndPoint, zzz2.EndPoint);
         }
 
+        private Serializer serializer;
+
         public class Zzz
         {
             public IPEndPoint EndPoint { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

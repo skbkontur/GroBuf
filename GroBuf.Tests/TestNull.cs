@@ -49,6 +49,8 @@ namespace GroBuf.Tests
             Console.WriteLine(DebugViewBuilder.DebugView(Convert.FromBase64String(curr)));
         }
 
+        private Serializer serializer;
+
         public class A
         {
             public string S { get; set; }
@@ -59,7 +61,5 @@ namespace GroBuf.Tests
         {
             public int[] Ints { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

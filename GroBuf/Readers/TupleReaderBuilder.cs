@@ -7,13 +7,13 @@ namespace GroBuf.Readers
         public TupleReaderBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsTuple())
+            if (!Type.IsTuple())
                 throw new InvalidOperationException("A tuple expected but was '" + Type + "'");
         }
 
         protected override void BuildConstantsInternal(ReaderConstantsBuilderContext context)
         {
-            foreach(var argumentType in Type.GetGenericArguments())
+            foreach (var argumentType in Type.GetGenericArguments())
                 context.BuildConstants(argumentType);
         }
 
@@ -37,7 +37,7 @@ namespace GroBuf.Readers
             context.LoadResultByRef(); // stack: [ref result]
             var genericArguments = Type.GetGenericArguments();
             // stack: [ref result, args]
-            for(int i = 0; i < genericArguments.Length; ++i)
+            for (int i = 0; i < genericArguments.Length; ++i)
             {
                 context.LoadData(); // stack: [ref result, args, data]
                 context.LoadIndexByRef(); // stack: [ref result, args, data, ref index]

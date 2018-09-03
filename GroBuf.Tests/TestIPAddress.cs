@@ -61,11 +61,11 @@ namespace GroBuf.Tests
             Assert.AreEqual(zzz.Address, zzz2.Address);
         }
 
+        private Serializer serializer;
+
         public class Zzz
         {
             public IPAddress Address { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

@@ -20,7 +20,7 @@ namespace GroBuf.Tests.TestTools
         private static string RandomString(Random random, int length, char first, char last)
         {
             var arr = new char[length];
-            for(int i = 0; i < length; ++i)
+            for (int i = 0; i < length; ++i)
                 arr[i] = (char)random.Next(first, last + 1);
             return new string(arr);
         }
@@ -35,17 +35,17 @@ namespace GroBuf.Tests.TestTools
             Type type = obj.GetType();
             PropertyInfo[] properties = typePropertiesCache.Get(type);
             var isNull = new bool[properties.Length];
-            for(int i = 0; i < isNull.Length; ++i)
+            for (int i = 0; i < isNull.Length; ++i)
                 isNull[i] = CanBeNull(properties[i].PropertyType) && random.Next(101) > fillRate;
-            for(int index = 0; index < properties.Length; index++)
+            for (int index = 0; index < properties.Length; index++)
             {
-                if(isNull[index]) continue;
+                if (isNull[index]) continue;
                 PropertyInfo property = properties[index];
                 Type propertyType = property.PropertyType;
                 MethodInfo setter = property.GetSetMethod();
-                if(!propertyType.IsArray)
+                if (!propertyType.IsArray)
                 {
-                    if(IsALeaf(propertyType))
+                    if (IsALeaf(propertyType))
                         setter.Invoke(obj, new[] {GetRandomValue(propertyType, random, stringsLength)});
                     else
                     {
@@ -61,17 +61,17 @@ namespace GroBuf.Tests.TestTools
                     int length = random.Next(arraysSize, arraysSize * 2);
                     Array array = Array.CreateInstance(elementType, length);
                     setter.Invoke(obj, new[] {array});
-                    if(IsALeaf(elementType))
+                    if (IsALeaf(elementType))
                     {
-                        for(int i = 0; i < length; ++i)
+                        for (int i = 0; i < length; ++i)
                             array.SetValue(GetRandomValue(elementType, random, stringsLength), i);
                     }
                     else
                     {
                         ConstructorInfo constructorInfo = typeConstructorCache.Get(elementType);
-                        for(int i = 0; i < length; ++i)
+                        for (int i = 0; i < length; ++i)
                             array.SetValue(constructorInfo.Invoke(new object[0]), i);
-                        for(int i = 0; i < length; ++i)
+                        for (int i = 0; i < length; ++i)
                             FillWithRandomTrash(array.GetValue(i), random, fillRate, stringsLength, arraysSize);
                     }
                 }
@@ -80,11 +80,11 @@ namespace GroBuf.Tests.TestTools
 
         private static object GetRandomValue(Type type, Random random, int stringsLength)
         {
-            if(type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>))
                 return GetRandomValue(type.GetGenericArguments()[0], random, stringsLength);
-            if(type == typeof(Guid))
+            if (type == typeof(Guid))
                 return Guid.NewGuid();
-            switch(Type.GetTypeCode(type))
+            switch (Type.GetTypeCode(type))
             {
             case TypeCode.Boolean:
                 return random.Next(2) == 0;

@@ -35,13 +35,13 @@ namespace GroBuf.SizeCounters
             var compiledDynamicMethods = context.GetMethods();
             var pointers = new IntPtr[compiledDynamicMethods.Length];
             var delegates = new Delegate[compiledDynamicMethods.Length];
-            foreach(var pair in compiledDynamicMethods)
+            foreach (var pair in compiledDynamicMethods)
             {
                 var compiledDynamicMethod = pair.Value;
                 var index = compiledDynamicMethod.Index;
                 pointers[index] = compiledDynamicMethod.Pointer;
                 delegates[index] = compiledDynamicMethod.Delegate;
-                if(compiledDynamicMethod.Pointer != sizeCounter.Pointer)
+                if (compiledDynamicMethod.Pointer != sizeCounter.Pointer)
                     groBufWriter.countersWithCustomSerialization[pair.Key] = (IntPtr?)compiledDynamicMethod.Pointer;
             }
             initializer(pointers, delegates, context.GetFieldInitializers());

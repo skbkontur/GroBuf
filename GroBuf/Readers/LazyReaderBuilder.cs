@@ -11,7 +11,7 @@ namespace GroBuf.Readers
         public LazyReaderBuilder(Type type, ModuleBuilder module)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Lazy<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Lazy<>)))
                 throw new InvalidOperationException("Expected Lazy but was '" + Type + "'");
             this.module = module;
             readerInvoker = BuildReaderInvoker();
@@ -79,7 +79,7 @@ namespace GroBuf.Readers
             var reader = typeBuilder.DefineField("reader", typeof(IntPtr), FieldAttributes.Private);
             var serializerId = typeBuilder.DefineField("serializerId", typeof(long), FieldAttributes.Private);
             var constructor = typeBuilder.DefineConstructor(MethodAttributes.Public, CallingConventions.HasThis, new[] {typeof(IntPtr), typeof(long)});
-            using(var il = new GroboIL(constructor))
+            using (var il = new GroboIL(constructor))
             {
                 il.Ldarg(0); // stack: [this]
                 il.Ldarg(1); // stack: [this, reader]
@@ -90,7 +90,7 @@ namespace GroBuf.Readers
                 il.Ret();
             }
             var method = typeBuilder.DefineMethod("Read", MethodAttributes.Public, argument, new[] {typeof(byte[])});
-            using(var il = new GroboIL(method))
+            using (var il = new GroboIL(method))
             {
                 var pinnedData = il.DeclareLocal(typeof(byte).MakeByRefType(), "pinnedData", true);
                 il.Ldarg(1); // stack: [data]

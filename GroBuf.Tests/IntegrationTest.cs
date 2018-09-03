@@ -28,13 +28,13 @@ namespace GroBuf.Tests
             var data = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
             var thread = new Thread(FillWithRandomTrash);
             thread.Start(data);
-            while(true)
+            while (true)
             {
                 try
                 {
                     var serializedData = serializer.Serialize(data);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     Console.WriteLine(e);
                 }
@@ -45,7 +45,7 @@ namespace GroBuf.Tests
         {
             var data = (Orders)param;
             var random = new Random(1231241);
-            while(true)
+            while (true)
                 TestHelpers.FillWithRandomTrash(data, random, 75, 10, 2);
         }
 
@@ -57,18 +57,18 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
             datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
-            for(int i = 1; i < datas.Length; ++i)
+            for (int i = 1; i < datas.Length; ++i)
                 datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
 
             var messages = new byte[numberOfMessages][];
-            for(int i = 0; i < datas.Length; ++i)
+            for (int i = 0; i < datas.Length; ++i)
                 messages[i] = serializer.Serialize(datas[i]);
 
             var deserializedMessages = new Orders[numberOfMessages];
-            for(int i = 0; i < messages.Length; ++i)
+            for (int i = 0; i < messages.Length; ++i)
                 deserializedMessages[i] = serializer.Deserialize<Orders>(messages[i]) ?? new Orders();
 
-            for(int i = 0; i < numberOfMessages; ++i)
+            for (int i = 0; i < numberOfMessages; ++i)
             {
                 TestHelpers.Extend(deserializedMessages[i]);
                 TestHelpers.Extend(datas[i]);
@@ -84,7 +84,7 @@ namespace GroBuf.Tests
             var random = new Random(54717651);
             var datas = new Orders[numberOfMessages];
             datas[0] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
-            for(int i = 1; i < datas.Length; ++i)
+            for (int i = 1; i < datas.Length; ++i)
                 datas[i] = TestHelpers.GenerateRandomTrash<Orders>(random, 75, 10, 2);
 
             stop = false;
@@ -92,11 +92,11 @@ namespace GroBuf.Tests
             thread.Start();
 
             var messages = new byte[numberOfMessages][];
-            for(int i = 0; i < datas.Length; ++i)
+            for (int i = 0; i < datas.Length; ++i)
                 messages[i] = serializer.Serialize(datas[i]);
 
             var deserializedMessages = new Orders[numberOfMessages];
-            for(int i = 0; i < messages.Length; ++i)
+            for (int i = 0; i < messages.Length; ++i)
                 deserializedMessages[i] = serializer.Deserialize<Orders>(messages[i]);
 
             stop = true;
@@ -113,7 +113,7 @@ namespace GroBuf.Tests
             var thread = new Thread(Collect);
             thread.Start();
 
-            for (int i = 0; i < 10; ++i )
+            for (int i = 0; i < 10; ++i)
                 new Thread(Zzz).Start(serializer);
             Zzz(serializer);
 
@@ -134,7 +134,7 @@ namespace GroBuf.Tests
 
         private void Collect()
         {
-            while(!stop)
+            while (!stop)
             {
                 Thread.Sleep(100);
                 GC.Collect();

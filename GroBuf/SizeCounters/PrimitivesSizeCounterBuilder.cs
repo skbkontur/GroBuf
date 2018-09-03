@@ -7,7 +7,7 @@ namespace GroBuf.SizeCounters
         public PrimitivesSizeCounterBuilder(Type type)
             : base(type)
         {
-            if(!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
+            if (!Type.IsPrimitive && Type != typeof(decimal)) throw new InvalidOperationException("Expected primitive type but was '" + Type + "'");
         }
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
@@ -18,7 +18,7 @@ namespace GroBuf.SizeCounters
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(Type);
             var il = context.Il;
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

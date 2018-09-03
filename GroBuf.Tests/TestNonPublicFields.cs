@@ -22,6 +22,8 @@ namespace GroBuf.Tests
             Assert.AreEqual(3434, result.GetB());
         }
 
+        private Serializer serializer;
+
         public class CWithnonPublics
         {
             public CWithnonPublics()
@@ -42,7 +44,5 @@ namespace GroBuf.Tests
             public int A { get; private set; }
             public int B { private get; set; }
         }
-
-        private Serializer serializer;
     }
 }

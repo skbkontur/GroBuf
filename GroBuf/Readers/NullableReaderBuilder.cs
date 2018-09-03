@@ -7,7 +7,7 @@ namespace GroBuf.Readers
         public NullableReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 throw new InvalidOperationException("Expected nullable but was '" + Type + "'");
         }
 
@@ -30,7 +30,7 @@ namespace GroBuf.Readers
             context.CallReader(argumentType); // reader(pinnedData, ref index, ref value, context); stack: [ref result]
             il.Ldloc(value); // stack: [ref result, value]
             var constructor = Type.GetConstructor(new[] {argumentType});
-            if(constructor == null)
+            if (constructor == null)
                 throw new MissingConstructorException(Type, argumentType);
             il.Newobj(constructor); // stack: [ref result, new elementType?(value)]
             il.Stobj(Type); // result = new elementType?(value)

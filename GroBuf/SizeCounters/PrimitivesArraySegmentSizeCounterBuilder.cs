@@ -10,7 +10,7 @@ namespace GroBuf.SizeCounters
         public PrimitivesArraySegmentSizeCounterBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(ArraySegment<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(ArraySegment<>)))
                 throw new InvalidOperationException("An array segment expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
             arrayField = Type.GetField("_array", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -24,7 +24,7 @@ namespace GroBuf.SizeCounters
             var il = context.Il;
             context.LoadObjByRef(); // stack: [ref obj]
             il.Ldfld(arrayField); // stack: [obj._array]
-            if(context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
                 il.Brtrue(notEmptyLabel); // if(obj._array != null) goto notEmpty;
             else
             {
@@ -58,7 +58,7 @@ namespace GroBuf.SizeCounters
         private static void CountArraySize(Type elementType, GroboIL il)
         {
             var typeCode = GroBufTypeCodeMap.GetTypeCode(elementType);
-            switch(typeCode)
+            switch (typeCode)
             {
             case GroBufTypeCode.Int8:
             case GroBufTypeCode.UInt8:

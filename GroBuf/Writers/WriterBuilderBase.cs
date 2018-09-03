@@ -28,11 +28,11 @@ namespace GroBuf.Writers
                 var context = new WriterMethodBuilderContext(writerTypeBuilderContext, il);
 
                 var notEmptyLabel = il.DefineLabel("notEmpty");
-                if(CheckEmpty(context, notEmptyLabel)) // Check if obj is empty
+                if (CheckEmpty(context, notEmptyLabel)) // Check if obj is empty
                     context.WriteNull(); // Write null & return
                 il.MarkLabel(notEmptyLabel); // Now we know that obj is not empty
 
-                if(!Type.IsValueType && IsReference && writerTypeBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences))
+                if (!Type.IsValueType && IsReference && writerTypeBuilderContext.GroBufWriter.Options.HasFlag(GroBufOptions.PackReferences))
                 {
                     // Pack reference
                     var index = il.DeclareLocal(typeof(int));
@@ -96,14 +96,14 @@ namespace GroBuf.Writers
         protected abstract void WriteNotEmpty(WriterMethodBuilderContext context);
 
         /// <summary>
-        /// Checks whether <c>obj</c> is empty
+        ///     Checks whether <c>obj</c> is empty
         /// </summary>
         /// <param name="context">Current context</param>
         /// <param name="notEmptyLabel">Label where to go if <c>obj</c> is not empty</param>
         /// <returns>true if <c>obj</c> can be empty</returns>
         protected virtual bool CheckEmpty(WriterMethodBuilderContext context, GroboIL.Label notEmptyLabel)
         {
-            if(Type.IsValueType) return false;
+            if (Type.IsValueType) return false;
             context.LoadObj(); // stack: [obj]
             context.Il.Brtrue(notEmptyLabel); // if(obj != null) goto notEmpty;
             return true;

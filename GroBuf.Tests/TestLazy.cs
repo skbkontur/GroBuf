@@ -30,7 +30,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test_WriteReadSameSerializer()
         {
-            var o = new A { B = new Lazy<B>(() => new B { S = "qxx" }) };
+            var o = new A {B = new Lazy<B>(() => new B {S = "qxx"})};
             var data = serializer.Serialize(o);
             o = serializer.Deserialize<A>(data);
             data = serializer.Serialize(o);
@@ -43,7 +43,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test_WriteReadDifferentSerializers()
         {
-            var o = new A { B = new Lazy<B>(() => new B { S = "qxx" }) };
+            var o = new A {B = new Lazy<B>(() => new B {S = "qxx"})};
             var data = serializer.Serialize(o);
             o = serializer.Deserialize<A>(data);
             var serializer2 = new Serializer(new AllPropertiesExtractor());
@@ -77,7 +77,7 @@ namespace GroBuf.Tests
         [Test]
         public void Test_WriteLazyWithoutFactory()
         {
-            var o = new A() { B = new Lazy<B>() };
+            var o = new A() {B = new Lazy<B>()};
             var data = serializer.Serialize(o);
         }
 

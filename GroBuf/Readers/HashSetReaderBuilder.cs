@@ -9,7 +9,7 @@ namespace GroBuf.Readers
         public HashSetReaderBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(HashSet<>)))
                 throw new InvalidOperationException("HashSet expected but was '" + Type + "'");
             elementType = Type.GetGenericArguments()[0];
         }
@@ -73,7 +73,7 @@ namespace GroBuf.Readers
             il.Call(Type.GetMethod("Add")); // stack: [result.Add(value)]
             il.Pop(); // stack: []
 
-            if(!elementType.IsValueType)
+            if (!elementType.IsValueType)
             {
                 il.Ldnull();
                 il.Stloc(value);

@@ -49,7 +49,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestAddRemoveElements()
         {
-            var dict = new Hashtable { { "1", 1 }, { "2", 2 }, { "3", "3" } };
+            var dict = new Hashtable {{"1", 1}, {"2", 2}, {"3", "3"}};
             dict.Remove("1");
             var buf = serializer.Serialize(dict);
             var dict2 = serializer.Deserialize<Hashtable>(buf);
@@ -87,28 +87,30 @@ namespace GroBuf.Tests
         public void TestPerformance()
         {
             var hashtable = new Hashtable();
-            for(int i = 0; i < 10000; ++i)
+            for (int i = 0; i < 10000; ++i)
                 hashtable.Add(i, i);
             Console.WriteLine(serializer.GetSize(hashtable));
             serializer.Deserialize<Hashtable>(serializer.Serialize(hashtable));
             var stopwatch = Stopwatch.StartNew();
             const int iterations = 10000;
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.GetSize(hashtable);
             var elapsed = stopwatch.Elapsed;
             Console.WriteLine("Size computing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " size computations per second)");
             stopwatch = Stopwatch.StartNew();
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.Serialize(hashtable);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
             var buf = serializer.Serialize(hashtable);
             stopwatch = Stopwatch.StartNew();
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.Deserialize<Hashtable>(buf);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
         }
+
+        private Serializer serializer;
 
         public class Zzz
         {
@@ -119,7 +121,5 @@ namespace GroBuf.Tests
 
             public Dictionary<string, byte[]> Properties { get; set; }
         }
-
-        private Serializer serializer;
     }
 }

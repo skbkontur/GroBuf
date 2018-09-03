@@ -45,6 +45,11 @@ namespace GroBuf.Tests
             Assert.AreEqual(42, oo.Z.Value.Data);
         }
 
+        public interface I1<T>
+        {
+            T Data { get; set; }
+        }
+
         private Serializer serializer;
 
         private class C1<T> : I1<T>
@@ -66,7 +71,7 @@ namespace GroBuf.Tests
         {
             public IGroBufCustomSerializer Get(Type declaredType, Func<Type, IGroBufCustomSerializer> factory, IGroBufCustomSerializer baseSerializer)
             {
-                if(declaredType.IsGenericType && declaredType.GetGenericTypeDefinition() == typeof(I1<>))
+                if (declaredType.IsGenericType && declaredType.GetGenericTypeDefinition() == typeof(I1<>))
                     return new GroBufCustomSerializer(declaredType, factory, baseSerializer);
                 return null;
             }
@@ -101,11 +106,6 @@ namespace GroBuf.Tests
             private readonly Type argumentType;
             private readonly Func<Type, IGroBufCustomSerializer> factory;
             private readonly IGroBufCustomSerializer baseSerializer;
-        }
-
-        public interface I1<T>
-        {
-            T Data { get; set; }
         }
     }
 }

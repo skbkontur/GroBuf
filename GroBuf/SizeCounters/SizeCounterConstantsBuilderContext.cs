@@ -27,15 +27,15 @@ namespace GroBuf.SizeCounters
         public void SetFields(Type type, KeyValuePair<string, Type>[] fields)
         {
             hashtable[type] = fields;
-            foreach(var field in fields)
+            foreach (var field in fields)
                 ConstantsBuilder.DefineField(field.Key, field.Value, FieldAttributes.Public | FieldAttributes.Static);
         }
 
         public void BuildConstants(Type type, bool isRoot = false, bool ignoreCustomSerialization = false)
         {
-            if(isRoot || GroBufWriter.countersWithCustomSerialization[type] == null)
+            if (isRoot || GroBufWriter.countersWithCustomSerialization[type] == null)
             {
-                if(hashtable[type] == null)
+                if (hashtable[type] == null)
                     sizeCounterCollection.GetSizeCounterBuilder(type, ignoreCustomSerialization).BuildConstants(this);
             }
         }

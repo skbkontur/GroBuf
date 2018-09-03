@@ -10,16 +10,16 @@ namespace GroBuf.Tests.TestTools
         public static XmlNode GoToChild(this XmlNode node, string name)
         {
             var xmlNode = TryGoToChild(node, name);
-            if(xmlNode != null) return xmlNode;
+            if (xmlNode != null) return xmlNode;
             throw new FormatException(string.Format("У элемента '{0}' не найдено дочернего '{1}'", node.Name, name));
         }
 
         public static XmlNode TryGoToChild(this XmlNode node, string name)
         {
-            for(int i = 0; i < node.ChildNodes.Count; i++)
+            for (int i = 0; i < node.ChildNodes.Count; i++)
             {
                 var nodeName = node.ChildNodes[i].Name.Split(':').Last();
-                if(string.Compare(nodeName, name, StringComparison.OrdinalIgnoreCase) == 0)
+                if (string.Compare(nodeName, name, StringComparison.OrdinalIgnoreCase) == 0)
                     return node.ChildNodes[i];
             }
             return null;
@@ -32,11 +32,11 @@ namespace GroBuf.Tests.TestTools
 
         public static T TryGetChildNode<T>(this XmlNode parent, string localName, string namespaceUri) where T : XmlNode
         {
-            foreach(XmlNode node in parent.ChildNodes)
+            foreach (XmlNode node in parent.ChildNodes)
             {
-                if(localName.Equals(node.LocalName, StringComparison.OrdinalIgnoreCase)
-                   && typeof(T).IsAssignableFrom(node.GetType())
-                   && (namespaceUri == null || node.NamespaceURI == namespaceUri))
+                if (localName.Equals(node.LocalName, StringComparison.OrdinalIgnoreCase)
+                    && typeof(T).IsAssignableFrom(node.GetType())
+                    && (namespaceUri == null || node.NamespaceURI == namespaceUri))
                     return (T)node;
             }
             return null;

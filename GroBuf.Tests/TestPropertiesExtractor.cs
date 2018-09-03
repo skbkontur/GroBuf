@@ -1,8 +1,8 @@
-﻿using GroBuf.DataMembersExtracters;
+﻿using System.Linq;
+
+using GroBuf.DataMembersExtracters;
 
 using NUnit.Framework;
-
-using System.Linq;
 
 namespace GroBuf.Tests
 {
@@ -20,7 +20,7 @@ namespace GroBuf.Tests
             private string S { get; set; }
         }
 
-        public class B: A
+        public class B : A
         {
             public int X { get; set; }
         }

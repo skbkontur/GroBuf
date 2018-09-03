@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.Serialization;
 
 using GroBuf.DataMembersExtracters;
 
@@ -126,8 +125,8 @@ namespace GroBuf.Tests
         public void TestZ()
         {
             var values = Enum.GetValues(typeof(TaskState));
-            for(int i = 0; i < values.Length; ++i)
-               Console.WriteLine(values.GetValue(i));
+            for (int i = 0; i < values.Length; ++i)
+                Console.WriteLine(values.GetValue(i));
             Console.WriteLine(typeof(TaskState).GetField("Finished", BindingFlags.Public | BindingFlags.Static));
             var fields = typeof(TaskState).GetFields(BindingFlags.Public | BindingFlags.Static);
             for (int i = 0; i < fields.Length; ++i)
@@ -145,7 +144,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestInt8()
         {
-            foreach(var o in Enum.GetValues(typeof(Int8Enum)).Cast<Int8Enum>().Concat(new[] {(Int8Enum)sbyte.MaxValue}))
+            foreach (var o in Enum.GetValues(typeof(Int8Enum)).Cast<Int8Enum>().Concat(new[] {(Int8Enum)sbyte.MaxValue}))
             {
                 var data = serializer.Serialize(o);
                 var oo = serializer.Deserialize<Int8Enum>(data);
@@ -156,7 +155,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestUInt8()
         {
-            foreach(var o in Enum.GetValues(typeof(UInt8Enum)).Cast<UInt8Enum>().Concat(new[] {(UInt8Enum)byte.MaxValue}))
+            foreach (var o in Enum.GetValues(typeof(UInt8Enum)).Cast<UInt8Enum>().Concat(new[] {(UInt8Enum)byte.MaxValue}))
             {
                 var data = serializer.Serialize(o);
                 var oo = serializer.Deserialize<UInt8Enum>(data);
@@ -167,7 +166,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestInt16()
         {
-            foreach(var o in Enum.GetValues(typeof(Int16Enum)).Cast<Int16Enum>().Concat(new[] {(Int16Enum)short.MaxValue}))
+            foreach (var o in Enum.GetValues(typeof(Int16Enum)).Cast<Int16Enum>().Concat(new[] {(Int16Enum)short.MaxValue}))
             {
                 var data = serializer.Serialize(o);
                 var oo = serializer.Deserialize<Int16Enum>(data);
@@ -178,7 +177,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestUInt16()
         {
-            foreach(var o in Enum.GetValues(typeof(UInt16Enum)).Cast<UInt16Enum>().Concat(new[] {(UInt16Enum)ushort.MaxValue}))
+            foreach (var o in Enum.GetValues(typeof(UInt16Enum)).Cast<UInt16Enum>().Concat(new[] {(UInt16Enum)ushort.MaxValue}))
             {
                 var data = serializer.Serialize(o);
                 var oo = serializer.Deserialize<UInt16Enum>(data);
@@ -189,7 +188,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestInt32()
         {
-            foreach(var o in Enum.GetValues(typeof(Int32Enum)).Cast<Int32Enum>().Concat(new[] {(Int32Enum)int.MaxValue}))
+            foreach (var o in Enum.GetValues(typeof(Int32Enum)).Cast<Int32Enum>().Concat(new[] {(Int32Enum)int.MaxValue}))
             {
                 var data = serializer.Serialize(o);
                 var oo = serializer.Deserialize<Int32Enum>(data);
@@ -200,7 +199,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestUInt32()
         {
-            foreach(var o in Enum.GetValues(typeof(UInt32Enum)).Cast<UInt32Enum>().Concat(new[] {(UInt32Enum)uint.MaxValue}))
+            foreach (var o in Enum.GetValues(typeof(UInt32Enum)).Cast<UInt32Enum>().Concat(new[] {(UInt32Enum)uint.MaxValue}))
             {
                 var data = serializer.Serialize(o);
                 var oo = serializer.Deserialize<UInt32Enum>(data);
@@ -226,7 +225,6 @@ namespace GroBuf.Tests
 
             Canceled,
         }
-
 
         public enum Enum_BadSort1
         {
@@ -352,18 +350,6 @@ namespace GroBuf.Tests
             Z = 4000000000
         }
 
-        private Serializer serializer;
-
-        private class PrintParameters
-        {
-            public KopfPrintType PrintType { get; set; }
-        }
-
-        private class PrintParameters2
-        {
-            public KopfPrintType2 PrintType { get; set; }
-        }
-
         private enum KopfPrintType
         {
             Pdf = 1,
@@ -381,6 +367,18 @@ namespace GroBuf.Tests
             Negative = -1,
             Zero = 0,
             Positive = 1
+        }
+
+        private Serializer serializer;
+
+        private class PrintParameters
+        {
+            public KopfPrintType PrintType { get; set; }
+        }
+
+        private class PrintParameters2
+        {
+            public KopfPrintType2 PrintType { get; set; }
         }
     }
 }

@@ -110,7 +110,7 @@ namespace GroBuf.Tests
         [Test]
         public void TestAddRemoveElementsPrimitive()
         {
-            var hashSet = new HashSet<int> { 1, 2 };
+            var hashSet = new HashSet<int> {1, 2};
             hashSet.Remove(1);
             byte[] buf = serializer.Serialize(hashSet);
             var hashSet2 = serializer.Deserialize<HashSet<int>>(buf);
@@ -170,24 +170,24 @@ namespace GroBuf.Tests
         public void TestPerformance()
         {
             var hashSet = new HashSet<int>();
-            for(int i = 0; i < 10000; ++i)
+            for (int i = 0; i < 10000; ++i)
                 hashSet.Add(i);
             Console.WriteLine(serializer.GetSize(hashSet));
             serializer.Deserialize<HashSet<int>>(serializer.Serialize(hashSet));
             Stopwatch stopwatch = Stopwatch.StartNew();
             const int iterations = 10000;
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.GetSize(hashSet);
             TimeSpan elapsed = stopwatch.Elapsed;
             Console.WriteLine("Size computing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " size computations per second)");
             stopwatch = Stopwatch.StartNew();
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.Serialize(hashSet);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
             byte[] buf = serializer.Serialize(hashSet);
             stopwatch = Stopwatch.StartNew();
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.Deserialize<HashSet<int>>(buf);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");
@@ -198,24 +198,24 @@ namespace GroBuf.Tests
         public void TestPerformanceGuid()
         {
             var hashSet = new HashSet<Guid>();
-            for(int i = 0; i < 10000; ++i)
+            for (int i = 0; i < 10000; ++i)
                 hashSet.Add(Guid.NewGuid());
             Console.WriteLine(serializer.GetSize(hashSet));
             serializer.Deserialize<HashSet<Guid>>(serializer.Serialize(hashSet));
             Stopwatch stopwatch = Stopwatch.StartNew();
             const int iterations = 10000;
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.GetSize(hashSet);
             TimeSpan elapsed = stopwatch.Elapsed;
             Console.WriteLine("Size computing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " size computations per second)");
             stopwatch = Stopwatch.StartNew();
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.Serialize(hashSet);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Serializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " serializations per second)");
             byte[] buf = serializer.Serialize(hashSet);
             stopwatch = Stopwatch.StartNew();
-            for(int iter = 0; iter < iterations; ++iter)
+            for (int iter = 0; iter < iterations; ++iter)
                 serializer.Deserialize<HashSet<Guid>>(buf);
             elapsed = stopwatch.Elapsed;
             Console.WriteLine("Deserializing: " + elapsed.TotalMilliseconds * 1000 / iterations + " microseconds (" + Math.Round(1000.0 * iterations / elapsed.TotalMilliseconds) + " deserializations per second)");

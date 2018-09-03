@@ -29,6 +29,8 @@ namespace GroBuf.Tests
             Assert.AreEqual(0, result.GetPropIgnoredByExtractor());
         }
 
+        private Serializer serializer;
+
         public abstract class CWithnonPublicsBase
         {
             public abstract string AbstractProp { get; }
@@ -36,11 +38,6 @@ namespace GroBuf.Tests
 
         public class CWithnonPublics : CWithnonPublicsBase
         {
-            private int d;
-            private readonly int e;
-            private readonly int f;
-            private int g;
-
             public CWithnonPublics()
             {
             }
@@ -51,9 +48,9 @@ namespace GroBuf.Tests
                 A = a;
                 B = b;
                 C = c;
-                this.d = d;
-                this.e = e;
-                this.f = f;
+                this.D = d;
+                this.E = e;
+                this.F = f;
             }
 
             public override string AbstractProp { get; }
@@ -71,12 +68,12 @@ namespace GroBuf.Tests
             public int A { get; private set; }
             public int B { private get; set; }
             public int C { get; }
-            public int D { get { return d; } }
-            public int E { get { return e; } }
-            public int F => f;
-            public int PropIgnoredByExtractor { set { g = value; } }
-        }
+            public int D { get; }
+            public int E { get; }
+            public int F { get; }
 
-        private Serializer serializer;
+            public int PropIgnoredByExtractor { set { g = value; } }
+            private int g;
+        }
     }
 }

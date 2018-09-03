@@ -9,8 +9,6 @@ namespace GroBuf.Tests
     [TestFixture]
     public class TestTuple
     {
-        private Serializer serializer;
-
         [SetUp]
         public void SetUp()
         {
@@ -92,13 +90,15 @@ namespace GroBuf.Tests
         [Test]
         public void Test_Property()
         {
-            var o = new TestClass{Tuple = new Tuple<int, string>(10, "zzz")};
+            var o = new TestClass {Tuple = new Tuple<int, string>(10, "zzz")};
             var data = serializer.Serialize(o);
             var oo = serializer.Deserialize<TestClass>(data);
             Assert.IsNotNull(oo.Tuple);
             Assert.AreEqual(10, oo.Tuple.Item1);
             Assert.AreEqual("zzz", oo.Tuple.Item2);
         }
+
+        private Serializer serializer;
 
         private class TestClass
         {

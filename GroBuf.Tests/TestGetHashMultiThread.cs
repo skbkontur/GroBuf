@@ -20,10 +20,10 @@ namespace GroBuf.Tests
         {
             try
             {
-                for(int i = 1; i < 1000; ++i)
+                for (int i = 1; i < 1000; ++i)
                     GroBufHelpers.CalcHash(new string('z', i));
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
                 wasBug = true;

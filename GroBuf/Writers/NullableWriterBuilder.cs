@@ -9,7 +9,7 @@ namespace GroBuf.Writers
         public NullableWriterBuilder(Type type)
             : base(type)
         {
-            if(!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
+            if (!(Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>)))
                 throw new InvalidOperationException("Expected nullable but was " + Type);
         }
 

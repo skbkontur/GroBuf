@@ -12,10 +12,10 @@ namespace GroBuf.Writers
 
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
         {
-            foreach(var member in context.GetDataMembers(Type))
+            foreach (var member in context.GetDataMembers(Type))
             {
                 Type memberType;
-                switch(member.Member.MemberType)
+                switch (member.Member.MemberType)
                 {
                 case MemberTypes.Property:
                     memberType = ((PropertyInfo)member.Member).PropertyType;
@@ -46,21 +46,21 @@ namespace GroBuf.Writers
             var dataMembers = context.Context.GetDataMembers(Type);
             var hashCodes = GroBufHelpers.CalcHashesAndCheck(dataMembers);
             var prev = il.DeclareLocal(typeof(int));
-            for(var i = 0; i < dataMembers.Length; i++)
+            for (var i = 0; i < dataMembers.Length; i++)
             {
                 var member = dataMembers[i];
 
-                if(Type.IsValueType)
+                if (Type.IsValueType)
                     context.LoadObjByRef(); // stack: [ref obj]
                 else
                     context.LoadObj(); // stack: [obj]
                 Type memberType;
-                switch(member.Member.MemberType)
+                switch (member.Member.MemberType)
                 {
                 case MemberTypes.Property:
                     var property = (PropertyInfo)member.Member;
                     var getter = property.GetGetMethod(true);
-                    if(getter == null)
+                    if (getter == null)
                         throw new MissingMethodException(Type.Name, property.Name + "_get");
                     il.Call(getter, Type); // stack: [obj.prop]
                     memberType = property.PropertyType;
@@ -116,7 +116,7 @@ namespace GroBuf.Writers
 
             il.Stloc(length); // length = index - start - 5; stack: []
 
-            if(!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
+            if (!context.Context.GroBufWriter.Options.HasFlag(GroBufOptions.WriteEmptyObjects))
             {
                 var writeLengthLabel = il.DefineLabel("writeLength");
                 il.Ldloc(length); // stack: [length]
