@@ -53,6 +53,6 @@ namespace GroBuf.Readers
             context.StoreObject(Type);
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

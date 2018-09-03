@@ -76,7 +76,7 @@ namespace GroBuf.Writers
             il.MarkLabel(doneLabel);
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private readonly IGroBufCustomSerializer customSerializer;
     }

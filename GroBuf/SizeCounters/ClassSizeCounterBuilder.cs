@@ -89,6 +89,6 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [size + 5]
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

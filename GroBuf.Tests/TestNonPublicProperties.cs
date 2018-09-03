@@ -72,7 +72,7 @@ namespace GroBuf.Tests
             public int E { get; }
             public int F { get; }
 
-            public int PropIgnoredByExtractor { set { g = value; } }
+            public int PropIgnoredByExtractor { set => g = value; }
             private int g;
         }
     }

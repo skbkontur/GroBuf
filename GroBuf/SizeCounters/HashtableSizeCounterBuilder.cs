@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Reflection;
 
 using GrEmit;
@@ -104,6 +104,6 @@ namespace GroBuf.SizeCounters
             il.MarkLabel(doneLabel);
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

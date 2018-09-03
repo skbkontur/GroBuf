@@ -74,7 +74,7 @@ namespace GroBuf.Tests
         private class RSV1DisabledPerson
         {
             [DataMember]
-            public ValidationResult Validation { get { return validation ?? ValidationResult.Ok; } set { validation = value; } }
+            public ValidationResult Validation { get => validation ?? ValidationResult.Ok; set => validation = value; }
 
             private ValidationResult validation;
         }

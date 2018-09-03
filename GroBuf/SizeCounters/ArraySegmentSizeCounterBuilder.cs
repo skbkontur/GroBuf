@@ -84,7 +84,7 @@ namespace GroBuf.SizeCounters
             il.MarkLabel(doneLabel);
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private readonly Type elementType;
         private readonly FieldInfo arrayField;

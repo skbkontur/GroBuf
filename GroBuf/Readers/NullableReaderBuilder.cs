@@ -36,6 +36,6 @@ namespace GroBuf.Readers
             il.Stobj(Type); // result = new elementType?(value)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

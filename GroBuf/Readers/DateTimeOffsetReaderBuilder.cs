@@ -45,6 +45,6 @@ namespace GroBuf.Readers
             il.Stfld(Type.GetField(PlatformHelpers.DateTimeOffsetOffsetMinutesFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // result.m_offsetMinutes = offset; stack: [ref result]
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

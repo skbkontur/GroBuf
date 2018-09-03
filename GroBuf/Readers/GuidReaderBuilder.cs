@@ -39,6 +39,6 @@ namespace GroBuf.Readers
             il.FreePinnedLocal(pinnedResult); // pinnedResult = null; stack: []
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

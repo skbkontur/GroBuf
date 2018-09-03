@@ -38,6 +38,6 @@ namespace GroBuf.Writers
             context.CallWriter(typeof(short)); // writer(obj.m_offsetMinutes, writeEmpty, result, ref index, context)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

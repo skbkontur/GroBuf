@@ -89,6 +89,6 @@ namespace GroBuf.Writers
             }
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

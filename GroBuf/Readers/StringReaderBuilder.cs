@@ -61,6 +61,6 @@ namespace GroBuf.Readers
             il.Stind(typeof(string)); // result = ""; stack: []
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

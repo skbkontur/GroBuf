@@ -166,7 +166,7 @@ namespace GroBuf.Readers
             il.MarkLabel(doneLabel);
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         private void BuildMembersTable(ReaderTypeBuilderContext context, out ulong[] hashCodes, out MemberInfo[] dataMembers)
         {

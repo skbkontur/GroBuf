@@ -157,7 +157,7 @@ namespace GroBuf.Readers
             il.MarkLabel(doneLabel); // stack: []
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         private static readonly MethodInfo resizeMethod = ((MethodCallExpression)((Expression<Action<int[]>>)(arr => Array.Resize(ref arr, 0))).Body).Method.GetGenericMethodDefinition();
         private readonly Type elementType;

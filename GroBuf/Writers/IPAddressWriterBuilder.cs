@@ -28,6 +28,6 @@ namespace GroBuf.Writers
             context.CallWriter(typeof(byte[])); // writer(obj.GetAddressBytes(), writeEmpty, result, ref index, context)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

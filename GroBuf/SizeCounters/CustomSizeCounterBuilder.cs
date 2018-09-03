@@ -42,7 +42,7 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [size + 5]
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private readonly IGroBufCustomSerializer customSerializer;
     }

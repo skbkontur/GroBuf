@@ -87,7 +87,7 @@ namespace GroBuf.SizeCounters
             context.ReturnForNull();
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private static KeyValuePair<Delegate, IntPtr> GetCounter(SizeCounterMethodBuilderContext context, Type type)
         {

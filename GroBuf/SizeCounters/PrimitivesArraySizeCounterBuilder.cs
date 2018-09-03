@@ -32,7 +32,7 @@ namespace GroBuf.SizeCounters
             return true;
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         protected override void BuildConstantsInternal(SizeCounterConstantsBuilderContext context)
         {

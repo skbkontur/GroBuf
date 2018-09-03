@@ -116,7 +116,7 @@ namespace GroBuf.Readers
             il.MarkLabel(doneLabel); // stack: []
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private static void CountArraySize(Type elementType, GroboIL il)
         {

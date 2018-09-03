@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -40,7 +40,7 @@ namespace GroBuf.SizeCounters
             return true;
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         protected override void CountSizeNotEmpty(SizeCounterMethodBuilderContext context)
         {

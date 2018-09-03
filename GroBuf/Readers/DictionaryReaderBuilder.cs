@@ -100,7 +100,7 @@ namespace GroBuf.Readers
             il.MarkLabel(doneLabel); // stack: []
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         private readonly Type keyType;
         private readonly Type valueType;

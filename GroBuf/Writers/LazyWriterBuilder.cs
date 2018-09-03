@@ -78,6 +78,6 @@ namespace GroBuf.Writers
             context.CallWriter(argument); // writer(obj.Value, writeEmpty, result, ref index, context)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

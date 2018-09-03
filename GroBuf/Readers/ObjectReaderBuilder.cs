@@ -56,7 +56,7 @@ namespace GroBuf.Readers
             context.SkipValue();
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private static KeyValuePair<Delegate, IntPtr>[] GetReaders(ReaderMethodBuilderContext context)
         {

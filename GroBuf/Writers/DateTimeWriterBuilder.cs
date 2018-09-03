@@ -28,7 +28,7 @@ namespace GroBuf.Writers
             context.IncreaseIndexBy8(); // index = index + 8
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private static readonly MethodInfo dateTimeToBinaryMethod = ((MethodCallExpression)((Expression<Func<DateTime, long>>)(dateTime => dateTime.ToBinary())).Body).Method;
     }

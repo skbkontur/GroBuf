@@ -37,6 +37,6 @@ namespace GroBuf.SizeCounters
             }
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

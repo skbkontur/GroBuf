@@ -141,6 +141,6 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // *(int*)(result + start + 1) = length
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

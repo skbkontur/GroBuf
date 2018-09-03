@@ -70,7 +70,7 @@ namespace GroBuf.Readers
             il.Stind(Type); // result = new Lazy<argument>(array, func); stack: []
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         private Type BuildReaderInvoker()
         {

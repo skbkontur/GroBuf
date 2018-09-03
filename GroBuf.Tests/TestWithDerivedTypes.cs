@@ -43,14 +43,14 @@ namespace GroBuf.Tests
         public class Base
         {
             public string S { get; set; }
-            public virtual string V { get { return "BaseV"; } set { VF = value; } }
+            public virtual string V { get => "BaseV"; set => VF = value; }
             public string VF;
         }
 
         public class Derived : Base
         {
             public string Z { get; set; }
-            public override string V { get { return "DerivedV"; } set { VFF = value; } }
+            public override string V { get => "DerivedV"; set => VFF = value; }
             public string VFF;
         }
     }

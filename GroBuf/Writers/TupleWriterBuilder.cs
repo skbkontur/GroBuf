@@ -56,6 +56,6 @@ namespace GroBuf.Writers
             il.Stind(typeof(int)); // result[start] = length; stack: []
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
     }
 }

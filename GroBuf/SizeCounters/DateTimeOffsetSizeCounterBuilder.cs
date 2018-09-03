@@ -19,6 +19,6 @@ namespace GroBuf.SizeCounters
             context.Il.Ldc_I4(1 + 9 + 3); // stack: [13]
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

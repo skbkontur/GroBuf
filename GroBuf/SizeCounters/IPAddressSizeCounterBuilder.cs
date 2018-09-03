@@ -31,6 +31,6 @@ namespace GroBuf.SizeCounters
             il.Add(); // stack: [4 << ((obj.AddressFamily == AddressFamily.InterNetworkV6) << 1) + 5]
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

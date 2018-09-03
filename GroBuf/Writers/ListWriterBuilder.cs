@@ -33,7 +33,7 @@ namespace GroBuf.Writers
             return true;
         }
 
-        protected override bool IsReference { get { return true; } }
+        protected override bool IsReference => true;
 
         protected override void BuildConstantsInternal(WriterConstantsBuilderContext context)
         {

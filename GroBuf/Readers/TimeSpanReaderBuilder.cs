@@ -33,6 +33,6 @@ namespace GroBuf.Readers
             il.Stobj(Type); // result = new TimeSpan(ticks)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

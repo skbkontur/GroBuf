@@ -66,6 +66,6 @@ namespace GroBuf.Writers
             context.IncreaseIndexBy4(); // index = index + 4
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

@@ -33,6 +33,6 @@ namespace GroBuf.Readers
             il.Stind(Type); // result = new IPAddress(value)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

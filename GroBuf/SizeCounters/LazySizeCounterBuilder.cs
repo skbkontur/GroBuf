@@ -54,6 +54,6 @@ namespace GroBuf.SizeCounters
             context.CallSizeCounter(argument); // stack: [counter(obj.Value, writeEmpty, context)]
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

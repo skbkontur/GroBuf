@@ -94,6 +94,6 @@ namespace GroBuf.Readers
             context.CallReader(typeof(int)); // reader<int>(pinnedData, ref index, ref result, context)
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
     }
 }

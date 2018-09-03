@@ -44,7 +44,7 @@ namespace GroBuf.Readers
             il.Calli(CallingConventions.Standard, typeof(void), new[] {typeof(byte*), Type.MakeByRefType()}); // readers[typeCode](&data[index], ref result); stack: []
         }
 
-        protected override bool IsReference { get { return false; } }
+        protected override bool IsReference => false;
 
         private delegate void PrimitiveValueReaderDelegate<T>(IntPtr data, ref T result);
 
