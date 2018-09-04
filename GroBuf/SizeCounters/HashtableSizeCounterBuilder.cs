@@ -27,7 +27,7 @@ namespace GroBuf.SizeCounters
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField(PlatformHelpers.HashtableCountFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashtableCountFieldNames)); // stack: [obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -39,7 +39,7 @@ namespace GroBuf.SizeCounters
             var il = context.Il;
             il.Ldc_I4(9); // stack: [9 = size] 9 = type code + data length + dictionary count
             context.LoadObj(); // stack: [size, obj]
-            il.Ldfld(Type.GetField(PlatformHelpers.HashtableCountFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.Count]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashtableCountFieldNames)); // stack: [size, obj.Count]
 
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(count == 0) goto done; stack: [size]
@@ -47,7 +47,7 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [size, obj]
             var bucketType = Type.GetNestedType("bucket", BindingFlags.NonPublic);
             var buckets = il.DeclareLocal(bucketType.MakeArrayType());
-            var bucketsField = Type.GetField(PlatformHelpers.HashtableBucketsFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var bucketsField = Type.GetPrivateInstanceField(PlatformHelpers.HashtableBucketsFieldNames);
             il.Ldfld(bucketsField); // stack: [size, obj.buckets]
             il.Stloc(buckets); // buckets = obj.buckets; stack: [size]
             var length = il.DeclareLocal(typeof(int));

@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 
 namespace GroBuf
 {
@@ -12,21 +13,25 @@ namespace GroBuf
         public static bool IsMono { get; }
 
         public static string DelegateTargetFieldName => IsMono ? "m_target" : "_target";
-        public static string LazyValueFactoryFieldName => SelectName("_factory", "m_valueFactory");
-        public static string DateTimeOffsetDateTimeFieldName => SelectName("_dateTime", "m_dateTime");
-        public static string DateTimeOffsetOffsetMinutesFieldName => SelectName("_offsetMinutes", "m_offsetMinutes");
-        public static string HashtableCountFieldName => SelectName("_count", "count");
-        public static string HashtableBucketsFieldName => SelectName("_buckets", "buckets");
-        public static string HashSetSlotsFieldName => SelectName("_slots", "m_slots");
-        public static string HashSetLastIndexFieldName => SelectName("_lastIndex", "m_lastIndex");
+        public static string[] LazyValueFactoryFieldNames => new[] {"m_valueFactory", "_factory"};
+        public static string[] DateTimeOffsetDateTimeFieldNames => new[] {"m_dateTime", "_dateTime"};
+        public static string[] DateTimeOffsetOffsetMinutesFieldNames => new[] {"m_offsetMinutes", "_offsetMinutes"};
+        public static string[] HashtableCountFieldNames => new[] {"count", "_count"};
+        public static string[] HashtableBucketsFieldNames => new[] {"buckets", "_buckets"};
+        public static string[] HashSetSlotsFieldNames => new[] {"m_slots", "_slots"};
+        public static string[] HashSetLastIndexFieldNames => new[] {"m_lastIndex", "_lastIndex"};
+        public static string[] DictionaryCountFieldNames => new[] {"count", "_count"};
+        public static string[] DictionaryEntriesFieldNames => new[] {"entries", "_entries"};
 
-        private static string SelectName(string netcoreName, string net45Name)
+        public static FieldInfo GetPrivateInstanceField(this Type type, params string[] fieldNames)
         {
-#if NETSTANDARD2_0
-            return netcoreName;
-#else
-            return net45Name;
-#endif
+            foreach (var fieldName in fieldNames)
+            {
+                var fieldInfo = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+                if (fieldInfo != null)
+                    return fieldInfo;
+            }
+            throw new InvalidOperationException($"Failed to get filedInfo for type {type} with name candidates: {string.Join(", ", fieldNames)}");
         }
     }
 }

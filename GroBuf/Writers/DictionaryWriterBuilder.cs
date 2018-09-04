@@ -60,7 +60,7 @@ namespace GroBuf.Writers
 
             context.LoadObj(); // stack: [obj]
             // traverse all buckets
-            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.count]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DictionaryCountFieldNames)); // stack: [obj.count]
             var count = il.DeclareLocal(typeof(int));
             il.Stloc(count); // count = obj.count; stack: []
 
@@ -71,7 +71,7 @@ namespace GroBuf.Writers
             context.LoadObj(); // stack: [obj]
             var entryType = Type.GetNestedType("Entry", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var entries = il.DeclareLocal(entryType.MakeArrayType());
-            il.Ldfld(Type.GetField("entries", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.entries]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DictionaryEntriesFieldNames)); // stack: [obj.entries]
             il.Stloc(entries); // entries = obj.entries; stack: []
 
             var i = il.DeclareLocal(typeof(int));

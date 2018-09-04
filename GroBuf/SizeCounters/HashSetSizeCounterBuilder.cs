@@ -47,7 +47,7 @@ namespace GroBuf.SizeCounters
 
             context.LoadObj(); // stack: [size, obj]
             var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetField(PlatformHelpers.HashSetLastIndexFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.m_lastIndex]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetLastIndexFieldNames)); // stack: [size, obj.m_lastIndex]
             il.Dup();
             il.Stloc(count); // count = obj.m_lastIndex; stack: [size, count]
             var doneLabel = il.DefineLabel("done");
@@ -56,7 +56,7 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [size, obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var slots = il.DeclareLocal(slotType.MakeArrayType());
-            il.Ldfld(Type.GetField(PlatformHelpers.HashSetSlotsFieldName, BindingFlags.Instance | BindingFlags.NonPublic));
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetSlotsFieldNames));
             il.Stloc(slots);
 
             var i = il.DeclareLocal(typeof(int));

@@ -22,7 +22,7 @@ namespace GroBuf.Writers
                 var emptyLabel = context.Il.DefineLabel("empty");
                 context.Il.Brfalse(emptyLabel); // if(obj == null) goto empty;
                 context.LoadObj(); // stack: [obj]
-                context.Il.Ldfld(Type.GetField(PlatformHelpers.HashtableCountFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.Count]
+                context.Il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashtableCountFieldNames)); // stack: [obj.Count]
                 context.Il.Brtrue(notEmptyLabel); // if(obj.Count != 0) goto notEmpty;
                 context.Il.MarkLabel(emptyLabel);
             }
@@ -46,7 +46,7 @@ namespace GroBuf.Writers
             context.IncreaseIndexBy4(); // index = index + 4
             context.GoToCurrentLocation(); // stack: [&result[index]]
             context.LoadObj(); // stack: [&result[index], obj]
-            il.Ldfld(Type.GetField(PlatformHelpers.HashtableCountFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [&result[index], obj.Count]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashtableCountFieldNames)); // stack: [&result[index], obj.Count]
             il.Dup();
             var count = il.DeclareLocal(typeof(int));
             il.Stloc(count); // count = obj.Count; stack: [&result[index], obj.Count]
@@ -60,7 +60,7 @@ namespace GroBuf.Writers
             context.LoadObj(); // stack: [obj]
             var bucketType = Type.GetNestedType("bucket", BindingFlags.NonPublic);
             var buckets = il.DeclareLocal(bucketType.MakeArrayType());
-            var bucketsField = Type.GetField(PlatformHelpers.HashtableBucketsFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var bucketsField = Type.GetPrivateInstanceField(PlatformHelpers.HashtableBucketsFieldNames);
             il.Ldfld(bucketsField); // stack: [obj.buckets]
             il.Stloc(buckets); // buckets = obj.buckets; stack: []
             il.Ldloc(buckets); // stack: [buckets]

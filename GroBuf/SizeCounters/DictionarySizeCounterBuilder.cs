@@ -49,7 +49,7 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [size, obj]
             var count = il.DeclareLocal(typeof(int));
             // traverse all buckets
-            il.Ldfld(Type.GetField("count", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, obj.Count]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DictionaryCountFieldNames)); // stack: [size, obj.Count]
             il.Stloc(count); // count = obj.Count; stack: [size]
 
             var doneLabel = il.DefineLabel("done");
@@ -59,7 +59,7 @@ namespace GroBuf.SizeCounters
             context.LoadObj(); // stack: [size, obj]
             var entryType = Type.GetNestedType("Entry", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var entries = il.DeclareLocal(entryType.MakeArrayType());
-            il.Ldfld(Type.GetField("entries", BindingFlags.Instance | BindingFlags.NonPublic));
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DictionaryEntriesFieldNames));
             il.Stloc(entries);
 
             var i = il.DeclareLocal(typeof(int));

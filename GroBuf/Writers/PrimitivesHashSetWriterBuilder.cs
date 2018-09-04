@@ -65,11 +65,11 @@ namespace GroBuf.Writers
             context.LoadObj(); // stack: [obj]
             var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var slots = il.DeclareLocal(slotType.MakeArrayType());
-            il.Ldfld(Type.GetField(PlatformHelpers.HashSetSlotsFieldName, BindingFlags.Instance | BindingFlags.NonPublic));
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetSlotsFieldNames));
             il.Stloc(slots);
 
             context.LoadObj(); // stack: [obj]
-            il.Ldfld(Type.GetField(PlatformHelpers.HashSetLastIndexFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_lastIndex]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetLastIndexFieldNames)); // stack: [obj.m_lastIndex]
             il.Dup();
             var count = context.LocalInt;
             il.Stloc(count); // count = obj.m_lastIndex; stack: [count]

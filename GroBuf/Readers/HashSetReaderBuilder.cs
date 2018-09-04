@@ -47,7 +47,10 @@ namespace GroBuf.Readers
             il.Newobj(Type.GetConstructor(Type.EmptyTypes)); // stack: [ref result, new HashSet() = hashSet]
             il.Dup(); // stack: [ref result, hashSet, hashSet]
             il.Ldloc(length); // stack: [ref result, hashSet, hashSet, length]
-            il.Call(Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)); // hashSet.Initialize(length); stack: [ref result, hashSet]
+            var initializeMethod = Type.GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic);
+            il.Call(initializeMethod); // hashSet.Initialize(length); stack: [ref result, hashSet] or [ref result, hashSet, actualHashSetSize]
+            if (initializeMethod.ReturnType != typeof(void))
+                il.Pop(); // stack: [ref result, hashSet]
             il.Stind(Type); // result = hashSet; stack: []
 
             context.StoreObject(Type);

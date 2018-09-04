@@ -23,7 +23,7 @@ namespace GroBuf.SizeCounters
             var argument = Type.GetGenericArguments()[0];
 
             context.LoadObj(); // stack: [obj]
-            var factoryField = Type.GetField(PlatformHelpers.LazyValueFactoryFieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            var factoryField = Type.GetPrivateInstanceField(PlatformHelpers.LazyValueFactoryFieldNames);
             il.Ldfld(factoryField); // stack: [obj.m_valueFactory]
             var factory = il.DeclareLocal(typeof(Func<>).MakeGenericType(argument));
             il.Dup();

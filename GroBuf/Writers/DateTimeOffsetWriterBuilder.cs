@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 
 namespace GroBuf.Writers
 {
@@ -22,7 +21,7 @@ namespace GroBuf.Writers
 
             context.WriteTypeCode(GroBufTypeCode.DateTimeOffset);
             context.LoadObjByRef(); // stack: [obj]
-            il.Ldfld(Type.GetField(PlatformHelpers.DateTimeOffsetDateTimeFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_dateTime]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DateTimeOffsetDateTimeFieldNames)); // stack: [obj.m_dateTime]
             context.LoadWriteEmpty(); // stack: [obj.m_dateTime, writeEmpty]
             context.LoadResult(); // stack: [obj.m_dateTime, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.m_dateTime, writeEmpty, result, ref index]
@@ -30,7 +29,7 @@ namespace GroBuf.Writers
             context.CallWriter(typeof(DateTime)); // writer(obj.m_dateTime, writeEmpty, result, ref index, context)
 
             context.LoadObjByRef(); // stack: [obj]
-            il.Ldfld(Type.GetField(PlatformHelpers.DateTimeOffsetOffsetMinutesFieldName, BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [obj.m_offsetMinutes]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DateTimeOffsetOffsetMinutesFieldNames)); // stack: [obj.m_offsetMinutes]
             context.LoadWriteEmpty(); // stack: [obj.m_offsetMinutes, writeEmpty]
             context.LoadResult(); // stack: [obj.m_offsetMinutes, writeEmpty, result]
             context.LoadIndexByRef(); // stack: [obj.m_offsetMinutes, writeEmpty, result, ref index]
