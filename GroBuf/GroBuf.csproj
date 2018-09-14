@@ -3,16 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <PackageId>$(AssemblyName)</PackageId>
-    <VersionPrefix>1.3.2</VersionPrefix>
-    <Version>$(VersionPrefix)</Version>
-    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
-    <Authors>Igor Chevdar</Authors>
-    <PackageTags>binary serializer</PackageTags>
-    <Description>GroBuf is a fast binary serializer for .NET</Description>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/skbkontur/GroBuf</RepositoryUrl>
-    <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>

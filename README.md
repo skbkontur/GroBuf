@@ -33,7 +33,7 @@ public enum CarKind : byte
 }
 ```
 
-## Creating a serializer
+### Creating a serializer
 In order to obtain maximum speed it is strongly recommended to once create a serializer as it uses dynamic code generation for serializers/deserializers.
 
 ```
@@ -43,7 +43,7 @@ var serializer = new Serializer(new PropertiesExtractor(), options : GroBufOptio
 Here we create serializer in order to read/write all public properties.
 By default GroBuf skips objects which are empty (an object is considered empty if it is an array with zero length or if all its members are empty). The [GroBufOptions.WriteEmptyObjects](https://github.com/homuroll/GroBuf/blob/master/GroBuf/GroBuf/GroBufOptions.cs) options says GroBuf to write all data as is.
 
-## Serializing/Deserializing
+### Serializing/Deserializing
 GroBuf serializes objects to binary format and returns byte[], deserializes from byte[]:
 ```
 var car = new Car
@@ -126,3 +126,7 @@ Type=ProtoBufvsGroBufRunner  Mode=Throughput
 The disadvantages are:
  - because of simpler format the size of data produced by GroBuf is 1.5-2 times larger than ProtoBuf's. But it is planned to be optimized in the future
  - lack of ProtoBuf's extensions
+
+## Release Notes
+
+See [CHANGELOG](CHANGELOG.md).

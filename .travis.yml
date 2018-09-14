@@ -4,6 +4,7 @@ language: csharp
 dotnet: 2.1.400
 mono: none
 script:
+  - git fetch --unshallow # in order to make Nerdbank.GitVersioning.Tasks.GetBuildVersion work
   - dotnet restore ./GroBuf.sln --verbosity m
   - dotnet build --configuration Release --framework netstandard2.0 ./GroBuf/GroBuf.csproj
   - dotnet build --configuration Release --framework netcoreapp2.0 ./GroBuf.Tests/GroBuf.Tests.csproj
