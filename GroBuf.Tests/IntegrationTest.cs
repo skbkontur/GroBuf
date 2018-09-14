@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading;
 
 using GroBuf.DataMembersExtracters;
@@ -107,8 +107,6 @@ namespace GroBuf.Tests
         [Ignore("Is used for debugging")]
         public void TestWithGarbageCollection2()
         {
-            const int numberOfMessages = 1000000;
-
             stop = false;
             var thread = new Thread(Collect);
             thread.Start();
