@@ -12,7 +12,7 @@
       <PackageId>$(AssemblyName)</PackageId>
       <Authors>Igor Chevdar</Authors>
       <PackageTags>binary serializer</PackageTags>
-      <Description>GroBuf is a fast binary serializer for .NET</Description>
+      <PackageDescription>GroBuf is a fast binary serializer for .NET</PackageDescription>
       <RepositoryType>git</RepositoryType>
       <RepositoryUrl>https://github.com/skbkontur/GroBuf</RepositoryUrl>
       <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
