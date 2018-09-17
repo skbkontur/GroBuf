@@ -4,6 +4,7 @@
 - Use [Nerdbank.GitVersioning](https://github.com/AArnott/Nerdbank.GitVersioning) to automate generation of assembly 
   and nuget package versions.
 - Fix GroBuf to work on .NET Core 2.1 runtime on Linux.
+- Update [Gremit](https://github.com/skbkontur/gremit) dependency to v2.3.
 
 ## v1.3 - 2018.01.06
 - Support .NET Standard 2.0.
