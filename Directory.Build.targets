@@ -9,7 +9,6 @@
 
   <Target Name="SetNuSpecProperties" BeforeTargets="GenerateNuspec" DependsOnTargets="GetBuildVersion">
     <PropertyGroup>
-      <PackageId>$(AssemblyName)</PackageId>
       <Authors>Igor Chevdar</Authors>
       <PackageTags>binary serializer</PackageTags>
       <PackageDescription>GroBuf is a fast binary serializer for .NET</PackageDescription>

@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.4.x - 2020.04.03
+- Use [SourceLink](https://github.com/dotnet/sourcelink) to help ReSharper decompiler show actual code.
+
 ## v1.4 - 2018.09.14
 - Use [Nerdbank.GitVersioning](https://github.com/AArnott/Nerdbank.GitVersioning) to automate generation of assembly 
   and nuget package versions.

@@ -1,7 +1,7 @@
 dist: xenial
 sudo: false
 language: csharp
-dotnet: 2.2.100
+dotnet: 3.1.100
 mono: none
 script:
   - git fetch --unshallow # in order to make Nerdbank.GitVersioning.Tasks.GetBuildVersion work
