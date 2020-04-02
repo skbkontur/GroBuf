@@ -10,4 +10,6 @@ script:
   - dotnet restore ./GroBuf.sln --verbosity m
   - dotnet build --configuration Release --framework netstandard2.0 ./GroBuf/GroBuf.csproj
   - dotnet build --configuration Release --framework netcoreapp2.1 ./GroBuf.Tests/GroBuf.Tests.csproj
+  - dotnet build --configuration Release --framework netcoreapp3.1 ./GroBuf.Tests/GroBuf.Tests.csproj
   - dotnet test --no-build --configuration Release --framework netcoreapp2.1 --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
+  - dotnet test --no-build --configuration Release --framework netcoreapp3.1 --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
