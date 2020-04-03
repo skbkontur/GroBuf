@@ -1,9 +1,8 @@
 # Changelog
 
 ## v1.5 - 2020.04.03
+- Fix GroBuf to work on .NET Core 3 (issue [#18](https://github.com/skbkontur/GroBuf/issues/18)).
 - Use [SourceLink](https://github.com/dotnet/sourcelink) to help ReSharper decompiler show actual code.
-- Update deps
-- Fix GroBuf to work on .NET Core 3
 
 ## v1.4 - 2018.09.14
 - Use [Nerdbank.GitVersioning](https://github.com/AArnott/Nerdbank.GitVersioning) to automate generation of assembly 
