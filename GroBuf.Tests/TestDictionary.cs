@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+
+using FluentAssertions;
 
 using GroBuf.DataMembersExtracters;
 
@@ -15,6 +18,37 @@ namespace GroBuf.Tests
         public void SetUp()
         {
             serializer = new Serializer(new PropertiesExtractor());
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        public void TestRandom(int i, bool generateFiles = false)
+        {
+            var rnd = new Random(i);
+            var count = rnd.Next(1, 100);
+            var dict = new Dictionary<string, Zzz>();
+            for (int j = 0; j < count; j++)
+                dict[$"{i}{j}{count}{rnd.Next(1000, 10000)}"] = new Zzz
+                    {
+                        Properties = new Dictionary<string, byte[]>
+                            {
+                                {rnd.Next(1000, 10000).ToString(), new byte[] {5, 4}}
+                            }
+                    };
+
+            var buf = serializer.Serialize(dict);
+
+            if (generateFiles)
+                File.WriteAllBytes($"{TestContext.CurrentContext.TestDirectory}/../../../Files/dict{i}.buf", buf);
+
+            var expectedBuf = File.ReadAllBytes($"{TestContext.CurrentContext.TestDirectory}/Files/dict{i}.buf");
+            buf.Should().BeEquivalentTo(expectedBuf);
+
+            var dict2 = serializer.Deserialize<Dictionary<string, Zzz>>(buf);
+            dict2.Should().BeEquivalentTo(dict);
         }
 
         [Test]
