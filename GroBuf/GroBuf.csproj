@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net45</TargetFrameworks>
+    <PackageId>GroBuf</PackageId>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GrEmit" Version="3.1.1" />
+    <PackageReference Include="GrEmit" Version="3.3.1" />
     <PackageReference Include="Mono.Reflection.Core" Version="1.1.1" />
   </ItemGroup>
 
