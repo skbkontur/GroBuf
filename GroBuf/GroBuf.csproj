@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GrEmit" Version="3.3.1" />
+    <PackageReference Include="GrEmit" Version="3.2.2" />
     <PackageReference Include="Mono.Reflection.Core" Version="1.1.1" />
   </ItemGroup>
 
