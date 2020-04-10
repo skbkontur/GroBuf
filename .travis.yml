@@ -1,7 +1,7 @@
 dist: xenial
 sudo: false
 language: csharp
-dotnet: 3.1.100
+dotnet: 3.1.200
 mono: none
 before_install:
   - sudo apt-get install dotnet-sdk-2.1
