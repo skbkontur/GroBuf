@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.6.x - 2020.08.26
+## v1.6.1 - 2020.08.26
 - Use original [Mono.Reflection](https://www.nuget.org/packages/Mono.Reflection/2.0.0) package instead of forked one.
 - Use strongly-named [GrEmit](https://github.com/skbkontur/gremit) assembly.
 
