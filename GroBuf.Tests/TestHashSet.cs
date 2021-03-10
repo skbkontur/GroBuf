@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+
+using FluentAssertions;
 
 using GroBuf.DataMembersExtracters;
 
@@ -165,6 +168,38 @@ namespace GroBuf.Tests
             Assert.IsTrue(hashSet.Contains(3));
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        public void TestBackwardsCompatibility(int i, bool generateFiles = false)
+        {
+            var rnd = new Random(i);
+            var count = rnd.Next(1, 100);
+            var set = new HashSet<Zzz>();
+            for (int j = 0; j < count; j++)
+                set.Add(new Zzz
+                    {
+                        Id = $"{i}{j}{count}{rnd.Next(1000, 10000)}",
+                        Properties = new Dictionary<string, byte[]>
+                            {
+                                {rnd.Next(1000, 10000).ToString(), new byte[] {5, 4}}
+                            }
+                    });
+
+            var buf = serializer.Serialize(set);
+
+            if (generateFiles)
+                File.WriteAllBytes($"{TestContext.CurrentContext.TestDirectory}/../../../Files/set{i}.buf", buf);
+
+            var expectedBuf = File.ReadAllBytes($"{TestContext.CurrentContext.TestDirectory}/Files/set{i}.buf");
+            buf.Should().BeEquivalentTo(expectedBuf);
+
+            var set2 = serializer.Deserialize<HashSet<Zzz>>(buf);
+            set2.Should().BeEquivalentTo(set);
+        }
+
         [Test]
         [Category("LongRunning")]
         public void TestPerformance()
@@ -222,6 +257,35 @@ namespace GroBuf.Tests
         }
 
         private Serializer serializer;
+
+        private class Zzz
+        {
+            public Zzz()
+            {
+                Properties = new Dictionary<string, byte[]>();
+            }
+
+            protected bool Equals(Zzz other)
+            {
+                return Id == other.Id;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((Zzz)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return Id.GetHashCode();
+            }
+
+            public string Id { get; set; }
+            public Dictionary<string, byte[]> Properties { get; set; }
+        }
 
         private class TestWithHashSet
         {
