@@ -1,13 +1,11 @@
 dist: xenial
 sudo: false
 language: csharp
-dotnet: 3.1.300
+dotnet: 5.0.103
 mono: none
-before_install:
-  - sudo apt-get install dotnet-sdk-2.1
 script:
   - git fetch --unshallow # in order to make Nerdbank.GitVersioning.Tasks.GetBuildVersion work
   - dotnet restore ./GroBuf.sln --verbosity m
   - dotnet build --configuration Release --framework netstandard2.0 ./GroBuf/GroBuf.csproj
-  - dotnet build --configuration Release --framework netcoreapp3.1 ./GroBuf.Tests/GroBuf.Tests.csproj
-  - dotnet test --no-build --configuration Release --framework netcoreapp3.1 --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
+  - dotnet build --configuration Release --framework net5.0 ./GroBuf.Tests/GroBuf.Tests.csproj
+  - dotnet test --no-build --configuration Release --framework net5.0 --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
