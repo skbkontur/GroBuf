@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.7.x - 2021.03.xx
+- Fix GroBuf to work on .NET 5.0 (PR [#25](https://github.com/skbkontur/GroBuf/pull/25)).
+
 ## v1.6.1 - 2020.08.26
 - Use original [Mono.Reflection](https://www.nuget.org/packages/Mono.Reflection/2.0.0) package instead of forked one.
 - Use strongly-named [GrEmit](https://github.com/skbkontur/gremit) assembly.

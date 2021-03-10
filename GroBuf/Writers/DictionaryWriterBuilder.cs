@@ -70,8 +70,6 @@ namespace GroBuf.Writers
 
             context.LoadObj(); // stack: [obj]
             var entryType = Type.GetNestedType("Entry", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
-            var hashCodeType = entryType.GetField("hashCode", BindingFlags.Public | BindingFlags.Instance).FieldType;
-            var isNetCore3 = hashCodeType == typeof(uint);
             var entries = il.DeclareLocal(entryType.MakeArrayType());
             il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.DictionaryEntriesFieldNames)); // stack: [obj.entries]
             il.Stloc(entries); // entries = obj.entries; stack: []
@@ -87,15 +85,15 @@ namespace GroBuf.Writers
             il.Dup(); // stack: [&entries[i], &entries[i]]
             var entry = il.DeclareLocal(entryType.MakeByRefType());
             il.Stloc(entry); // entry = &entries[i]; stack: [entry]
-            if (!isNetCore3)
-            {
-                il.Ldfld(entryType.GetField("hashCode")); // stack: [entry.hashCode]
-                il.Ldc_I4(0); // stack: [entry.hashCode, 0]
-            }
-            else
+            if (PlatformHelpers.IsDotNetCore30OrGreater)
             {
                 il.Ldfld(entryType.GetField("next")); // stack: [entry.next]
                 il.Ldc_I4(-1); // stack: [entry.next, -1]
+            }
+            else
+            {
+                il.Ldfld(entryType.GetField("hashCode")); // stack: [entry.hashCode]
+                il.Ldc_I4(0); // stack: [entry.hashCode, 0]
             }
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(entry.hashCode < 0) goto next; stack: []
