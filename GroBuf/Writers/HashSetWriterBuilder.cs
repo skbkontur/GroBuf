@@ -58,14 +58,14 @@ namespace GroBuf.Writers
 
             context.LoadObj(); // stack: [obj]
             var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetLastIndexFieldNames)); // stack: [obj.m_lastIndex]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetCountFieldNames)); // stack: [obj.m_lastIndex]
             il.Dup();
             il.Stloc(count); // count = obj.m_lastIndex; stack: []
             var writeDataLengthLabel = il.DefineLabel("writeDataLength");
             il.Brfalse(writeDataLengthLabel);
 
             context.LoadObj(); // stack: [obj]
-            var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
+            var slotType = Type.GetNestedType(PlatformHelpers.HashSetSlotTypeName, BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var slots = il.DeclareLocal(slotType.MakeArrayType());
             il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetSlotsFieldNames));
             il.Stloc(slots);
@@ -81,14 +81,21 @@ namespace GroBuf.Writers
             il.Dup(); // stack: [&slots[i], &slots[i]]
             var slot = il.DeclareLocal(slotType.MakeByRefType());
             il.Stloc(slot); // slot = &slots[i]; stack: [slot]
-            il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [slot.hashCode]
-
-            il.Ldc_I4(0); // stack: [slot.hashCode, 0]
+            if (PlatformHelpers.IsDotNet50OrGreater)
+            {
+                il.Ldfld(slotType.GetField("Next")); // stack: [slot.Next]
+                il.Ldc_I4(-1); // stack: [slot.Next, -1]
+            }
+            else
+            {
+                il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [slot.hashCode]
+                il.Ldc_I4(0); // stack: [slot.hashCode, 0]
+            }
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(slot.hashCode < 0) goto next; stack: []
 
             il.Ldloc(slot); // stack: [slot]
-            il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [slot.value]
+            il.Ldfld(slotType.GetField(PlatformHelpers.HashSetSlotValueFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)); // stack: [slot.value]
             il.Ldc_I4(1); // stack: [obj[i], true]
             context.LoadResult(); // stack: [obj[i], true, result]
             context.LoadIndexByRef(); // stack: [obj[i], true, result, ref index]

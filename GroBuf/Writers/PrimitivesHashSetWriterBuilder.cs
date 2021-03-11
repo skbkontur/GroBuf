@@ -63,13 +63,13 @@ namespace GroBuf.Writers
             context.AssertLength();
 
             context.LoadObj(); // stack: [obj]
-            var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
+            var slotType = Type.GetNestedType(PlatformHelpers.HashSetSlotTypeName, BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var slots = il.DeclareLocal(slotType.MakeArrayType());
             il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetSlotsFieldNames));
             il.Stloc(slots);
 
             context.LoadObj(); // stack: [obj]
-            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetLastIndexFieldNames)); // stack: [obj.m_lastIndex]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetCountFieldNames)); // stack: [obj.m_lastIndex]
             il.Dup();
             var count = context.LocalInt;
             il.Stloc(count); // count = obj.m_lastIndex; stack: [count]
@@ -88,13 +88,21 @@ namespace GroBuf.Writers
             il.Dup(); // stack: [current, &slots[i], &slots[i]]
             var slot = il.DeclareLocal(slotType.MakeByRefType());
             il.Stloc(slot); // slot = &slots[i]; stack: [current, slot]
-            il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [current, slot.hashCode]
-            il.Ldc_I4(0); // stack: [current, slot.hashCode, 0]
+            if (PlatformHelpers.IsDotNet50OrGreater)
+            {
+                il.Ldfld(slotType.GetField("Next")); // stack: [current, slot.Next]
+                il.Ldc_I4(-1); // stack: [current, slot.Next, -1]
+            }
+            else
+            {
+                il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [current, slot.hashCode]
+                il.Ldc_I4(0); // stack: [current, slot.hashCode, 0]
+            }
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(slot.hashCode < 0) goto next; stack: [current]
             il.Dup(); // stack: [current, current]
             il.Ldloc(slot); // stack: [current, current, slot]
-            il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [current, current, slot.value]
+            il.Ldfld(slotType.GetField(PlatformHelpers.HashSetSlotValueFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)); // stack: [current, current, slot.value]
             il.Stind(elementType); // *current = slot.value; stack: [current]
             LoadItemSize(elementType, il); // stack: [current, item size]
             il.Add(); // stack: [current + item size]

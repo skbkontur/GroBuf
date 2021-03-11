@@ -47,14 +47,14 @@ namespace GroBuf.SizeCounters
 
             context.LoadObj(); // stack: [size, obj]
             var count = il.DeclareLocal(typeof(int));
-            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetLastIndexFieldNames)); // stack: [size, obj.m_lastIndex]
+            il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetCountFieldNames)); // stack: [size, obj.m_lastIndex]
             il.Dup();
             il.Stloc(count); // count = obj.m_lastIndex; stack: [size, count]
             var doneLabel = il.DefineLabel("done");
             il.Brfalse(doneLabel); // if(!count) goto done; stack: [size]
 
             context.LoadObj(); // stack: [size, obj]
-            var slotType = Type.GetNestedType("Slot", BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
+            var slotType = Type.GetNestedType(PlatformHelpers.HashSetSlotTypeName, BindingFlags.NonPublic).MakeGenericType(Type.GetGenericArguments());
             var slots = il.DeclareLocal(slotType.MakeArrayType());
             il.Ldfld(Type.GetPrivateInstanceField(PlatformHelpers.HashSetSlotsFieldNames));
             il.Stloc(slots);
@@ -70,13 +70,21 @@ namespace GroBuf.SizeCounters
             il.Dup(); // stack: [size, &slots[i], &slots[i]]
             var slot = il.DeclareLocal(slotType.MakeByRefType());
             il.Stloc(slot); // slot = &slots[i]; stack: [size, slot]
-            il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, slot.hashCode]
-            il.Ldc_I4(0); // stack: [size, slot.hashCode, 0]
+            if (PlatformHelpers.IsDotNet50OrGreater)
+            {
+                il.Ldfld(slotType.GetField("Next")); // stack: [size, slot.Next]
+                il.Ldc_I4(-1); // stack: [size, slot.Next, -1]
+            }
+            else
+            {
+                il.Ldfld(slotType.GetField("hashCode", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, slot.hashCode]
+                il.Ldc_I4(0); // stack: [size, slot.hashCode, 0]
+            }
             var nextLabel = il.DefineLabel("next");
             il.Blt(nextLabel, false); // if(slot.hashCode < 0) goto next; stack: [size]
 
             il.Ldloc(slot); // stack: [size, slot]
-            il.Ldfld(slotType.GetField("value", BindingFlags.Instance | BindingFlags.NonPublic)); // stack: [size, slot.value]
+            il.Ldfld(slotType.GetField(PlatformHelpers.HashSetSlotValueFieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)); // stack: [size, slot.value]
             il.Ldc_I4(1); // stack: [size, slot.value, true]
             context.LoadContext(); // stack: [size, slot.value, true, context]
             context.CallSizeCounter(elementType); // stack: [size, writer(slot.value, true, context) = valueSize]

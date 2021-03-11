@@ -25,7 +25,7 @@ namespace GroBuf.Tests
         [TestCase(2)]
         [TestCase(3)]
         [TestCase(4)]
-        public void TestRandom(int i, bool generateFiles = false)
+        public void TestBackwardsCompatibility(int i, bool generateFiles = false)
         {
             var rnd = new Random(i);
             var count = rnd.Next(1, 100);
