@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.7.x - 2021.03.xx
+## v1.7.3 - 2021.03.11
 - Fix GroBuf to work on .NET 5.0 (PR [#25](https://github.com/skbkontur/GroBuf/pull/25)).
 
 ## v1.6.1 - 2020.08.26
