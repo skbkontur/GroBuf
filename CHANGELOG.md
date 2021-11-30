@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.7.6 - 2021.11.30
+- Drop netcoreapp2.1 support.
+- Update GrEmit dependency to v3.4.10.
+
 ## v1.7.3 - 2021.03.11
 - Fix GroBuf to work on .NET 5.0 (PR [#25](https://github.com/skbkontur/GroBuf/pull/25)).
 
