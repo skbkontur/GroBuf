@@ -1,4 +1,4 @@
-using System;
+Ôªøusing System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -201,7 +201,7 @@ namespace GroBuf.Readers
             LoadIndexByRef(); // stack: [ref index]
             LoadIndex(); // stack: [ref index, index]
 
-            // todo: Ò‰ÂÎ‡Ú¸ switch
+            // todo: —Å–¥–µ–ª–∞—Ç—å switch
             Il.Ldloc(TypeCode); // stack: [ref index, index, TypeCode]
             Il.Ldc_I4((int)GroBufTypeCode.DateTimeOld); // stack: [ref index, index, TypeCode, GroBufTypeCode.DateTimeOld]
             var notDateTimeLabel = Il.DefineLabel("notDateTime");

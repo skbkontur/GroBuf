@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Linq;
 using System.Text;
 using System.Xml;
@@ -11,7 +11,7 @@ namespace GroBuf.Tests.TestTools
         {
             var xmlNode = TryGoToChild(node, name);
             if (xmlNode != null) return xmlNode;
-            throw new FormatException(string.Format("У элемента '{0}' не найдено дочернего '{1}'", node.Name, name));
+            throw new FormatException(string.Format("РЈ СЌР»РµРјРµРЅС‚Р° '{0}' РЅРµ РЅР°Р№РґРµРЅРѕ РґРѕС‡РµСЂРЅРµРіРѕ '{1}'", node.Name, name));
         }
 
         public static XmlNode TryGoToChild(this XmlNode node, string name)

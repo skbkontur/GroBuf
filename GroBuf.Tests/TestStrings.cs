@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Diagnostics;
 using System.Text;
 
@@ -44,28 +44,28 @@ namespace GroBuf.Tests
         [Test]
         public void TestString()
         {
-            const string s = "zzz ароваро \u2376 \uDEAD";
+            const string s = "zzz Р°СЂРѕРІР°СЂРѕ \u2376 \uDEAD";
             byte[] bytes = serializer.Serialize(s);
             var deserialize = serializer.Deserialize<string>(bytes);
-            Assert.AreEqual("zzz ароваро \u2376 \uDEAD", deserialize);
+            Assert.AreEqual("zzz Р°СЂРѕРІР°СЂРѕ \u2376 \uDEAD", deserialize);
         }
 
         [Test]
         public void TestString1()
         {
-            const string s = "zzz ароваро \u2376 \uDEAD";
+            const string s = "zzz Р°СЂРѕРІР°СЂРѕ \u2376 \uDEAD";
             byte[] bytes = serializer.Serialize(typeof(string), s);
             var deserialize = serializer.Deserialize(typeof(string), bytes);
-            Assert.AreEqual("zzz ароваро \u2376 \uDEAD", deserialize);
+            Assert.AreEqual("zzz Р°СЂРѕРІР°СЂРѕ \u2376 \uDEAD", deserialize);
         }
 
         [Test]
         public void TestStringInProp()
         {
-            const string s = "zzz ароваро \u2376 \uDEAD";
+            const string s = "zzz Р°СЂРѕРІР°СЂРѕ \u2376 \uDEAD";
             byte[] bytes = serializer.Serialize(new WithS {S = s});
             var deserialize = serializer.Deserialize<WithS>(bytes);
-            Assert.AreEqual("zzz ароваро \u2376 \uDEAD", deserialize.S);
+            Assert.AreEqual("zzz Р°СЂРѕРІР°СЂРѕ \u2376 \uDEAD", deserialize.S);
         }
 
         [Test]
