@@ -4,36 +4,46 @@ skip_commits:
   files:
     - '**/*.md'
 
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 init:
   - cmd: git config --global core.autocrlf false
-  - ps: |
-      $ErrorActionPreference = "Stop"
-      $tagName = $env:APPVEYOR_REPO_TAG_NAME
-      if ($tagName -match '^v\d+\.\d+') # tag name starts with 'vX.Y'
-      {
-        $env:SHOULD_PUBLISH_NUGET_PACKAGE = "true"
-        Write-Host "Will publish nuget package for $tagName tag" -ForegroundColor "Green"
-        if ($tagName -match '^v\d+\.\d+-release') # tag name starts with 'vX.Y-release' (e.g. use 'v4.2-release.1' tag for the first patch for release v4.2)
-        {
-          $env:SHOULD_CREATE_RELEASE = "true"
-          Write-Host "Will create release for $tagName tag" -ForegroundColor "Green"
-        }
-      }
 
 nuget:
   disable_publish_on_pr: true
 
 before_build:
+  - ps: |
+      $ErrorActionPreference = "Stop"
+      $tagName = $env:APPVEYOR_REPO_TAG_NAME
+      if ($tagName -match '^v\d+\.\d+') # tag name starts with 'vX.Y'
+      {
+        $version = $tagName.Substring(1)
+        $env:SHOULD_PUBLISH_NUGET_PACKAGE = "true"
+        Write-Host "Will publish nuget package for $tagName tag" -ForegroundColor "Green"
+        if ($tagName -match '^v\d+\.\d+-release') # tag name starts with 'vX.Y-release' (e.g. use 'v4.2-release.1' tag for the first patch for release v4.2)
+        {
+          $version = $version.Substring(0, $version.IndexOf("-release"))
+          $env:SHOULD_CREATE_RELEASE = "true"
+          Write-Host "Will create release for $tagName tag" -ForegroundColor "Green"
+        }
+        $matchVersion = Select-String -Path ./version.json -Pattern "`"version`": `"$version`""
+        if ($matchVersion -eq $null)
+        {
+          Write-Error "Version in tag ($version) does not match version in version.json"
+        }
+      }
   - cmd: dotnet --info
-  - cmd: dotnet restore ./GroBuf.sln --verbosity m
+  - cmd: dotnet restore ./GroBuf.sln --verbosity minimal
+  - cmd: dotnet tool restore
 
 build_script:
   - cmd: dotnet build --configuration Release ./GroBuf.sln
   - cmd: dotnet pack --no-build --configuration Release ./GroBuf.sln
 
 test_script:
+  - cmd: dotnet jb cleanupcode GroBuf.sln --profile=CatalogueCleanup --verbosity=WARN
+  - cmd: git diff --exit-code
   - cmd: dotnet test --no-build --configuration Release --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
 
 artifacts:
@@ -43,7 +53,7 @@ deploy:
   - provider: NuGet
     server: https://nuget.org
     api_key:
-      secure: y2RPf+gBBqffQVm8pg9qZcg99m7K8hsSa4z7VHvIE6t+kuO7r/oIqTVcryZzL93D
+      secure: 3Myenol+seNdEnkmH7tadxQLsmOE7VWQSp6vQii4vt2dX1S7XwjNV4T24HQTUsrr
     skip_symbols: true
     on:
       SHOULD_PUBLISH_NUGET_PACKAGE: true
