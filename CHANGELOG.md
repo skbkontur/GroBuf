@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.7.XX - 2022.01.13
+- Fix bug with negative array indices in GroBufHelpers static constructor on some Mono platforms (issue #28).
+
 ## v1.7.6 - 2021.11.30
 - Drop netcoreapp2.1 support.
 - Update GrEmit dependency to v3.4.10.

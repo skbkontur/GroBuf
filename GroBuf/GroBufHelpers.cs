@@ -164,7 +164,7 @@ namespace GroBuf
             var n = CalcSize(types.Select(x => (ulong)x.TypeHandle.Value.ToInt64()).ToArray());
             var result = new Type[n];
             foreach (var x in types)
-                result[x.TypeHandle.Value.ToInt64() % n] = x;
+                result[(ulong)x.TypeHandle.Value.ToInt64() % n] = x;
             return result;
         }
 
