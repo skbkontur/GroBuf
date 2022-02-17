@@ -34,7 +34,7 @@ public enum CarKind : byte
 ```
 
 ### Creating a serializer
-In order to obtain maximum speed it is strongly recommended to once create a serializer as it uses dynamic code generation for serializers/deserializers.
+In order to obtain maximum speed it is strongly recommended to use a single instance of the serializer as it dynamicly generates code for serialization/deserialization methods. Instances of the serializer are considered to be thread-safe.
 
 ```
 var serializer = new Serializer(new PropertiesExtractor(), options : GroBufOptions.WriteEmptyObjects);
