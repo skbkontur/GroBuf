@@ -1,6 +1,6 @@
 # Changelog
 
-## v1.8.X - 2022.02.18
+## v1.8.1 - 2022.02.18
 - Sign GroBuf assembly with a strong name
 
 ## v1.7.8 - 2022.01.13
