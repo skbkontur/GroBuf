@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.8.X - 2022.02.18
+- Sign GroBuf assembly with a strong name
+
 ## v1.7.8 - 2022.01.13
 - Fix bug with negative array indices in GroBufHelpers static constructor on some Mono platforms (issue #28).
 
