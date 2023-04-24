@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.9.2 - 2023.04.24
+- Add net7 support (PR [#32](https://github.com/skbkontur/GroBuf/pull/32))
+- Drop tests for net5
+- Switch to GitHub Actions
+
 ## v1.8.1 - 2022.02.18
 - Sign GroBuf assembly with a strong name
 
