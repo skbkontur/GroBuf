@@ -55,15 +55,15 @@ namespace GroBuf.Readers
             for (var i = 0; i < 256; ++i)
                 result[i] = defaultReader;
             foreach (var typeCode in new[]
-                {
-                    GroBufTypeCode.Int8, GroBufTypeCode.UInt8,
-                    GroBufTypeCode.Int16, GroBufTypeCode.UInt16,
-                    GroBufTypeCode.Int32, GroBufTypeCode.UInt32,
-                    GroBufTypeCode.Int64, GroBufTypeCode.UInt64,
-                    GroBufTypeCode.Single, GroBufTypeCode.Double,
-                    GroBufTypeCode.Boolean, GroBufTypeCode.DateTimeNew,
-                    GroBufTypeCode.Decimal
-                })
+                         {
+                             GroBufTypeCode.Int8, GroBufTypeCode.UInt8,
+                             GroBufTypeCode.Int16, GroBufTypeCode.UInt16,
+                             GroBufTypeCode.Int32, GroBufTypeCode.UInt32,
+                             GroBufTypeCode.Int64, GroBufTypeCode.UInt64,
+                             GroBufTypeCode.Single, GroBufTypeCode.Double,
+                             GroBufTypeCode.Boolean, GroBufTypeCode.DateTimeNew,
+                             GroBufTypeCode.Decimal
+                         })
                 result[(int)typeCode] = BuildPrimitiveValueReader(module, typeCode);
             return result;
         }
