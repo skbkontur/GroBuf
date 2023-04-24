@@ -58,7 +58,7 @@ namespace GroBuf.Writers
             il.Brfalse(writeDataLengthLabel); // if(count == 0) goto writeDataLength; stack: []
 
             context.LoadObj(); // stack: [obj]
-            var bucketType = Type.GetNestedType("bucket", BindingFlags.NonPublic);
+            var bucketType = Type.GetNestedType(PlatformHelpers.HashtableBucketTypeName, BindingFlags.NonPublic);
             var buckets = il.DeclareLocal(bucketType.MakeArrayType());
             var bucketsField = Type.GetPrivateInstanceField(PlatformHelpers.HashtableBucketsFieldNames);
             il.Ldfld(bucketsField); // stack: [obj.buckets]

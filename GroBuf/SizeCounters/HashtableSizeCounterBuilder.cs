@@ -45,7 +45,7 @@ namespace GroBuf.SizeCounters
             il.Brfalse(doneLabel); // if(count == 0) goto done; stack: [size]
 
             context.LoadObj(); // stack: [size, obj]
-            var bucketType = Type.GetNestedType("bucket", BindingFlags.NonPublic);
+            var bucketType = Type.GetNestedType(PlatformHelpers.HashtableBucketTypeName, BindingFlags.NonPublic);
             var buckets = il.DeclareLocal(bucketType.MakeArrayType());
             var bucketsField = Type.GetPrivateInstanceField(PlatformHelpers.HashtableBucketsFieldNames);
             il.Ldfld(bucketsField); // stack: [size, obj.buckets]
