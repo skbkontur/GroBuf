@@ -1,13 +1,16 @@
-version: '{build}'
+version: "{build}"
 
 skip_commits:
   files:
-    - '**/*.md'
+    - "**/*.md"
 
 image: Visual Studio 2022
 
 init:
   - cmd: git config --global core.autocrlf false
+
+skip_tags: true
+skip_non_tags: true
 
 nuget:
   disable_publish_on_pr: true
@@ -47,7 +50,7 @@ test_script:
   - cmd: dotnet test --no-build --configuration Release --filter TestCategory!=LongRunning ./GroBuf.Tests/GroBuf.Tests.csproj
 
 artifacts:
-  - path: './GroBuf/bin/Release/*.nupkg'
+  - path: "./GroBuf/bin/Release/*.nupkg"
 
 deploy:
   - provider: NuGet
