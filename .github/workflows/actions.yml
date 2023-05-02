@@ -3,8 +3,6 @@ on:
     paths-ignore:
       - "**/*.md"
     pull_request:
-env:
-  DOTNET_VERSION: 7.0.x
 jobs:
   test:
     runs-on: windows-2019
@@ -16,7 +14,7 @@ jobs:
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          global-json-file: global.json
 
       - name: Install dependencies
         run: dotnet restore ./GroBuf.sln --verbosity minimal && dotnet tool restore
@@ -41,7 +39,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          global-json-file: global.json
 
       - name: Build
         run: dotnet build --configuration Release ./GroBuf.sln
