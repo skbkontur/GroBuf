@@ -1,4 +1,7 @@
 # Changelog
+## v1.10.0 - 2024.11.19
+- Add net8.0 support
+- Update GrEmit dependency to v3.5.1
 
 ## v1.9.2 - 2023.04.24
 - Add net7 support (PR [#32](https://github.com/skbkontur/GroBuf/pull/32))
