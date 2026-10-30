@@ -4,22 +4,26 @@ on:
       - "**/*.md"
     pull_request:
 env:
-  DOTNET_VERSION: 7.0.x
+  TEST_DOTNET_VERSION: |
+    3.1.x
+    6.0.x
+    7.0.x
+    8.0.x
+    9.0.x
+    10.0.x
+  DOTNET_VERSION: 10.0.x
 jobs:
   test:
     runs-on: windows-2022
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: |
-            3.1.x
-            6.0.x
-            ${{ env.DOTNET_VERSION }}
+          dotnet-version: ${{ env.TEST_DOTNET_VERSION }}
 
       - name: Install dependencies
         run: dotnet restore ./GroBuf.sln --verbosity minimal && dotnet tool restore
@@ -37,12 +41,12 @@ jobs:
     needs: test
     if: startsWith(github.event.ref, 'refs/tags/v')
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -81,7 +85,7 @@ jobs:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
       - name: Create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: ${{ env.SHOULD_CREATE_RELEASE == 'true' }}
         with:
           fail_on_unmatched_files: true
